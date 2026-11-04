@@ -43,6 +43,12 @@ cd VOYAGE-CULTUREL
 code .
 ```
 
+> **Windows — PowerShell 5.1 : `&&` est refusé.** Le PowerShell livré avec Windows (version 5.1)
+> n'accepte pas l'opérateur `&&` ; il répond `Le jeton '&&' n'est pas un séparateur d'instruction
+> valide`. Écrivez les commandes **l'une après l'autre** (`cd` puis `code .`), ou utilisez `;` à la
+> place de `&&`, ou passez à PowerShell 7 / à l'invite de commandes (`cmd`) / à Git Bash.
+> `&&` fonctionne tel quel dans PowerShell 7, cmd, Git Bash, macOS et Linux.
+
 ### Méthode C — GitHub CLI
 
 ```bash
@@ -211,6 +217,7 @@ Il accepte une autre adresse : `npm run smoke -- http://localhost:3100`.
 | Page qui ne se met pas à jour | Recharger (`Ctrl+R`) ; le HMR peut être bloqué par un proxy. |
 | La réponse apparaît côté joueur | Impossible par conception : vérifier que vous regardez le bon onglet (les deux écrans diffusent des états différents). |
 | Erreurs TypeScript dans l'éditeur mais `npm run typecheck` passe | `Ctrl+Shift+P` → *TypeScript: Restart TS Server*. |
+| `Le jeton '&&' n'est pas un séparateur d'instruction valide` | PowerShell 5.1 (Windows). Lancer les commandes séparément, remplacer `&&` par `;`, ou utiliser PowerShell 7 / cmd / Git Bash. Même contrainte dans le terminal intégré de VS Code si le profil par défaut est « Windows PowerShell ». |
 
 ---
 
