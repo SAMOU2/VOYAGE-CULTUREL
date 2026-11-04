@@ -581,9 +581,19 @@ select {
   gap: 16px;
   margin-bottom: 18px;
 }
+.round-progress {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
 .round-counter {
   color: var(--muted);
   font-size: 13px;
+}
+.round-difficulty {
+  color: var(--teal);
+  font-size: 12px;
 }
 .score {
   font-size: 13px;

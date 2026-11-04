@@ -7,7 +7,7 @@ const file = path.join(here, '..', 'data', 'questions.json')
 
 const raw = JSON.parse(fs.readFileSync(file, 'utf8'))
 
-/** @typedef {{id:string,theme:string,difficulty:1|2|3,question:string,answer:string,accepted:string[],hints:string[],explanation:string,country:string,countryCode:string,isoN:string,coords:[number,number],source:{label:string,url:string}}} Question */
+/** @typedef {{id:string,theme:string,difficulty:1|2|3|4,question:string,answer:string,accepted:string[],hints:string[],explanation:string,country:string,countryCode:string,isoN:string,coords:[number,number],source:{label:string,url:string}}} Question */
 
 export const THEMES = raw.themes
 export const DIFFICULTIES = raw.difficulties
@@ -24,7 +24,7 @@ if (QUESTIONS.length === 0) {
 }
 
 /** Points attribués à une bonne réponse, selon la difficulté. */
-export const POINTS_BY_DIFFICULTY = { 1: 10, 2: 20, 3: 30 }
+export const POINTS_BY_DIFFICULTY = Object.fromEntries(DIFFICULTIES.map((d) => [d.value, d.points]))
 
 /** Paliers de niveau (score cumulé). */
 export const LEVEL_THRESHOLDS = [0, 40, 100, 170, 260, 360]
@@ -75,8 +75,7 @@ export function distanceKm(a, b) {
   const dLon = toRad(b[0] - a[0])
   const la1 = toRad(a[1])
   const la2 = toRad(b[1])
-  const h =
-    Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLon / 2) ** 2
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLon / 2) ** 2
   return Math.round(2 * R * Math.asin(Math.min(1, Math.sqrt(h))))
 }
 
@@ -86,24 +85,49 @@ export function distanceKm(a, b) {
  */
 export function buildQueue(config) {
   const difficultyFilter =
-    config.difficulty === 'mixte' || config.difficulty == null
+    config.difficulty === 'mixte' || config.difficulty == null || config.difficulty === ''
       ? null
       : Number(config.difficulty)
 
-  let pool = QUESTIONS.filter((q) => {
+  const pool = QUESTIONS.filter((q) => {
     const themeOk = !config.theme || config.theme === 'tous' || q.theme === config.theme
     const diffOk = difficultyFilter === null || q.difficulty === difficultyFilter
     return themeOk && diffOk
   })
+  // Aucun repli vers un autre thème ou niveau si les critères ne donnent rien.
+  if (pool.length === 0) return []
 
-  if (pool.length === 0) pool = [...QUESTIONS]
-  pool = shuffle(pool)
+  const count = Math.max(1, Math.min(Math.floor(Number(config.count) || 8), pool.length))
+  if (difficultyFilter !== null)
+    return shuffle(pool)
+      .slice(0, count)
+      .map((q) => q.id)
 
-  // En mode mixte, on propose une montée en difficulté progressive.
-  if (!difficultyFilter) pool.sort((a, b) => a.difficulty - b.difficulty)
+  const levels = [...new Set(pool.map((q) => q.difficulty))].sort((a, b) => a - b)
+  const groups = levels.map((level) => shuffle(pool.filter((q) => q.difficulty === level)))
+  const quotas = groups.map(() => 0)
 
-  const count = Math.max(1, Math.min(Number(config.count) || 8, pool.length))
-  return pool.slice(0, count).map((q) => q.id)
+  if (count < groups.length) {
+    // Une manche très courte parcourt des paliers espacés, du facile à l'expert.
+    for (let i = 0; i < count; i += 1) {
+      const index = count === 1 ? 0 : Math.round((i * (groups.length - 1)) / (count - 1))
+      quotas[index] = 1
+    }
+  } else {
+    // Répartir AVANT de trier : trier toute la banque puis la tronquer ne
+    // sélectionnait que des questions faciles. Respecter aussi les stocks.
+    let remaining = count
+    while (remaining > 0) {
+      for (let i = 0; i < groups.length && remaining > 0; i += 1) {
+        if (quotas[i] < groups[i].length) {
+          quotas[i] += 1
+          remaining -= 1
+        }
+      }
+    }
+  }
+
+  return groups.flatMap((group, i) => group.slice(0, quotas[i]).map((q) => q.id))
 }
 
 export function shuffle(list) {

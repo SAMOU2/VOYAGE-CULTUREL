@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",
     "preview:map": "node scripts/preview-map.mjs",
+    "test": "node --test scripts/test-map.mjs scripts/test-questions.mjs",
     "test:map": "node --test scripts/test-map.mjs",
+    "test:questions": "node --test scripts/test-questions.mjs",
     "test:ui": "playwright test"
   },
   "dependencies": {

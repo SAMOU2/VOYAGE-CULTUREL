@@ -48,7 +48,7 @@ export function randomCode() {
 export function normalizeDifficulty(value) {
   if (value === 'mixte' || value == null || value === '') return 'mixte'
   const n = Number(value)
-  return n === 1 || n === 2 || n === 3 ? n : 'mixte'
+  return Object.hasOwn(POINTS_BY_DIFFICULTY, n) ? n : 'mixte'
 }
 
 export function createRoom(config = {}) {
@@ -152,7 +152,10 @@ export function startGame(room) {
   if (!room.player) return { error: 'Aucun joueur connecté.' }
   if (!room.player.connected) return { error: 'Le joueur est déconnecté.' }
 
-  room.queue = buildQueue(room.config)
+  const queue = buildQueue(room.config)
+  if (queue.length === 0) return { error: 'Aucune question disponible pour ces critères.' }
+
+  room.queue = queue
   room.index = 0
   room.history = []
   room.status = 'playing'

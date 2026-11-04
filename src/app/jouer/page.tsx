@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import SiteHeader from '@/components/SiteHeader'
 import WorldMap, { type LonLat, type PickedCountry } from '@/components/WorldMap'
 import QuestionDetails from '@/components/QuestionDetails'
+import RoundProgress from '@/components/RoundProgress'
 import { emitAck, getSocket, playerSession } from '@/lib/socket'
 import type { PlayerState } from '@/lib/types'
 
@@ -257,9 +258,11 @@ export default function PlayerPage() {
         {state.status === 'playing' && question && (
           <section className="player-game" aria-label="Partie en cours">
             <div className="round-meta">
-              <p className="round-counter">
-                Question {state.progress.index} / {state.progress.total}
-              </p>
+              <RoundProgress
+                index={state.progress.index}
+                total={state.progress.total}
+                difficulty={question.difficulty}
+              />
               <p className="score" aria-label={`Score : ${state.score} points`}>
                 <strong>{state.score}</strong> pts
               </p>
