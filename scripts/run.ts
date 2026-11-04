@@ -7,7 +7,7 @@ const production = process.argv[2] === 'start'
 const backendPort = process.env.BACKEND_PORT || '4000'
 const frontendPort = process.env.PORT || '3000'
 if (backendPort === frontendPort) throw new Error('PORT et BACKEND_PORT doivent être différents.')
-const environment = {
+const environment: NodeJS.ProcessEnv = {
   ...process.env,
   BACKEND_PORT: backendPort,
   NODE_ENV: production ? 'production' : 'development',
