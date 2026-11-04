@@ -12,7 +12,7 @@ Le dépôt est `https://github.com/SAMOU2/VOYAGE-CULTUREL.git`.
 4. Ouvrir un terminal intégré dans la racine du dépôt :
 
 ```powershell
-npm ci
+npm ci --include=dev
 npm run dev
 ```
 
@@ -63,7 +63,7 @@ un résultat de compilation dans `backend/dist/`, ignoré par Git. Next génère
 1. Enregistrer les fichiers et regarder **Contrôle de source** (`Ctrl+Shift+G`).
 2. Committer ou mettre de côté ses modifications avant de récupérer des changements conflictuels.
 3. Menu **… → Pull** (ou palette **Git: Pull**).
-4. Après une modification de `package-lock.json`, relancer `npm ci`.
+4. Après une modification de `package-lock.json`, relancer `npm ci --include=dev`.
 5. Lancer `npm run typecheck` et `npm test`.
 
 Dans une session Arena, **conserver la branche fournie** : ne pas la renommer, en créer une autre
@@ -128,6 +128,8 @@ npm start
 
 | Problème                                 | Solution                                                                                                                           |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `tsx` n’est pas reconnu                  | À la racine du dépôt : `npm ci --include=dev`, puis `npm run dev`. Pas d’installation globale de `tsx`.                            |
+| Watchpack : `EINVAL`, `lstat C:\…sys`    | Voir le dépannage Windows ci-dessous. Ne pas toucher aux fichiers système.                                                         |
 | `EADDRINUSE`                             | Arrêter la copie déjà lancée avec son terminal/F5, ou changer les deux ports. Ne pas tuer tous les processus Node de l’ordinateur. |
 | CSS absent, modules Next introuvables    | Arrêter les serveurs, supprimer seulement `frontend/.next/`, puis relancer. Ne pas compiler pendant le développement.              |
 | Types erronés dans l’éditeur seulement   | Palette → **TypeScript: Select TypeScript Version → Use Workspace Version**, puis **Restart TS Server**.                           |
@@ -138,6 +140,36 @@ npm start
 | `users.json` illisible                   | Arrêter le serveur et conserver une copie avant de réparer le JSON. Le serveur ne l’écrase pas silencieusement.                    |
 | Classement à réinitialiser               | Arrêter le serveur, sauvegarder puis supprimer `data/users.json`. Un fichier vide est recréé au démarrage.                         |
 | PowerShell refuse `&&`                   | Lancer les commandes sur des lignes séparées, comme dans ce guide.                                                                 |
+
+### Watchpack sous Windows : scan de fichiers hors projet
+
+Si le terminal affiche `Watchpack Error (initial scan): EINVAL, lstat` pour
+`C:\DumpStack.log.tmp`, `C:\hiberfil.sys`, `C:\pagefile.sys` ou `C:\swapfile.sys`,
+le watcher a tenté d’inspecter la racine du disque au lieu de rester dans le dépôt.
+Ce n’est pas une erreur du jeu : un `GET /jouer 200` confirme que la page est servie,
+et le `307` de `/` vers `/jouer` est normal.
+
+La configuration corrigée de `frontend/next.config.ts` fixe la racine du monorepo
+et exclut de la surveillance Webpack les chemins extérieurs au dépôt, sans perdre
+le rechargement de `frontend/` et `shared/` ni les exclusions `.next`, `.git`, `node_modules`.
+Un simple filtre sur les noms `.sys` ne suffit pas : Watchpack peut lire leurs métadonnées
+avant d’appliquer ce filtre quand le dossier parent est déjà surveillé.
+
+Après fusion et récupération du correctif, arrêter les serveurs avec **Ctrl+C**, puis
+exécuter ces lignes séparément depuis la racine du dépôt :
+
+```powershell
+git pull
+npm ci --include=dev
+Remove-Item -Recurse -Force .\frontend\.next -ErrorAction SilentlyContinue
+npm run dev
+```
+
+Seul le cache généré `frontend/.next/` est supprimé, pas les questions ni le classement.
+Il ne faut **ni supprimer les fichiers Windows, ni désactiver la pagination ou
+l’hibernation, ni lancer VS Code en administrateur** pour contourner cet avertissement.
+Si le problème persiste avec cette configuration, relever `node -v`, le chemin du dépôt
+et les nouvelles lignes `Watchpack` du terminal pour poursuivre le diagnostic.
 
 Le stand est prévu pour un **LAN de confiance sans authentification**, pas pour une exposition
 publique sécurisée. Ne jamais publier `data/users.json` contenant les visiteurs réels.

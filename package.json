@@ -12,7 +12,7 @@
     "start": "node backend/dist/scripts/run.js start",
     "build": "npm run build --workspaces",
     "typecheck": "tsc -p backend/tsconfig.json --noEmit && tsc -p frontend/tsconfig.json --noEmit && tsc -p tests/tsconfig.json --noEmit",
-    "test": "tsx --test tests/unit/bank.test.ts tests/unit/geometry.test.ts tests/unit/stand.test.ts tests/unit/store.test.ts tests/unit/realtime.test.ts",
+    "test": "tsx --test tests/unit/bank.test.ts tests/unit/geometry.test.ts tests/unit/stand.test.ts tests/unit/store.test.ts tests/unit/realtime.test.ts tests/unit/watch-scope.test.ts",
     "test:ui": "playwright test",
     "smoke": "tsx scripts/smoke.ts",
     "build:geo": "tsx scripts/build-geo.ts",

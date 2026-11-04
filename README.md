@@ -27,7 +27,7 @@ créer, aucune partie à rejoindre, aucun compte, mot de passe ou code à saisir
 **Node.js 22 ou supérieur**, npm et Git. Depuis la racine du dépôt :
 
 ```text
-npm ci
+npm ci --include=dev
 npm run dev
 ```
 
