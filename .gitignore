@@ -9,3 +9,7 @@ dist/
 next-env.d.ts
 .npm/
 tsconfig.tsbuildinfo
+
+# Résultats et captures des tests navigateur
+.cache/
+playwright-report/
