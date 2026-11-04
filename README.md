@@ -8,10 +8,24 @@ un **présentateur** pilote la partie depuis une interface séparée qui contien
 les indices et les commandes de validation.
 
 - Deux écrans, un seul Wi-Fi, **aucune dépendance à un service cloud** pendant la partie.
+- **Carte du monde réelle** : pays colorés, lacs, fleuves, routes, zoom jusqu'au détail régional.
+- Le joueur répond **en cliquant sur le pays** : le serveur vérifie le clic et applique le barème.
 - 72 questions vérifiées (6 thèmes × 3 niveaux), banque locale au format JSON.
 - La réponse attendue n'est **jamais** envoyée au navigateur du joueur avant validation.
 
 ---
+
+## Aperçu
+
+| Globe (accueil, rotation automatique) | Carte du monde, pays réels |
+| --- | --- |
+| ![Globe coloré](docs/apercus/globe.png) | ![Carte du monde](docs/apercus/carte-monde.png) |
+
+| Zoom régional : routes, fleuves, lacs, sélection | Verdict : repère du joueur et lieu attendu |
+| --- | --- |
+| ![Europe à fort zoom](docs/apercus/carte-europe.png) | ![Zoom avec repères](docs/apercus/carte-zoom.png) |
+
+Aperçus générés sans navigateur par `npm run preview:map` (voir `docs/DONNEES.md`).
 
 ## 1. Démarrage
 
@@ -24,9 +38,11 @@ npm run dev          # http://localhost:3000 (écoute aussi sur le réseau local
 | --- | --- |
 | `npm run dev` | Serveur local + Next.js en mode développement (HMR) |
 | `npm run build` | Compilation de production — **arrêter le serveur de dev avant** |
-| `npm start` | Serveur de production (`NODE_OPTIONS=production`) |
+| `npm start` | Serveur de production (`NODE_ENV=production`) |
 | `npm run typecheck` | Vérification TypeScript |
 | `npm run smoke` | Test de bout en bout du moteur (voir §8) |
+| `npm run test:map` | Géométrie des pays, clics, barème et confidentialité (sans serveur) |
+| `npm run preview:map` | Génère les aperçus PNG du globe et des routes |
 
 Le port se change avec `PORT=4000 npm run dev`.
 
@@ -40,7 +56,7 @@ Le port se change avec `PORT=4000 npm run dev`.
 2. Ouvrir **`/presentateur`** sur cet ordinateur → *Créer la salle*.
 3. Projeter le **code à 5 caractères** ou le **QR code**.
 4. Le joueur scanne/ouvre le lien sur son téléphone ou sa tablette, saisit un pseudo.
-5. Le présentateur démarre, distribue les indices et valide les réponses.
+5. Le présentateur démarre et distribue les indices. Le clic du joueur est vérifié automatiquement ; le présentateur peut corriger le verdict.
 
 > ⚠️ Depuis un téléphone, n'utilisez jamais `localhost` : il désigne le téléphone lui-même.
 > Utilisez l'adresse du type `http://192.168.x.x:3000` affichée au démarrage du serveur (ou le QR code).
@@ -56,15 +72,17 @@ utilisée dans le navigateur : il fonctionne donc aussi bien en local que derri�
 | Exigence du dossier | Mise en œuvre |
 | --- | --- |
 | Écran joueur : rejoindre par code/QR, pseudo, statut | `/jouer` — formulaire, reprise de session, pastille de connexion |
-| Globe / carte 3D zoomable, repères, retour à la vue globale | `src/components/WorldMap.tsx` — projection orthographique + carte plate (D3), rotation au doigt, molette/pincement, repère cliquable |
-| Routes détaillées selon le zoom et les données | Tracé **géodésique** joueur → lieu attendu après validation, graticule et frontières renforcées selon le zoom (pas de données routières : voir §10) |
-| Question, écoute, réponse orale ou clavier, Valider | Synthèse vocale (`speechSynthesis`), dictée (`SpeechRecognition`, repli clavier), saisie libre + repère |
+| Globe / carte 3D zoomable, repères, retour à la vue globale | `src/components/WorldMap.tsx` — projection orthographique + carte plate (D3), rotation au doigt, molette/pincement, retour à la vue globale |
+| « Colore la terre », pays réels | 241 pays et territoires Natural Earth à l’échelle 1:50 millions, coloriés comme un atlas, noms français au survol |
+| Routes réelles détaillées selon le zoom | Lacs (toujours), rivières dès ×1,35, **routes réelles** (Natural Earth à l’échelle 1:10 millions) dès ×2,2, frontières renforcées — voir `docs/DONNEES.md` |
+| Réponse par clic sur la carte | Clic → pays détecté (point-in-polygon), confirmation du nom, bouton *Valider ma réponse* |
+| Écoute de la question | Synthèse vocale (`speechSynthesis`) ; la dictée a été retirée, la réponse est cartographique |
 | Score, niveau, progression, feedback | Barre de niveau, carnet de pays trouvés, panneau de résultat |
 | Interface présentateur : créer/démarrer/terminer | `/presentateur` — salle, QR, réglages, commandes |
 | Réponse privée, explication, source | Carte dorée « visible par vous seul », variantes acceptées, source |
 | Commandes : afficher, répéter, indice, valider, incorrecte, passer, suivante | Barre de commandes + lecture de l'énoncé côté joueur |
 | Temps réel | Socket.IO (repli long-polling automatique) |
-| Accessibilité / robustesse | Saisie clavier toujours possible, boutons ≥ 46 px, contrastes, `aria-*`, `prefers-reduced-motion`, jeu utilisable sans voix ni WebGL |
+| Accessibilité / robustesse | Réponse à la souris ou au doigt, zoom par boutons, contrastes, `aria-*`, `prefers-reduced-motion`, jeu utilisable sans voix ni WebGL |
 | Sécurité / vie privée | Code de salle aléatoire, jeton présentateur, filtrage strict des états envoyés, données en mémoire seulement |
 
 ---
@@ -74,9 +92,13 @@ utilisée dans le navigateur : il fonctionne donc aussi bien en local que derri�
 | Élément | Valeur par défaut |
 | --- | --- |
 | Points — facile / moyen / expert | 10 / 20 / 30 |
+| Emplacement exact (bon pays, à moins de 400 km du lieu) | 100 % des points |
+| Bon pays, mais loin du lieu précis | 60 % |
+| À moins de 200 km, de l'autre côté d'une frontière | 40 % |
+| Ailleurs | 0 point (résolu en échec) |
 | Indice | −5 points (deux indices au plus par question) |
-| Seconde chance (option, activée) | la réponse vaut alors la moitié des points restants, plancher à 5 |
-| Mauvaise réponse sans seconde chance | 0 point, la question est résolue |
+| Seconde chance (option, activée) | la question reste ouverte, la réponse vaut alors la moitié |
+| Correction du présentateur | il peut **accorder** ou **retirer** les points après coup |
 | Niveaux | 1 → 6 aux scores 0, 40, 100, 170, 260, 360 |
 | Fin de partie | score, bonnes réponses, pays trouvés, badge (Apprenti → Explorateur légendaire) |
 | Nombre de questions | 5, 8, 10, 12 ou 15 |
@@ -107,9 +129,16 @@ src/components/
 src/lib/
   socket.ts        Client Socket.IO, appels avec acquittement, sessions locales
   types.ts         Types partagés des états
+  map-geometry.mjs Index des pays et détection de clic partagés avec le serveur
   catalog.ts       Thèmes et difficultés pour les formulaires
-public/geo/        countries-110m.json (Natural Earth, domaine public)
-scripts/smoke.mjs  Test automatisé du moteur
+server/geo.mjs     « Dans quel pays a-t-on cliqué ? » (point-in-polygon sur les frontières réelles)
+public/geo/        Natural Earth : pays 50m et 110m, lacs, rivières, routes (voir docs/DONNEES.md)
+scripts/smoke.mjs  Test automatisé du moteur via Socket.IO
+scripts/test-map.mjs    Tests de la géométrie, du barème et de la confidentialité
+scripts/build-geo.mjs   Régénère les pays traduits en français
+scripts/preview-map.mjs Rend les aperçus de la carte en PNG, sans navigateur
+docs/DONNEES.md    Provenance des données, licences, niveau de détail
+docs/apercus/      Aperçus du rendu (globe, carte du monde, Europe, zoom)
 ```
 
 ### Choix techniques
@@ -123,7 +152,7 @@ scripts/smoke.mjs  Test automatisé du moteur
 - **Socket.IO** avec `transports: ['polling', 'websocket']` : indispensable, car beaucoup de proxys
   Wi-Fi d'établissement bloquent les WebSockets.
 - **Aucune ressource externe** à l'exécution (polices auto-hébergées via `@fontsource`, géographie
-  locale) : une fois la page chargée, le jeu fonctionne hors ligne.
+  locale) : le jeu fonctionne sans Internet. La connexion au serveur local reste nécessaire.
 
 ---
 
@@ -138,7 +167,7 @@ Le serveur diffuse un état **différent** à chaque rôle ; il n'existe pas d'�
 | `host:command` | présentateur | `{code, type, payload}` — `start`, `hint`, `correct`, `incorrect`, `skip`, `next`, `end`, `restart`, `config` |
 | `player:join` | joueur | `{code, pseudo}` → `{playerId, pseudo}` |
 | `player:rejoin` | joueur | `{code, playerId}` |
-| `player:submit` | joueur | `{code, text, pin:[lon,lat]}` |
+| `player:submit` | joueur | `{code, pin:[lon,lat]}` |
 | `state` | serveur | état filtré (`playerView` / `hostView`) |
 
 Les commandes sont refusées si le socket n'est pas celui du présentateur (`room.hostSocketId`),
@@ -156,7 +185,7 @@ Chaque fiche de `data/questions.json` contient : `id`, `theme`, `difficulty` (1-
 La date de vérification globale est `checkedAt` et s'affiche dans l'interface. Les sources sont
 institutionnelles (UNESCO, Britannica, Larousse, musée du Louvre). Avant d'ajouter des questions,
 vérifiez : exactitude, variantes acceptées, coordonnées, code `isoN` (le pays doit exister dans
-`public/geo/countries-110m.json`, sinon il n'est simplement pas surligné).
+`public/geo/countries-50m.json` pour pouvoir valider les clics).
 
 Changer le nombre de questions ou de thèmes ne demande aucune modification de code : la banque est
 lue au démarrage du serveur.
@@ -167,8 +196,10 @@ lue au démarrage du serveur.
 
 - Code de salle aléatoire à 5 caractères, **jeton présentateur** secret conservé dans le
   `localStorage` de l'animateur (pas dans l'URL du joueur).
-- `playerView()` ne contient la réponse, l'explication et les coordonnées qu'après résolution ;
-  les tests automatisés le vérifient sur le JSON réellement transmis.
+- `playerView()` ne contient la réponse, l'explication, le pays attendu et les coordonnées qu'après
+  résolution ; les tests automatisés le vérifient sur le JSON réellement transmis.
+- Le serveur tranche les réponses lui-même à partir de la géométrie des pays : le navigateur ne
+  reçoit pas le corrigé pour « calculer » le verdict.
 - Aucun compte, aucun courriel, aucune donnée persistée : pseudos, scores et historique vivent en
   mémoire et la salle est purgée après inactivité (6 h, 30 min sans aucun appareil connecté).
 - Le trafic reste sur le réseau local. Cela ne remplace pas les protections de base : n'exposez pas
@@ -178,10 +209,16 @@ lue au démarrage du serveur.
 
 ## 8. Tests
 
-**Automatique** — `npm run smoke` (serveur démarré) vérifie 26 points : création de salle, mauvais
-code refusé, arrivée du joueur, démarrage, absence de la réponse dans l'état joueur, indice unique,
-soumission, calcul de distance, validation, seconde chance, passage, fin de partie, reconnexion,
-jeton présentateur invalide, commande refusée à un tiers.
+**Automatique** — `npm run smoke` (serveur démarré) vérifie 40 points : création de salle, mauvais
+code refusé, arrivée du joueur, absence de la réponse et du pays attendu dans l'état joueur, indice
+unique, refus d'une réponse sans clic, détection d'un mauvais clic, seconde chance, verdict exact,
+correction du présentateur (accorder / retirer), passage, fin de partie, reconnexion, jeton
+présentateur invalide, commande refusée à un tiers. La confidentialité est aussi vérifiée sur
+l’accusé de réception d’une seconde chance (pas seulement sur l’événement `state`).
+
+`npm run test:map` : 21 tests sans serveur — pays traversant l’antiméridien (États-Unis, Russie,
+Nouvelle-Zélande, Kiribati), petits pays, comparaison géométrique sur 512 points, clics hors de la
+Terre, coordonnées invalides, barème et confidentialité avant résolution.
 
 **Manuel** — la liste du dossier de conception :
 
@@ -189,7 +226,8 @@ jeton présentateur invalide, commande refusée à un tiers.
 2. Question, indice, validation et score synchronisés sur les deux écrans.
 3. La réponse privée n'apparaît jamais dans l'écran joueur (onglet « Réseau » du navigateur).
 4. Zoom et déplacement à la souris **et** au doigt ; réseau lent (le repli long-polling prend le relais).
-5. Jeu complet sans reconnaissance vocale (champ de saisie) et sans WebGL.
+5. Clic sur un pays voisin : le verdict doit rester « à côté » ; clic dans le bon pays : « bon pays ».
+6. Rendu : `npm run preview:map` régénère les aperçus PNG sans navigateur.
 
 ---
 
@@ -200,19 +238,23 @@ Le dossier listait plusieurs décisions ouvertes ; les valeurs retenues sont :
 - **Un joueur et un présentateur** par salle (MVP). Le modèle de données est prêt pour plusieurs
   joueurs (score et pays suivis par joueur), l'interface devra être étendue.
 - **Cartographie** : globe D3 + carte plate, plutôt que Three.js (voir §4).
+- **Réponse** : clic sur la carte plutôt que saisie de texte — le jeu teste le repérage géographique,
+  pas l'orthographe. Le présentateur garde la main via les corrections.
 - **Catégories** : capitales, monuments, langues, nature, traditions, histoire.
 - **Barème** : voir §3, tout est réglable côté présentateur (sauf le barème, centralisé dans
   `server/questions.mjs`).
-- **Fonctionnement hors ligne** : oui, après chargement de la page.
+- **Sans Internet** : oui ; le réseau local et le serveur restent nécessaires.
 
 ---
 
 ## 10. Limites connues et suites possibles
 
-- Pas de **couches routières détaillées** : elles exigent des données cartographiques lourdes et une
-  licence à vérifier. Le tracé actuel est géodésique (grand cercle), ce qui suffit au repérage.
+- Les **routes** Natural Earth sont les grands axes mondiaux : denses en Europe et en Amérique du
+  Nord, rares en Afrique subsaharienne. Ce ne sont pas des données OpenStreetMap (bien trop lourdes
+  pour un dépôt et pour un rendu temps réel).
 - **Un seul joueur** par salle ; pas de mode équipe.
 - Tout est en mémoire : un redémarrage du serveur termine les parties en cours (les sessions
   locales permettent au joueur de rejoindre une nouvelle salle sans perdre son pseudo).
-- Pistes : sauvegarde SQLite des scores, mode multi-joueurs, voix enregistrées pour les questions,
-  mode « atelier » de création de questions, thème sombre/clair.
+- Pistes : sauvegarde SQLite des scores, mode multi-joueurs, mode « atelier » de création de
+  questions, fonds de carte régionaux plus fins, vue 3D WebGL (Three.js) pour les machines dotées
+  d'une carte graphique.

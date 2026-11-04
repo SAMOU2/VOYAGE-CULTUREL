@@ -56,7 +56,7 @@ export default function HomePage() {
                   <span className="dot" /> {bank ? `${bank.total} questions vérifiées` : 'Banque de questions locale'}
                 </span>
                 <span className="pill">Un joueur · un présentateur</span>
-                <span className="pill">Hors ligne après chargement</span>
+                <span className="pill">Carte du monde réelle</span>
               </div>
             </div>
 
@@ -87,8 +87,8 @@ export default function HomePage() {
               </span>
               <h2 style={{ fontSize: 22, marginBottom: 0 }}>Je suis joueur</h2>
               <p className="muted" style={{ margin: 0, fontSize: 14 }}>
-                Saisissez le code de la salle, puis explorez la carte : zoomez, placez votre repère, répondez au
-                clavier ou à la voix.
+                Saisissez le code de la salle, explorez la carte colorée : zoomez, cliquez sur le pays qui répond
+                à la question, puis validez.
               </p>
               <span className="teal small" style={{ marginTop: 'auto', fontWeight: 600 }}>
                 Rejoindre la partie →
@@ -109,13 +109,13 @@ export default function HomePage() {
               </div>
               <div className="step">
                 <strong>La question s&apos;affiche</strong>
-                Elle peut être lue à voix haute. Le joueur explore le globe ou la carte plate, cherche, puis
-                place un repère.
+                Elle peut être lue à voix haute. Le joueur fait tourner le globe (ou la carte plate), zoome jusqu&apos;aux
+                routes, puis clique sur le pays qui répond.
               </div>
               <div className="step">
                 <strong>Le présentateur tranche</strong>
-                Il voit la réponse attendue, les variantes acceptées, la distance du repère. Indice, validation,
-                nouvelle chance ou question suivante.
+                Il voit la réponse attendue, le pays cliqué et la distance. L&apos;application tranche seule :
+                emplacement exact, bon pays ou à côté — il peut toujours corriger.
               </div>
               <div className="step">
                 <strong>Le score grimpe</strong>
@@ -148,11 +148,10 @@ export default function HomePage() {
               </div>
 
               <ul className="muted small" style={{ marginTop: 20, paddingLeft: 18, lineHeight: 1.8 }}>
+                <li>Le joueur répond en cliquant sur un pays, puis en validant.</li>
+                <li>Bon pays et lieu précis : tous les points · bon pays seul : 60 % · à quelques kilomètres : 40 %.</li>
                 <li>Un indice coûte 5 points, et la réponse vaut au minimum 5 points.</li>
-                <li>
-                  Mauvaise réponse : le présentateur peut accorder une seconde chance, à demi-points (option
-                  activée par défaut).
-                </li>
+                <li>Seconde chance : la question reste ouverte, à demi-points (option activée par défaut).</li>
                 <li>Une bonne réponse fait progresser d&apos;un niveau tous les 40 à 100 points.</li>
                 <li>La réponse attendue n&apos;est jamais envoyée au navigateur du joueur avant la validation.</li>
               </ul>

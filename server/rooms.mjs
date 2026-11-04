@@ -1,4 +1,5 @@
 import crypto from 'node:crypto'
+import { countryAt } from './geo.mjs'
 import {
   POINTS_BY_DIFFICULTY,
   QUESTIONS,
@@ -19,6 +20,8 @@ const MAX_ROOMS = 500
 const ROOM_TTL_MS = 6 * 60 * 60 * 1000
 const HINT_PENALTY = 5
 const MIN_POINTS = 5
+/** Part des points selon la précision du clic sur la carte. */
+export const PRECISION_FACTOR = { exact: 1, country: 0.6, near: 0.4, miss: 0 }
 
 export const BADGES = [
   { min: 220, id: 'legende', label: 'Explorateur légendaire', emoji: '🌍' },
@@ -189,20 +192,71 @@ export function submitAnswer(room, payload = {}) {
   const player = room.player
   if (!player) return { error: 'Aucun joueur.' }
 
-  const text = String(payload.text || '').slice(0, 140)
-  const pin =
-    Array.isArray(payload.pin) && payload.pin.length === 2
-      ? [Number(payload.pin[0]), Number(payload.pin[1])]
-      : null
+  const pin = payload.pin
   const validPin =
-    pin && Number.isFinite(pin[0]) && Number.isFinite(pin[1]) && Math.abs(pin[1]) <= 90 ? pin : null
+    Array.isArray(pin) && pin.length === 2 && pin.every((n) => typeof n === 'number' && Number.isFinite(n)) &&
+    Math.abs(pin[0]) <= 180 && Math.abs(pin[1]) <= 90 ? [pin[0], pin[1]] : null
 
-  player.text = text
+  if (!validPin) {
+    return { error: 'Cliquez sur la carte pour désigner un lieu.' }
+  }
+  if (!countryAt(validPin[0], validPin[1])) {
+    return { error: 'Cet endroit est en pleine mer : cliquez sur un pays.' }
+  }
+
   player.pin = validPin
+  player.text = ''
   player.answeredAt = Date.now()
   room.question.status = 'answered'
-  touch(room)
-  return { ok: true }
+
+  // Le joueur a désigné un point : on tranche immédiatement.
+  const verdict = evaluatePin(room, room.question, validPin)
+
+  // Seconde chance : on ne révèle pas la réponse, on rouvre la question (points réduits).
+  if (verdict.outcome !== 'correct' && room.config.allowRetry && room.question.attempts < 1) {
+    room.question.attempts += 1
+    player.attempts = room.question.attempts
+    room.question.status = 'open'
+    player.pin = null
+    touch(room)
+    // Même l'accusé de réception reste filtré : ni pays attendu ni distance au
+    // corrigé pendant la seconde chance (et pas seulement l'événement « state »).
+    return { ok: true, retry: true, outcome: verdict.outcome, precision: verdict.precision }
+  }
+
+  resolveQuestion(room, verdict)
+  return { ok: true, ...verdict }
+}
+
+/**
+ * Compare le point cliqué au lieu attendu.
+ * - exact  : dans le bon pays et à moins de 400 km du lieu précis
+ * - country: dans le bon pays
+ * - near   : à moins de 200 km du lieu, mais de l'autre côté d'une frontière
+ * - miss   : ailleurs
+ */
+export function evaluatePin(room, question, pin) {
+  const clicked = countryAt(pin[0], pin[1])
+  const target = { id: String(question.isoN), name: question.country }
+  const distance = distanceKm(pin, question.coords)
+  const sameCountry = Boolean(clicked && clicked.id === target.id)
+
+  let precision = 'miss'
+  if (sameCountry && distance != null && distance <= 400) precision = 'exact'
+  else if (sameCountry) precision = 'country'
+  else if (clicked && distance != null && distance <= 200) precision = 'near'
+
+  const base = computePoints(room, question)
+  const outcome = precision === 'miss' ? 'incorrect' : 'correct'
+  const points = outcome === 'incorrect' ? 0 : Math.max(1, Math.round(base * PRECISION_FACTOR[precision]))
+
+  return {
+    outcome,
+    points,
+    precision,
+    distanceKm: distance,
+    clickedCountry: clicked,
+  }
 }
 
 function basePoints(question) {
@@ -216,21 +270,33 @@ function computePoints(room, question) {
   return Math.max(MIN_POINTS, points)
 }
 
-function resolve(room, outcome, points) {
+function resolveQuestion(room, verdict) {
   const question = room.question
   const player = room.player
+  const points = Math.max(0, verdict.points ?? 0)
+  const outcome = verdict.outcome ?? 'incorrect'
+
   question.status = 'feedback'
-  question.resolved = { outcome, points: Math.max(0, points) }
-  if (outcome === 'correct') {
-    player.score += Math.max(0, points)
-    player.correct += 1
-    if (!player.found.includes(resolveCountry(question))) player.found.push(resolveCountry(question))
+  question.resolved = {
+    outcome,
+    points,
+    precision: verdict.precision ?? 'manual',
+    clickedCountry: verdict.clickedCountry ?? null,
+    automatic: verdict.automatic !== false,
   }
+
+  if (outcome === 'correct') {
+    player.score += points
+    player.correct += 1
+    if (!player.found.includes(question.country)) player.found.push(question.country)
+  }
+
   room.history.push({
     questionId: question.id,
     outcome,
-    points: Math.max(0, points),
-    text: player.text,
+    points,
+    precision: question.resolved.precision,
+    clickedCountry: question.resolved.clickedCountry,
     pin: player.pin,
     hintsUsed: question.hintLevel,
     distanceKm: distanceKm(player.pin, question.coords),
@@ -239,8 +305,31 @@ function resolve(room, outcome, points) {
   touch(room)
 }
 
-function resolveCountry(question) {
-  return question.country
+/** Correction du présentateur après coup : accorde ou retire les points de la question courante. */
+function overrideResolution(room, outcome) {
+  const question = room.question
+  const player = room.player
+  const resolved = question.resolved
+  if (!resolved || resolved.outcome === outcome) return { ok: true }
+
+  if (outcome === 'correct') {
+    const points = computePoints(room, question)
+    player.score += points
+    player.correct += 1
+    if (!player.found.includes(question.country)) player.found.push(question.country)
+    question.resolved = { ...resolved, outcome: 'correct', points, precision: 'force', automatic: false }
+    const entry = room.history.at(-1)
+    if (entry) Object.assign(entry, { outcome: 'correct', points, precision: 'force' })
+  } else {
+    player.score = Math.max(0, player.score - (resolved.points ?? 0))
+    player.correct = Math.max(0, player.correct - 1)
+    player.found = player.found.filter((c) => c !== question.country)
+    question.resolved = { ...resolved, outcome: 'incorrect', points: 0, precision: 'annule', automatic: false }
+    const entry = room.history.at(-1)
+    if (entry) Object.assign(entry, { outcome: 'incorrect', points: 0, precision: 'annule' })
+  }
+  touch(room)
+  return { ok: true }
 }
 
 export function hostCommand(room, type, payload = {}) {
@@ -262,14 +351,23 @@ export function hostCommand(room, type, payload = {}) {
       return { ok: true }
     }
     case 'correct': {
-      if (room.status !== 'playing' || !question || question.status === 'feedback')
-        return { error: 'Aucune réponse à valider.' }
-      resolve(room, 'correct', computePoints(room, question))
+      if (room.status !== 'playing' || !question) return { error: 'Aucune question en cours.' }
+      // Après coup : le présentateur rectifie un verdict automatique.
+      if (question.status === 'feedback') return overrideResolution(room, 'correct')
+      if (question.status !== 'answered') return { error: 'Le joueur n\'a pas encore répondu.' }
+      resolveQuestion(room, {
+        outcome: 'correct',
+        points: computePoints(room, question),
+        precision: 'manual',
+        automatic: false,
+        clickedCountry: room.player.pin ? countryAt(room.player.pin[0], room.player.pin[1]) : null,
+      })
       return { ok: true }
     }
     case 'incorrect': {
-      if (room.status !== 'playing' || !question || question.status === 'feedback')
-        return { error: 'Aucune réponse à refuser.' }
+      if (room.status !== 'playing' || !question) return { error: 'Aucune question en cours.' }
+      if (question.status === 'feedback') return overrideResolution(room, 'incorrect')
+      if (question.status !== 'answered') return { error: 'Le joueur n\'a pas encore répondu.' }
       if (room.config.allowRetry && question.attempts < 1) {
         question.attempts += 1
         room.player.attempts = question.attempts
@@ -279,13 +377,13 @@ export function hostCommand(room, type, payload = {}) {
         touch(room)
         return { ok: true, retry: true }
       }
-      resolve(room, 'incorrect', 0)
+      resolveQuestion(room, { outcome: 'incorrect', points: 0, precision: 'refus', automatic: false })
       return { ok: true }
     }
     case 'skip': {
       if (room.status !== 'playing' || !question) return { error: 'Aucune question en cours.' }
       if (question.status === 'feedback') return { error: 'Question déjà résolue.' }
-      resolve(room, 'skipped', 0)
+      resolveQuestion(room, { outcome: 'skipped', points: 0, precision: 'skip', automatic: false })
       return { ok: true }
     }
     case 'next': {
@@ -354,9 +452,9 @@ export function hostView(room) {
           level: levelProgress(player.score).level,
           correct: player.correct,
           found: player.found,
-          hasAnswered: Boolean(player.text || player.pin),
-          text: player.text,
+          hasAnswered: Boolean(player.pin || player.text),
           pin: player.pin,
+          clickedCountry: player.pin ? countryAt(player.pin[0], player.pin[1]) : null,
         }
       : null,
     progress: { index: room.index + 1, total: totalQuestions },
@@ -382,7 +480,6 @@ export function hostView(room) {
           resolved: q.resolved,
           distanceKm: distance,
           nearTarget: distance != null ? distance < 750 : null,
-          autoMatch: player?.text ? checkAnswer(q, player.text) : null,
         }
       : null,
     history: room.history,
@@ -445,6 +542,9 @@ export function playerView(room) {
           source: q.source,
           playerPin: player?.pin ?? null,
           playerText: player?.text ?? '',
+          precision: q.resolved?.precision ?? 'manual',
+          clickedCountry: q.resolved?.clickedCountry ?? null,
+          automatic: q.resolved?.automatic !== false,
           submittedAnswer: checkAnswer(q, player?.text ?? ''),
         }
       : null,
