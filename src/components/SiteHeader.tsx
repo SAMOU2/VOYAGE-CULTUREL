@@ -2,45 +2,50 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import type { ReactNode } from 'react'
 
 const LINKS = [
-  { href: '/', label: 'Accueil' },
   { href: '/presentateur', label: 'Présentateur' },
-  { href: '/jouer', label: 'Rejoindre' },
+  { href: '/jouer', label: 'Joueur' },
 ]
 
-export default function SiteHeader() {
+export default function SiteHeader({ children }: { children?: ReactNode }) {
   const pathname = usePathname()
 
   return (
     <header className="topbar">
-      <div className="container topbar-inner">
-        <Link href="/" className="brand" aria-label="Voyage Culturel, retour à l'accueil">
-          <span className="brand-mark" aria-hidden>
-            🌍
-          </span>
-          <span>
-            Voyage Culturel
-            <small>Explorer · Répondre · Progresser</small>
-          </span>
+      <a className="skip-link" href="#main-content">
+        Aller au contenu
+      </a>
+      <div className="page-width topbar-inner">
+        <Link href="/" className="brand" aria-label="Voyage Culturel, accueil">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1.4" />
+            <path
+              d="m15.8 8.2-2.1 5.5-5.5 2.1 2.1-5.5 5.5-2.1Z"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span>Voyage Culturel</span>
         </Link>
-
-        <nav className="nav-links" aria-label="Navigation principale">
-          {LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="nav-link"
-              style={
-                pathname === link.href
-                  ? { color: 'var(--ink)', background: 'rgba(94,234,212,0.1)', borderColor: 'rgba(94,234,212,0.35)' }
-                  : undefined
-              }
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        {children ? (
+          <div className="header-actions">{children}</div>
+        ) : (
+          <nav className="nav-links" aria-label="Navigation principale">
+            {LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="nav-link"
+                aria-current={pathname === link.href ? 'page' : undefined}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        )}
       </div>
     </header>
   )

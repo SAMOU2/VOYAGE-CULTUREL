@@ -1,33 +1,55 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import SiteHeader from '@/components/SiteHeader'
 import WorldMap from '@/components/WorldMap'
-import { DIFFICULTIES, QUESTION_COUNTS, THEME_EMOJI, THEMES } from '@/lib/catalog'
+import RoomSettings, { type RoomConfig } from '@/components/RoomSettings'
+import QuestionDetails from '@/components/QuestionDetails'
 import { emitAck, getSocket, hostSession } from '@/lib/socket'
 import type { HostState } from '@/lib/types'
-
-const DIFFICULTY_LABEL: Record<number, string> = { 1: 'Facile', 2: 'Moyen', 3: 'Expert' }
-const DIFFICULTY_CLASS: Record<number, string> = { 1: 'pill-green', 2: 'pill-gold', 3: 'pill-rose' }
 
 const PRECISION_LABEL: Record<string, string> = {
   exact: 'Emplacement exact',
   country: 'Bon pays',
   near: 'Tout près',
-  miss: 'Raté',
-  skip: 'Passée',
-  refus: 'Refusée',
-  manual: 'Validée à la main',
-  force: 'Accordée par vous',
-  annule: 'Annulée par vous',
+  miss: 'Mauvais pays',
+  skip: 'Question passée',
+  refus: 'Réponse refusée',
+  manual: 'Réponse validée',
+  force: 'Points accordés',
+  annule: 'Points retirés',
 }
 
-interface Config {
-  theme: string
-  difficulty: string
-  count: number
-  allowRetry: boolean
+function History({ history }: { history: HostState['history'] }) {
+  if (!history.length) return null
+  return (
+    <details className="disclosure history-details">
+      <summary>
+        Historique des réponses <span className="muted">{history.length}</span>
+      </summary>
+      <ol className="history-list disclosure-content">
+        {history.map((entry, index) => (
+          <li key={`${entry.questionId}-${index}`}>
+            <span>
+              <span className="muted">{index + 1}.</span> {entry.clickedCountry?.name ?? 'Aucun pays'}
+            </span>
+            <span className="history-outcome" data-outcome={entry.outcome}>
+              {entry.outcome === 'correct'
+                ? 'Réussie'
+                : entry.outcome === 'skipped'
+                  ? 'Passée'
+                  : 'Incorrecte'}
+            </span>
+            <strong>
+              {entry.points > 0 ? '+' : ''}
+              {entry.points} pts
+            </strong>
+          </li>
+        ))}
+      </ol>
+    </details>
+  )
 }
 
 export default function HostPage() {
@@ -36,39 +58,32 @@ export default function HostPage() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const [qr, setQr] = useState<string | null>(null)
+  const [showLink, setShowLink] = useState(false)
   const [origin, setOrigin] = useState('')
-  const [config, setConfig] = useState<Config>({ theme: 'tous', difficulty: 'mixte', count: 8, allowRetry: true })
-
-  const showToast = useCallback((message: string) => {
-    setToast(message)
-    window.setTimeout(() => setToast(null), 2200)
-  }, [])
-
-  /* ------------------------------ connexion ------------------------------ */
+  const [config, setConfig] = useState<RoomConfig>({
+    theme: 'tous',
+    difficulty: 'mixte',
+    count: 8,
+    allowRetry: true,
+  })
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const resume = useCallback(async () => {
     const session = hostSession.read()
     if (!session) return
-    const res: any = await emitAck('host:rejoin', { code: session.code, token: session.hostToken })
-    if (!res?.ok) {
+    const response: any = await emitAck('host:rejoin', { code: session.code, token: session.hostToken })
+    if (!response?.ok) {
       hostSession.clear()
-      return
+      setState(null)
     }
-    setState((s) => s ?? null)
   }, [])
 
   useEffect(() => {
     setOrigin(window.location.origin)
     const socket = getSocket()
-    let resumed = false
-
     const onConnect = () => {
       setConnected(true)
-      if (!resumed) {
-        resumed = true
-        void resume()
-      }
+      void resume()
     }
     const onDisconnect = () => setConnected(false)
     const onState = (next: HostState) => {
@@ -81,180 +96,99 @@ export default function HostPage() {
         allowRetry: next.config.allowRetry,
       })
     }
-
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
     socket.on('state', onState)
     if (socket.connected) onConnect()
-
     return () => {
       socket.off('connect', onConnect)
       socket.off('disconnect', onDisconnect)
       socket.off('state', onState)
+      if (toastTimer.current) clearTimeout(toastTimer.current)
     }
   }, [resume])
 
-  const joinUrl = useMemo(
-    () => (state ? `${origin}/jouer?code=${state.roomCode}` : ''),
-    [origin, state]
-  )
+  const joinUrl = state && origin ? `${origin}/jouer?code=${state.roomCode}` : ''
 
-  // Le QR code est généré côté serveur (/api/qr) : aucune dépendance lourde dans le navigateur.
-  useEffect(() => {
-    setQr(joinUrl ? `/api/qr?data=${encodeURIComponent(joinUrl)}` : null)
-  }, [joinUrl])
-
-  /* ------------------------------- actions -------------------------------- */
-
-  const createRoom = async (e?: React.FormEvent) => {
-    e?.preventDefault()
+  const createRoom = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (busy || !connected) return
     setBusy(true)
     setError(null)
-    const res: any = await emitAck('host:create', {
-      theme: config.theme,
+    const response: any = await emitAck('host:create', {
+      ...config,
       difficulty: config.difficulty === 'mixte' ? 'mixte' : Number(config.difficulty),
-      count: config.count,
-      allowRetry: config.allowRetry,
     })
     setBusy(false)
-    if (!res?.ok) {
-      setError(res?.error ?? 'Création impossible.')
-      return
-    }
-    hostSession.save({ code: res.code, hostToken: res.hostToken })
+    if (!response?.ok) return setError(response?.error ?? 'Création impossible.')
+    hostSession.save({ code: response.code, hostToken: response.hostToken })
   }
 
   const command = async (type: string, payload: Record<string, unknown> = {}) => {
-    if (!state) return
-    const res: any = await emitAck('host:command', { code: state.roomCode, type, payload })
-    if (!res?.ok) setError(res?.error ?? 'Commande refusée.')
-    else setError(null)
+    if (!state || busy || !connected) return
+    setBusy(true)
+    const response: any = await emitAck('host:command', { code: state.roomCode, type, payload })
+    setBusy(false)
+    setError(response?.ok ? null : (response?.error ?? 'Commande refusée.'))
   }
 
-  const updateConfig = async (patch: Partial<Config>) => {
+  const updateConfig = (patch: Partial<RoomConfig>) => {
     const next = { ...config, ...patch }
     setConfig(next)
-    await command('config', {
-      theme: next.theme,
+    void command('config', {
+      ...next,
       difficulty: next.difficulty === 'mixte' ? 'mixte' : Number(next.difficulty),
-      count: next.count,
-      allowRetry: next.allowRetry,
     })
   }
 
-  const copy = async (value: string, label: string) => {
+  const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(value)
-      showToast(`${label} copié`)
+      await navigator.clipboard.writeText(joinUrl)
+      setToast('Lien copié')
     } catch {
-      showToast('Copie impossible — sélectionnez le texte à la main')
+      setShowLink(true)
+      setToast('Sélectionnez le lien pour le copier')
     }
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), 2500)
   }
 
   const resetRoom = () => {
     hostSession.clear()
     setState(null)
-    setQr(null)
+    setError(null)
+    setShowLink(false)
   }
-
-  /* -------------------------------- rendu -------------------------------- */
 
   if (!state) {
     return (
       <div className="app">
         <SiteHeader />
-        <main className="main">
-          <div className="container" style={{ maxWidth: 720 }}>
-            <span className="eyebrow">Interface présentateur</span>
-            <h1 className="display-sm" style={{ marginTop: 12 }}>
-              Ouvrir une salle
-            </h1>
-            <p className="muted small">
-              Vous gardez la main : vous voyez les réponses attendues, distribuez les indices et validez les
-              propositions. Le joueur ne reçoit la réponse qu&apos;après votre décision.
-            </p>
-
-            <form className="card stack" onSubmit={createRoom} style={{ marginTop: 18 }}>
-              <div className="field">
-                <label className="label" htmlFor="theme">
-                  Thème de la partie
-                </label>
-                <select
-                  id="theme"
-                  className="select"
-                  value={config.theme}
-                  onChange={(e) => setConfig({ ...config, theme: e.target.value })}
-                >
-                  {THEMES.map((theme) => (
-                    <option value={theme.id} key={theme.id}>
-                      {theme.emoji} {theme.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="field">
-                <label className="label" htmlFor="difficulty">
-                  Difficulté
-                </label>
-                <select
-                  id="difficulty"
-                  className="select"
-                  value={config.difficulty}
-                  onChange={(e) => setConfig({ ...config, difficulty: e.target.value })}
-                >
-                  {DIFFICULTIES.map((difficulty) => (
-                    <option value={difficulty.id} key={difficulty.id}>
-                      {difficulty.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="field">
-                <label className="label" htmlFor="count">
-                  Nombre de questions
-                </label>
-                <select
-                  id="count"
-                  className="select"
-                  value={config.count}
-                  onChange={(e) => setConfig({ ...config, count: Number(e.target.value) })}
-                >
-                  {QUESTION_COUNTS.map((count) => (
-                    <option value={count} key={count}>
-                      {count} questions · environ {Math.round((count * 70) / 60)} min
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <label className="switch" htmlFor="retry">
-                <input
-                  id="retry"
-                  type="checkbox"
-                  checked={config.allowRetry}
-                  onChange={(e) => setConfig({ ...config, allowRetry: e.target.checked })}
-                />
-                <span>
-                  Accorder une seconde chance en cas d&apos;erreur
-                  <span className="tiny muted" style={{ display: 'block' }}>
-                    La seconde tentative vaut la moitié des points restants.
-                  </span>
-                </span>
-              </label>
-
-              {error && <p className="small rose" style={{ margin: 0 }}>{error}</p>}
-
-              <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={busy}>
-                {busy ? 'Ouverture…' : 'Créer la salle et afficher le code'}
+        <main id="main-content" className="main page-width">
+          <section className="form-page">
+            <h1>Créer une salle</h1>
+            <p className="page-intro">Choisissez les réglages de la partie.</p>
+            <form className="panel form-fields" onSubmit={createRoom}>
+              <RoomSettings
+                config={config}
+                onChange={(patch) => setConfig({ ...config, ...patch })}
+                disabled={busy}
+              />
+              {error && (
+                <p className="error-message" role="alert">
+                  {error}
+                </p>
+              )}
+              <button className="btn btn-primary btn-block" type="submit" disabled={busy || !connected}>
+                {busy ? 'Création…' : 'Créer la salle'}
               </button>
-
-              <p className="tiny muted" style={{ margin: 0 }}>
-                {connected ? <span className="teal">● Serveur local joignable</span> : <span className="rose">● Connexion…</span>}
-              </p>
+              {!connected && (
+                <p className="connection-message" role="status">
+                  Connexion au serveur…
+                </p>
+              )}
             </form>
-          </div>
+          </section>
         </main>
       </div>
     )
@@ -263,522 +197,270 @@ export default function HostPage() {
   const player = state.player
   const current = state.current
   const resolved = current?.resolved ?? null
-  const inProgress = state.status === 'playing'
+  const disabled = busy || !connected
 
   return (
     <div className="app">
-      <SiteHeader />
-      <main className="main">
-        <div className="container-wide">
-          <div className="spread" style={{ marginBottom: 16 }}>
-            <div className="row">
-              <span className="pill pill-gold">🎤 Présentateur</span>
-              <span className="pill pill-teal">
-                <span className="dot" /> Salle {state.roomCode}
-              </span>
-              <span className="pill">
-                {state.config.themeLabel} · {state.config.difficultyLabel}
-              </span>
-              {state.status === 'playing' && (
-                <span className="pill">
-                  Question {state.progress.index}/{state.progress.total}
-                </span>
-              )}
-            </div>
-            <div className="row">
-              <Link className="btn btn-sm" href="/jouer" target="_blank" rel="noreferrer">
-                Ouvrir l&apos;écran joueur
-              </Link>
-              <button className="btn btn-sm btn-ghost" type="button" onClick={resetRoom}>
-                {state.status === 'lobby' ? 'Fermer la salle' : 'Nouvelle salle'}
-              </button>
-            </div>
-          </div>
+      <SiteHeader>
+        {state.status === 'lobby' ? (
+          <span className="session-room">Présentateur</span>
+        ) : (
+          <span className="session-room">
+            Salle <strong>{state.roomCode}</strong>
+          </span>
+        )}
+        {state.status === 'lobby' && (
+          <button className="btn btn-ghost btn-sm" type="button" onClick={resetRoom}>
+            Fermer
+          </button>
+        )}
+      </SiteHeader>
+      <main id="main-content" className="main page-width">
+        {!connected && (
+          <p className="connection-message" role="status">
+            Connexion interrompue. Reconnexion en cours…
+          </p>
+        )}
+        {error && (
+          <p className="error-message" role="alert">
+            {error}
+          </p>
+        )}
 
-          {error && (
-            <p className="small rose" style={{ marginBottom: 12 }}>
-              {error}
-            </p>
-          )}
-
-          {/* ------------------------------- SALLE D'ATTENTE ------------------------------- */}
-          {state.status === 'lobby' && (
-            <div className="host-grid">
-              <div className="card">
-                <div className="card-head">Accès des joueurs</div>
-                <div className="qr-wrap">
-                  <div>
-                    <div className="tiny muted" style={{ letterSpacing: '0.18em', textTransform: 'uppercase' }}>
-                      Code de la salle
-                    </div>
-                    <div className="code-badge">{state.roomCode}</div>
-                    <div className="row" style={{ marginTop: 6 }}>
-                      <button className="btn btn-sm" type="button" onClick={() => copy(state.roomCode, 'Code')}>
-                        Copier le code
-                      </button>
-                      <button className="btn btn-sm" type="button" onClick={() => copy(joinUrl, 'Lien')}>
-                        Copier le lien
-                      </button>
-                    </div>
+        {state.status === 'lobby' && (
+          <section className="lobby-page">
+            <div className="panel invite-card">
+              <h1>Inviter le joueur</h1>
+              <p className="page-intro">Partagez ce code ou faites scanner le QR code.</p>
+              <div className="invite-grid">
+                <div>
+                  <p className="field-label">Code de la salle</p>
+                  <p className="room-code" aria-label={`Code de la salle : ${state.roomCode}`}>
+                    {state.roomCode}
+                  </p>
+                  <div className="share-actions">
+                    <button className="btn btn-sm" type="button" onClick={() => void copyLink()}>
+                      Copier le lien
+                    </button>
+                    <Link className="text-link" href={joinUrl || '/jouer'} target="_blank" rel="noreferrer">
+                      Ouvrir le joueur
+                    </Link>
                   </div>
-                  {qr && (
-                    <div className="qr">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={qr} alt={`QR code pour rejoindre la salle ${state.roomCode}`} width={180} height={180} />
-                    </div>
-                  )}
                 </div>
-
-                <div className="link-box" style={{ marginTop: 16 }}>
-                  <span className="tiny muted">Lien</span>
-                  <code>{joinUrl || '—'}</code>
-                </div>
-
-                <p className="tiny muted" style={{ marginTop: 12 }}>
-                  Le joueur scanne le QR code ou ouvre ce lien depuis un appareil connecté au même Wi-Fi. Sur un
-                  téléphone, n&apos;utilisez pas « localhost » : il désigne le téléphone lui-même.
-                </p>
-
-                <hr className="divider" />
-
-                <div className="spread">
-                  <div>
-                    <div className="stat-label">Joueur</div>
-                    <div className="row" style={{ marginTop: 6 }}>
-                      {player ? (
-                        <>
-                          <span className="pill pill-teal">
-                            <span className="dot" /> {player.pseudo}
-                          </span>
-                          <span className={`pill ${player.connected ? 'pill-green' : 'pill-rose'}`}>
-                            {player.connected ? 'connecté' : 'déconnecté'}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="pill pill-gold">
-                          <span className="dot" /> En attente d&apos;un joueur…
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    className="btn btn-primary btn-lg"
-                    type="button"
-                    disabled={!player?.connected}
-                    onClick={() => void command('start')}
-                  >
-                    Démarrer la partie
-                  </button>
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="card-head">Réglages</div>
-                <div className="stack" style={{ gap: 12 }}>
-                  <div className="field">
-                    <label className="label" htmlFor="theme2">
-                      Thème
-                    </label>
-                    <select
-                      id="theme2"
-                      className="select"
-                      value={config.theme}
-                      onChange={(e) => void updateConfig({ theme: e.target.value })}
-                    >
-                      {THEMES.map((theme) => (
-                        <option value={theme.id} key={theme.id}>
-                          {theme.emoji} {theme.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="field">
-                    <label className="label" htmlFor="difficulty2">
-                      Difficulté
-                    </label>
-                    <select
-                      id="difficulty2"
-                      className="select"
-                      value={config.difficulty}
-                      onChange={(e) => void updateConfig({ difficulty: e.target.value })}
-                    >
-                      {DIFFICULTIES.map((difficulty) => (
-                        <option value={difficulty.id} key={difficulty.id}>
-                          {difficulty.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="field">
-                    <label className="label" htmlFor="count2">
-                      Questions
-                    </label>
-                    <select
-                      id="count2"
-                      className="select"
-                      value={config.count}
-                      onChange={(e) => void updateConfig({ count: Number(e.target.value) })}
-                    >
-                      {QUESTION_COUNTS.map((count) => (
-                        <option value={count} key={count}>
-                          {count} questions
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <label className="switch" htmlFor="retry2">
-                    <input
-                      id="retry2"
-                      type="checkbox"
-                      checked={config.allowRetry}
-                      onChange={(e) => void updateConfig({ allowRetry: e.target.checked })}
+                {joinUrl && (
+                  <div className="qr">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/qr?data=${encodeURIComponent(joinUrl)}`}
+                      alt="QR code pour rejoindre la partie"
+                      width={156}
+                      height={156}
                     />
-                    <span>Seconde chance autorisée</span>
-                  </label>
-                </div>
-
-                <p className="tiny muted" style={{ marginTop: 16 }}>
-                  {state.bankSize} questions dans la banque, vérifiées avant la partie. Les réglages sont figés au
-                  démarrage.
+                  </div>
+                )}
+              </div>
+              {showLink && (
+                <input
+                  className="share-link"
+                  value={joinUrl}
+                  readOnly
+                  aria-label="Lien pour rejoindre"
+                  onFocus={(event) => event.target.select()}
+                />
+              )}
+              <p className="network-note">Les deux appareils doivent être sur le même Wi-Fi.</p>
+              <div className="lobby-start">
+                <p className="player-status" role="status">
+                  <span className={`status-dot ${player?.connected ? 'online' : ''}`} aria-hidden="true" />
+                  {player
+                    ? `${player.pseudo} ${player.connected ? 'est connecté' : 'est déconnecté'}`
+                    : 'En attente d’un joueur'}
                 </p>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  disabled={disabled || !player?.connected}
+                  onClick={() => void command('start')}
+                >
+                  Démarrer
+                </button>
               </div>
             </div>
-          )}
+            <details className="disclosure lobby-settings">
+              <summary>Modifier les réglages</summary>
+              <div className="disclosure-content">
+                <RoomSettings config={config} onChange={updateConfig} disabled={disabled} />
+              </div>
+            </details>
+          </section>
+        )}
 
-          {/* ---------------------------------- PARTIE ---------------------------------- */}
-          {inProgress && current && (
-            <div className="host-grid">
-              <div className="stack">
-                <div className="question-card">
-                  <div className="question-meta">
-                    <span className="pill">
-                      {THEME_EMOJI[current.theme] ?? '🌍'} {current.themeLabel}
-                    </span>
-                    <span className={`pill ${DIFFICULTY_CLASS[current.difficulty]}`}>
-                      {DIFFICULTY_LABEL[current.difficulty]}
-                    </span>
-                    <span className="pill">
-                      Question {state.progress.index}/{state.progress.total}
-                    </span>
-                    {current.attempts > 0 && <span className="pill pill-gold">Seconde tentative</span>}
-                  </div>
-                  <p className="question-text" style={{ margin: 0 }}>
-                    {current.question}
-                  </p>
-                </div>
-
-                <div className="answer-reveal">
-                  <div className="spread">
-                    <span className="tiny" style={{ letterSpacing: '0.18em', textTransform: 'uppercase', color: '#ffd98a' }}>
-                      Réponse attendue — visible par vous seul
-                    </span>
-                    <span className="pill pill-gold">{current.country}</span>
-                  </div>
-                  <div className="big" style={{ marginTop: 8 }}>
-                    {current.answer}
-                  </div>
-                  <div className="variants">
-                    {current.accepted.slice(0, 8).map((variant) => (
-                      <span className="variant" key={variant}>
-                        {variant}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="small" style={{ color: '#ffe9c2', margin: '12px 0 0' }}>
-                    {current.explanation}
-                  </p>
-                  <p className="tiny" style={{ margin: '8px 0 0', color: 'rgba(255,233,194,0.7)' }}>
-                    Source : {current.source.label}
-                    {current.source.url ? (
-                      <>
-                        {' — '}
-                        <a href={current.source.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>
-                          consulter
-                        </a>
-                      </>
-                    ) : null}
-                  </p>
-                </div>
-
-                <div className="submission">
-                  <div className="spread">
-                    <span className="label">Choix du joueur sur la carte</span>
-                    {current.resolved ? (
-                      <span
-                        className={`pill ${
-                          current.resolved.outcome === 'correct' ? 'pill-green' : 'pill-rose'
-                        }`}
-                      >
-                        {PRECISION_LABEL[current.resolved.precision] ?? 'Verdict automatique'}
-                      </span>
-                    ) : player?.hasAnswered ? (
-                      <span className="pill pill-gold">En attente</span>
-                    ) : (
-                      <span className="pill">Le joueur explore la carte…</span>
-                    )}
-                  </div>
-
-                  {player?.clickedCountry ? (
-                    <div style={{ marginTop: 8 }}>
-                      <p style={{ margin: '0 0 6px', fontSize: 20 }}>
-                        <strong>{player.clickedCountry.name}</strong>
-                      </p>
-                      <div className="row small">
-                        <span className="pill">Lieu attendu : {current.country}</span>
-                        {current.distanceKm != null && (
-                          <span className={`pill ${current.nearTarget ? 'pill-green' : 'pill-rose'}`}>
-                            à {current.distanceKm.toLocaleString('fr-FR')} km de la cible
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="small muted" style={{ margin: '8px 0 0' }}>
-                      {player?.hasAnswered
-                        ? 'Aucun pays sélectionné.'
-                        : 'Le joueur doit cliquer sur la carte, puis valider. Vous pouvez déjà donner un indice.'}
-                    </p>
-                  )}
-                </div>
-
+        {state.status === 'playing' && current && (
+          <section className="host-game" aria-label="Pilotage de la partie">
+            <div className="round-meta">
+              <p className="round-counter">
+                Question {state.progress.index} / {state.progress.total}
+              </p>
+              <p className="score">
+                <span className="player-name">{player?.pseudo ?? 'Joueur'}</span>{' '}
+                <strong>{player?.score ?? 0}</strong> pts
+              </p>
+            </div>
+            {player && !player.connected && (
+              <p className="notice" role="status">
+                Le joueur est déconnecté.
+              </p>
+            )}
+            <div className="host-layout">
+              <div className="panel host-question">
+                <h1 className="question-text">{current.question}</h1>
+                {current.attempts > 0 && current.status === 'open' && (
+                  <p className="notice">Seconde chance en cours.</p>
+                )}
                 {current.hintLevel > 0 && (
-                  <ul className="hint-list" style={{ marginTop: 0 }}>
+                  <ul className="hint-list" aria-label="Indices donnés">
                     {current.hints.slice(0, current.hintLevel).map((hint, index) => (
-                      <li className="hint-item" key={index}>
-                        <span aria-hidden>💡</span>
-                        <span>{hint}</span>
+                      <li key={index}>
+                        <strong>Indice {index + 1}</strong> {hint}
                       </li>
                     ))}
                   </ul>
                 )}
-
-                {resolved && (
-                  <div
-                    className={`feedback ${resolved.outcome === 'correct' ? 'ok' : resolved.outcome === 'skipped' ? 'mid' : 'ko'}`}
-                  >
-                    <div className="spread">
-                      <strong>
-                        {resolved.outcome === 'correct'
-                          ? `✅ ${PRECISION_LABEL[resolved.precision] ?? 'Validée'}`
-                          : resolved.outcome === 'skipped'
-                          ? '⏭️ Passée'
-                          : resolved.outcome === 'ended'
-                          ? 'Partie terminée'
-                          : `❌ ${PRECISION_LABEL[resolved.precision] ?? 'Refusée'}`}
-                        {resolved.automatic === false ? ' · correction' : ' · vérification automatique'}
-                      </strong>
-                      <span className="pill">{resolved.points > 0 ? `+${resolved.points} points` : '0 point'}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="card card-tight">
-                  <div className="card-head">Commandes</div>
-                  <div className="btn-grid">
-                    <button
-                      className="btn btn-gold"
-                      type="button"
-                      disabled={current.hintLevel >= current.hints.length || current.status === 'feedback'}
-                      onClick={() => void command('hint')}
-                    >
-                      💡 Donner un indice
-                    </button>
+                <section className="submission" aria-label="Réponse du joueur">
+                  <p className="field-label">Choix du joueur</p>
+                  <p className={player?.clickedCountry ? 'submitted-country' : 'muted'}>
+                    {player?.clickedCountry?.name ?? 'En attente de sa réponse…'}
+                  </p>
+                  {resolved && (
+                    <p className="verdict" data-outcome={resolved.outcome} role="status">
+                      {PRECISION_LABEL[resolved.precision] ?? 'Réponse vérifiée'} ·{' '}
+                      {resolved.points > 0 ? '+' : ''}
+                      {resolved.points} pts
+                    </p>
+                  )}
+                  {current.distanceKm != null && (
+                    <p className="distance">
+                      À {current.distanceKm.toLocaleString('fr-FR')} km du lieu attendu
+                    </p>
+                  )}
+                </section>
+                <div className="command-bar">
+                  {current.status === 'feedback' ? (
                     <button
                       className="btn btn-primary"
                       type="button"
-                      disabled={current.resolved?.outcome === 'correct' || (!current.resolved && !player?.hasAnswered)}
-                      onClick={() => void command('correct')}
-                    >
-                      ✅ Accorder les points
-                    </button>
-                    <button
-                      className="btn btn-danger"
-                      type="button"
-                      disabled={current.resolved?.outcome !== 'correct'}
-                      onClick={() => void command('incorrect')}
-                    >
-                      ❌ Retirer les points
-                    </button>
-                    <button
-                      className="btn"
-                      type="button"
-                      disabled={current.status === 'feedback'}
-                      onClick={() => void command('skip')}
-                    >
-                      ⏭️ Passer
-                    </button>
-                    <button
-                      className="btn btn-primary"
-                      type="button"
-                      disabled={current.status !== 'feedback'}
+                      disabled={disabled}
                       onClick={() => void command('next')}
                     >
-                      {state.progress.index >= state.progress.total ? '🏁 Voir le bilan' : 'Question suivante →'}
+                      {state.progress.index >= state.progress.total ? 'Voir le bilan' : 'Question suivante'}
                     </button>
-                    <button className="btn btn-ghost" type="button" onClick={() => void command('end')}>
+                  ) : (
+                    <>
+                      <button
+                        className="btn"
+                        type="button"
+                        disabled={disabled || current.hintLevel >= current.hints.length}
+                        onClick={() => void command('hint')}
+                      >
+                        Donner un indice
+                      </button>
+                      <button
+                        className="btn"
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => void command('skip')}
+                      >
+                        Passer
+                      </button>
+                    </>
+                  )}
+                </div>
+                <details className="disclosure more-actions" key={current.id}>
+                  <summary>Autres actions</summary>
+                  <div className="disclosure-content secondary-actions">
+                    {(resolved || player?.hasAnswered) && (
+                      <button
+                        className="btn btn-sm"
+                        type="button"
+                        disabled={disabled}
+                        onClick={() =>
+                          void command(resolved?.outcome === 'correct' ? 'incorrect' : 'correct')
+                        }
+                      >
+                        {resolved?.outcome === 'correct' ? 'Retirer les points' : 'Accorder les points'}
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-danger btn-sm"
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => {
+                        if (window.confirm('Terminer la partie maintenant ?')) void command('end')
+                      }}
+                    >
                       Terminer la partie
                     </button>
                   </div>
-                  <p className="tiny muted" style={{ margin: '10px 0 0' }}>
-                    Le verdict est calculé automatiquement dès que le joueur valide : emplacement exact (100 %),
-                    bon pays (60 %), à quelques kilomètres (40 %). Vous pouvez toujours accorder ou retirer les points.
-                  </p>
-                </div>
+                </details>
               </div>
-
-              <aside className="stack">
-                <div className="card card-tight">
-                  <div className="card-head">Joueur</div>
-                  <div className="spread">
-                    <div>
-                      <div style={{ fontSize: 18, fontWeight: 600 }}>{player?.pseudo ?? '—'}</div>
-                      <span className={`pill ${player?.connected ? 'pill-green' : 'pill-rose'}`} style={{ marginTop: 6 }}>
-                        <span className="dot" /> {player?.connected ? 'connecté' : 'déconnecté'}
-                      </span>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div className="stat-label">Score</div>
-                      <div className="stat-value teal">{player?.score ?? 0}</div>
-                    </div>
-                  </div>
-                  <div className="stat-grid" style={{ marginTop: 12 }}>
-                    <div className="stat">
-                      <div className="stat-label">Niveau</div>
-                      <div className="stat-value gold">{player?.level ?? 1}</div>
-                    </div>
-                    <div className="stat">
-                      <div className="stat-label">Réussies</div>
-                      <div className="stat-value">{player?.correct ?? 0}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="card card-tight">
-                  <div className="card-head">Carte du présentateur</div>
-                  <WorldMap
-                    mode="flat"
-                    className=""
-                    pin={player?.pin ?? null}
-                    selectedIso={player?.clickedCountry?.id ?? null}
-                    target={current.coords}
-                    targetIso={resolved ? current.isoN : null}
-                    labels
-                    interactive
-                    compact
-                  />
-                  <p className="tiny muted" style={{ margin: '8px 0 0' }}>
-                    Épingle rose : repère du joueur · repère doré : lieu attendu.
-                  </p>
-                </div>
-
-                <div className="card card-tight">
-                  <div className="card-head">Historique</div>
-                  {state.history.length === 0 ? (
-                    <p className="small muted" style={{ margin: 0 }}>
-                      Les réponses validées apparaîtront ici.
-                    </p>
-                  ) : (
-                    <div className="history">
-                      {[...state.history].reverse().map((entry, index) => (
-                        <div className="history-row" key={`${entry.questionId}-${index}`}>
-                          <span>
-                            {entry.outcome === 'correct' ? '✅' : entry.outcome === 'skipped' ? '⏭️' : '❌'}{' '}
-                            {entry.clickedCountry?.name ?? 'réponse cartographique'}
-                          </span>
-                          <span className="muted">{entry.points > 0 ? `+${entry.points}` : '0'}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <aside className="panel private-answer" aria-label="Réponse privée du présentateur">
+                <p className="private-label">Réponse · présentateur uniquement</p>
+                <h2>{current.answer}</h2>
+                {current.answer !== current.country && <p className="answer-country">{current.country}</p>}
+                <WorldMap
+                  mode="flat"
+                  className="host-map"
+                  pin={player?.pin ?? null}
+                  selectedIso={player?.clickedCountry?.id ?? null}
+                  target={current.coords}
+                  targetIso={current.isoN}
+                  labels
+                  compact
+                />
+                <p className="map-legend">Or : réponse · Rose : choix du joueur</p>
+                <QuestionDetails explanation={current.explanation} source={current.source} />
               </aside>
             </div>
-          )}
+            <History history={state.history} />
+          </section>
+        )}
 
-          {/* ---------------------------------- BILAN ---------------------------------- */}
-          {state.status === 'finished' && (
-            <div className="stack">
-              <div className="card" style={{ textAlign: 'center', padding: 40 }}>
-                <div style={{ fontSize: 52 }} aria-hidden>
-                  {state.badge.emoji}
-                </div>
-                <span className="eyebrow" style={{ justifyContent: 'center' }}>
-                  Bilan de la partie
-                </span>
-                <h2 className="display-sm" style={{ marginTop: 10 }}>
-                  {state.badge.label}
-                </h2>
-                <p className="muted">
-                  {player?.pseudo ?? 'Le joueur'} termine avec {player?.score ?? 0} points et {player?.correct ?? 0}{' '}
-                  bonne{(player?.correct ?? 0) > 1 ? 's' : ''} réponse{(player?.correct ?? 0) > 1 ? 's' : ''}.
-                </p>
-
-                <div className="recap" style={{ marginTop: 16, textAlign: 'left' }}>
-                  <div className="stat">
-                    <div className="stat-label">Score</div>
-                    <div className="stat-value teal">{player?.score ?? 0}</div>
-                  </div>
-                  <div className="stat">
-                    <div className="stat-label">Niveau</div>
-                    <div className="stat-value gold">{player?.level ?? 1}</div>
-                  </div>
-                  <div className="stat">
-                    <div className="stat-label">Pays trouvés</div>
-                    <div className="stat-value">{player?.found.length ?? 0}</div>
-                  </div>
-                  <div className="stat">
-                    <div className="stat-label">Questions</div>
-                    <div className="stat-value">{state.history.length}</div>
-                  </div>
-                </div>
-
-                <div className="country-list" style={{ justifyContent: 'center', marginTop: 18 }}>
-                  {(player?.found ?? []).map((country) => (
-                    <span className="pill pill-teal" key={country}>
-                      {country}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="row" style={{ justifyContent: 'center', marginTop: 24 }}>
-                  <button className="btn btn-primary" type="button" onClick={() => void command('restart')}>
-                    Rejouer dans la même salle
-                  </button>
-                  <button className="btn" type="button" onClick={resetRoom}>
-                    Nouvelle salle
-                  </button>
-                </div>
-              </div>
-
-              <div className="card card-tight">
-                <div className="card-head">Détail des réponses</div>
-                {state.history.length === 0 ? (
-                  <p className="small muted" style={{ margin: 0 }}>
-                    Aucune réponse enregistrée.
-                  </p>
-                ) : (
-                  <div className="history">
-                    {state.history.map((entry, index) => (
-                      <div className="history-row" key={`${entry.questionId}-${index}`}>
-                        <span>
-                          {entry.outcome === 'skipped' ? '⏭️' : entry.outcome === 'correct' ? '✅' : '❌'} Question{' '}
-                          {index + 1} · {entry.clickedCountry?.name ?? 'réponse cartographique'}
-                        </span>
-                        <span className="muted">
-                          {entry.points > 0 ? `+${entry.points} pts` : '0 pt'}
-                          {entry.hintsUsed > 0 ? ` · ${entry.hintsUsed} indice${entry.hintsUsed > 1 ? 's' : ''}` : ''}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+        {state.status === 'finished' && (
+          <section className="result-page">
+            <div className="panel result-card">
+              <p className="overline">Partie terminée</p>
+              <h1>{state.badge.label}</h1>
+              <p className="result-score">
+                {player?.score ?? 0}
+                <span>points</span>
+              </p>
+              <p className="muted">
+                {player?.pseudo ?? 'Le joueur'} · {player?.correct ?? 0} / {state.history.length} bonnes
+                réponses
+              </p>
+              <div className="result-actions">
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => void command('restart')}
+                >
+                  Rejouer
+                </button>
+                <button className="btn" type="button" onClick={resetRoom}>
+                  Nouvelle salle
+                </button>
               </div>
             </div>
-          )}
-        </div>
+            <History history={state.history} />
+          </section>
+        )}
       </main>
-
-      {toast && <div className="toast">{toast}</div>}
+      {toast && (
+        <div className="toast" role="status">
+          {toast}
+        </div>
+      )}
     </div>
   )
 }

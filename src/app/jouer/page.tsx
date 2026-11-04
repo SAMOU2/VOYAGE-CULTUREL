@@ -1,41 +1,35 @@
 'use client'
 
-import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import SiteHeader from '@/components/SiteHeader'
 import WorldMap, { type LonLat, type PickedCountry } from '@/components/WorldMap'
+import QuestionDetails from '@/components/QuestionDetails'
 import { emitAck, getSocket, playerSession } from '@/lib/socket'
 import type { PlayerState } from '@/lib/types'
 
-const DIFFICULTY_LABEL: Record<number, string> = { 1: 'Facile', 2: 'Moyen', 3: 'Expert' }
-const DIFFICULTY_CLASS: Record<number, string> = { 1: 'pill-green', 2: 'pill-gold', 3: 'pill-rose' }
-
 const PRECISION_TEXT: Record<string, string> = {
-  exact: '🎯 Emplacement exact',
-  country: '✅ Bon pays',
-  near: '🟡 Tout près',
-  miss: '❌ Raté',
-  skip: '⏭️ Question passée',
-  refus: '❌ Refusée par le présentateur',
-  manual: '✅ Validée par le présentateur',
-  force: '✅ Accordée par le présentateur',
-  annule: '❌ Annulée par le présentateur',
+  exact: 'Emplacement exact',
+  country: 'Bon pays',
+  near: 'Tout près',
+  miss: 'Ce n’est pas le bon pays',
+  skip: 'Question passée',
+  refus: 'Réponse refusée',
+  manual: 'Réponse validée',
+  force: 'Points accordés',
+  annule: 'Points retirés',
 }
 
-function speak(text: string, onEnd?: () => void) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return false
+function speak(text: string, onEnd: () => void) {
+  if (!('speechSynthesis' in window)) return false
   window.speechSynthesis.cancel()
-  const utter = new SpeechSynthesisUtterance(text)
-  utter.lang = 'fr-FR'
-  utter.rate = 0.98
-  const voices = window.speechSynthesis.getVoices()
-  const french = voices.find((v) => v.lang?.toLowerCase().startsWith('fr'))
-  if (french) utter.voice = french
-  if (onEnd) {
-    utter.onend = onEnd
-    utter.onerror = onEnd
-  }
-  window.speechSynthesis.speak(utter)
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = 'fr-FR'
+  utterance.rate = 0.98
+  const voice = window.speechSynthesis.getVoices().find((item) => item.lang.toLowerCase().startsWith('fr'))
+  if (voice) utterance.voice = voice
+  utterance.onend = onEnd
+  utterance.onerror = onEnd
+  window.speechSynthesis.speak(utterance)
   return true
 }
 
@@ -47,50 +41,42 @@ export default function PlayerPage() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [joined, setJoined] = useState(false)
-
   const [pin, setPin] = useState<LonLat | null>(null)
   const [selected, setSelected] = useState<PickedCountry | null>(null)
   const [mapMode, setMapMode] = useState<'globe' | 'flat'>('globe')
   const [speaking, setSpeaking] = useState(false)
-
-  const autoRejoinedRef = useRef(false)
+  const [canSpeak, setCanSpeak] = useState(false)
   const attemptRef = useRef<{ id?: string; attempts?: number }>({})
-
-  /* ------------------------------ connexion ------------------------------ */
 
   const rejoin = useCallback(async () => {
     const session = playerSession.read()
     const urlCode = new URLSearchParams(window.location.search).get('code')?.toUpperCase() ?? ''
     const target = urlCode || session?.code
     if (!target) return
-    setCode((c) => c || target)
-
-    if (session && session.code === target) {
-      const res: any = await emitAck('player:rejoin', { code: target, playerId: session.playerId })
-      if (res?.ok) {
-        setJoined(true)
-        setPseudo(session.pseudo)
-      } else if (!urlCode) {
-        playerSession.clear()
-      }
+    setCode((value) => value || target)
+    if (!session || session.code !== target) return
+    const response: any = await emitAck('player:rejoin', { code: target, playerId: session.playerId })
+    if (response?.ok) {
+      setJoined(true)
+      setPseudo(session.pseudo)
+    } else {
+      playerSession.clear()
+      setJoined(false)
+      setState(null)
     }
   }, [])
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlCode = new URLSearchParams(window.location.search).get('code')
-      if (urlCode) setCode(urlCode.toUpperCase())
-      const saved = playerSession.read()
-      if (saved?.pseudo) setPseudo((p) => p || saved.pseudo)
-    }
+    const urlCode = new URLSearchParams(window.location.search).get('code')
+    if (urlCode) setCode(urlCode.toUpperCase())
+    const saved = playerSession.read()
+    if (saved?.pseudo) setPseudo((value) => value || saved.pseudo)
+    setCanSpeak('speechSynthesis' in window)
 
     const socket = getSocket()
     const onConnect = () => {
       setConnected(true)
-      if (!autoRejoinedRef.current) {
-        autoRejoinedRef.current = true
-        void rejoin()
-      }
+      void rejoin()
     }
     const onDisconnect = () => setConnected(false)
     const onState = (next: PlayerState) => {
@@ -98,535 +84,327 @@ export default function PlayerPage() {
       setState(next)
       setJoined(true)
     }
-
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
     socket.on('state', onState)
     if (socket.connected) onConnect()
-
     return () => {
       socket.off('connect', onConnect)
       socket.off('disconnect', onDisconnect)
       socket.off('state', onState)
+      window.speechSynthesis?.cancel()
     }
   }, [rejoin])
 
-  // Nouvelle question (ou seconde chance) : on efface le choix précédent.
   useEffect(() => {
-    const q = state?.question
-    const key = { id: q?.id, attempts: q?.attempts }
-    const prev = attemptRef.current
-    if (prev.id !== key.id || prev.attempts !== key.attempts) {
+    const question = state?.question
+    const previous = attemptRef.current
+    if (previous.id !== question?.id || previous.attempts !== question?.attempts) {
       setPin(null)
       setSelected(null)
-      attemptRef.current = key
+      setError(null)
+      if (previous.id !== question?.id) {
+        window.speechSynthesis?.cancel()
+        setSpeaking(false)
+      }
+      attemptRef.current = { id: question?.id, attempts: question?.attempts }
     }
   }, [state?.question?.id, state?.question?.attempts])
 
-  const join = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const join = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (busy) return
     setError(null)
     const clean = code.trim().toUpperCase()
-    if (clean.length < 4) {
-      setError('Le code de salle comporte 5 caractères.')
-      return
-    }
-    if (!pseudo.trim()) {
-      setError('Choisissez un pseudo pour que le présentateur vous reconnaisse.')
-      return
-    }
+    if (clean.length !== 5) return setError('Le code doit contenir 5 caractères.')
+    if (!pseudo.trim()) return setError('Indiquez votre pseudo.')
     setBusy(true)
-    const res: any = await emitAck('player:join', { code: clean, pseudo: pseudo.trim() })
+    const response: any = await emitAck('player:join', { code: clean, pseudo: pseudo.trim() })
     setBusy(false)
-    if (!res?.ok) {
-      setError(res?.error ?? 'Connexion impossible.')
-      return
-    }
-    playerSession.save({ code: clean, playerId: res.playerId, pseudo: res.pseudo ?? pseudo.trim() })
+    if (!response?.ok) return setError(response?.error ?? 'Connexion impossible.')
+    playerSession.save({ code: clean, playerId: response.playerId, pseudo: response.pseudo ?? pseudo.trim() })
     setJoined(true)
-    setError(null)
   }
 
   const pick = (coords: LonLat, country: PickedCountry | null) => {
     setPin(coords)
     setSelected(country)
-    setError(country ? null : 'Cet endroit est en pleine mer : cliquez sur un pays.')
+    setError(country ? null : 'Cliquez sur un pays, pas en pleine mer.')
   }
 
   const submit = async () => {
-    if (busy || !state?.question || state.question.status !== 'open') return
-    if (!pin) {
-      setError('Cliquez d’abord sur le pays qui répond à la question.')
-      return
-    }
+    if (busy || !connected || !selected || !pin || state?.question?.status !== 'open') return
     setError(null)
     setBusy(true)
-    const res: any = await emitAck('player:submit', { code: state.roomCode, pin })
+    const response: any = await emitAck('player:submit', { code: state.roomCode, pin })
     setBusy(false)
-    if (!res?.ok) setError(res?.error ?? 'Envoi impossible.')
+    if (!response?.ok) setError(response?.error ?? 'Envoi impossible.')
   }
 
   const leave = () => {
     getSocket().emit('player:leave')
     playerSession.clear()
+    window.speechSynthesis?.cancel()
+    setSpeaking(false)
     setState(null)
     setJoined(false)
     setPin(null)
     setSelected(null)
+    setError(null)
   }
 
   const toggleListen = () => {
-    const content = state?.question?.question ?? state?.feedback?.question
-    if (!content) return
     if (speaking) {
       window.speechSynthesis?.cancel()
       setSpeaking(false)
-      return
+    } else if (state?.question?.question) {
+      setSpeaking(speak(state.question.question, () => setSpeaking(false)))
     }
-    setSpeaking(speak(content, () => setSpeaking(false)))
   }
-
-  /* -------------------------------- rendu -------------------------------- */
-
-  const question = state?.question ?? null
-  const feedback = state?.feedback ?? null
-  const inGame = joined && state && (state.status === 'playing' || state.status === 'finished')
 
   if (!joined || !state) {
     return (
       <div className="app">
         <SiteHeader />
-        <main className="main">
-          <div className="container" style={{ maxWidth: 560 }}>
-            <span className="eyebrow">Écran du joueur</span>
-            <h1 className="display-sm" style={{ marginTop: 12 }}>
-              Rejoindre une partie
-            </h1>
-            <p className="muted small">
-              Le présentateur affiche un code à 5 caractères (ou un QR code). Entrez-le ci-dessous — les deux appareils
-              doivent être sur le même Wi-Fi.
-            </p>
-
-            <form className="card stack" onSubmit={join} style={{ marginTop: 18 }}>
+        <main id="main-content" className="main page-width">
+          <section className="form-page">
+            <h1>Rejoindre une partie</h1>
+            <p className="page-intro">Entrez le code donné par le présentateur.</p>
+            <form className="panel form-fields" onSubmit={join}>
               <div className="field">
-                <label className="label" htmlFor="room-code">
-                  Code de la salle
-                </label>
+                <label htmlFor="room-code">Code de la salle</label>
                 <input
                   id="room-code"
-                  className="input code-input"
+                  className="code-input"
                   value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5))}
+                  onChange={(event) =>
+                    setCode(
+                      event.target.value
+                        .toUpperCase()
+                        .replace(/[^A-Z0-9]/g, '')
+                        .slice(0, 5)
+                    )
+                  }
                   placeholder="ABCDE"
                   autoComplete="off"
                   autoCapitalize="characters"
-                  inputMode="text"
+                  spellCheck={false}
+                  minLength={5}
                   maxLength={5}
                   required
                 />
               </div>
-
               <div className="field">
-                <label className="label" htmlFor="pseudo">
-                  Votre pseudo
-                </label>
+                <label htmlFor="pseudo">Pseudo</label>
                 <input
                   id="pseudo"
-                  className="input"
                   value={pseudo}
-                  onChange={(e) => setPseudo(e.target.value.slice(0, 18))}
-                  placeholder="Ex. Amina"
+                  onChange={(event) => setPseudo(event.target.value.slice(0, 18))}
+                  placeholder="Votre prénom ou pseudo"
+                  autoComplete="nickname"
                   maxLength={18}
                   required
                 />
               </div>
-
               {error && (
-                <p className="small rose" style={{ margin: 0 }}>
+                <p className="error-message" role="alert">
                   {error}
                 </p>
               )}
-
-              <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={busy}>
-                {busy ? 'Connexion…' : 'Entrer dans la salle'}
+              <button className="btn btn-primary btn-block" type="submit" disabled={busy || !connected}>
+                {busy ? 'Connexion…' : 'Rejoindre'}
               </button>
-
-              <p className="tiny muted" style={{ margin: 0 }}>
-                {connected ? (
-                  <span className="teal">● Serveur joignable</span>
-                ) : (
-                  <span className="rose">● Connexion au serveur en cours…</span>
-                )}{' '}
-                — l&apos;adresse du serveur est celle de l&apos;ordinateur du présentateur, jamais « localhost » depuis
-                un téléphone.
-              </p>
+              {!connected && (
+                <p className="connection-message" role="status">
+                  Connexion au serveur…
+                </p>
+              )}
             </form>
-
-            <p className="small muted" style={{ marginTop: 18 }}>
-              Vous êtes présentateur ?{' '}
-              <Link href="/presentateur" className="teal">
-                Ouvrez une salle
-              </Link>
-              .
-            </p>
-          </div>
+          </section>
         </main>
       </div>
     )
   }
 
-  const levelProgress = state.levelProgress
+  const question = state.question
+  const feedback = state.feedback
 
   return (
     <div className="app">
-      <SiteHeader />
-      <main className="main">
-        <div className="container-wide">
-          <div className="spread" style={{ marginBottom: 16 }}>
-            <div className="row">
-              <span className="pill pill-teal">
-                <span className="dot" /> Salle {state.roomCode}
-              </span>
-              <span className="pill">{state.pseudo ?? 'Joueur'}</span>
-              {!connected && <span className="pill pill-rose">Reconnexion…</span>}
-            </div>
-            <button className="btn btn-sm btn-ghost" onClick={leave} type="button">
-              Quitter
-            </button>
-          </div>
+      <SiteHeader>
+        <span className="session-room">
+          Salle <strong>{state.roomCode}</strong>
+        </span>
+        <button className="btn btn-ghost btn-sm" type="button" onClick={leave}>
+          Quitter
+        </button>
+      </SiteHeader>
+      <main id="main-content" className="main page-width">
+        {!connected && (
+          <p className="connection-message" role="status">
+            Connexion interrompue. Reconnexion en cours…
+          </p>
+        )}
 
-          {state.status === 'lobby' && (
-            <div className="card" style={{ textAlign: 'center', padding: 42 }}>
-              <div style={{ fontSize: 40 }} aria-hidden>
-                🛰️
-              </div>
-              <h2 className="display-sm" style={{ marginTop: 8 }}>
-                Vous êtes dans la salle {state.roomCode}
-              </h2>
-              <p className="muted">
-                Le présentateur va lancer la partie. Gardez cet écran ouvert — la première question arrive
-                automatiquement.
+        {state.status === 'lobby' && (
+          <section className="waiting-state">
+            <span className="waiting-dot" aria-hidden="true" />
+            <h1>En attente du présentateur</h1>
+            <p className="muted">La partie commencera automatiquement ici.</p>
+          </section>
+        )}
+
+        {state.status === 'playing' && question && (
+          <section className="player-game" aria-label="Partie en cours">
+            <div className="round-meta">
+              <p className="round-counter">
+                Question {state.progress.index} / {state.progress.total}
               </p>
-              <div className="row" style={{ justifyContent: 'center' }}>
-                <span className="pill pill-teal">
-                  <span className="dot" /> Connecté en tant que {state.pseudo}
-                </span>
-                <span className="pill">{state.total} questions prévues</span>
-              </div>
+              <p className="score" aria-label={`Score : ${state.score} points`}>
+                <strong>{state.score}</strong> pts
+              </p>
             </div>
-          )}
-
-          {inGame && state.status !== 'finished' && (
-            <div className="game-shell">
-              <div className="stack">
-                <div className="question-card">
-                  <div className="question-meta">
-                    {question && (
+            <div className="question-heading">
+              <h1 className="question-text">{question.question}</h1>
+              {canSpeak && (
+                <button
+                  className="icon-button"
+                  type="button"
+                  onClick={toggleListen}
+                  aria-label={speaking ? 'Arrêter la lecture' : 'Écouter la question'}
+                  title={speaking ? 'Arrêter la lecture' : 'Écouter la question'}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    aria-hidden="true"
+                  >
+                    {speaking ? (
+                      <rect x="6" y="6" width="12" height="12" rx="2" />
+                    ) : (
                       <>
-                        <span className="pill">{question.themeLabel}</span>
-                        <span className={`pill ${DIFFICULTY_CLASS[question.difficulty]}`}>
-                          {DIFFICULTY_LABEL[question.difficulty]}
-                        </span>
-                        <span className="pill">
-                          Question {state.progress.index}/{state.progress.total}
-                        </span>
-                        {question.attempts > 0 && <span className="pill pill-gold">Seconde chance</span>}
+                        <path d="m11 5-6 4H2v6h3l6 4V5Z" strokeLinejoin="round" />
+                        <path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" strokeLinecap="round" />
                       </>
                     )}
-                  </div>
-
-                  <p className="question-text" style={{ margin: 0 }}>
-                    {question?.question ?? 'Préparation de la question…'}
-                  </p>
-
-                  {question && question.attempts > 0 && question.status === 'open' && !feedback && (
-                    <p className="small" style={{ margin: '14px 0 0', color: '#ffe0a5' }}>
-                      Ce n&apos;est pas le bon pays. Cliquez ailleurs : les points de cette question sont réduits.
-                    </p>
-                  )}
-
-                  <div className="row" style={{ marginTop: 16 }}>
-                    <button className="btn btn-sm" type="button" onClick={toggleListen}>
-                      {speaking ? '⏹ Arrêter la lecture' : '🔊 Écouter la question'}
-                    </button>
-                    {question && (
-                      <span className="pill">
-                        Cliquez sur le pays où se trouve la réponse
-                      </span>
-                    )}
-                  </div>
-
-                  {question && question.hints.length > 0 && (
-                    <ul className="hint-list">
-                      {question.hints.map((hint, index) => (
-                        <li className="hint-item" key={index}>
-                          <span aria-hidden>💡</span>
-                          <span>{hint}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div>
-                  <div className="spread" style={{ marginBottom: 8 }}>
-                    <span className="label">Choisissez sur la carte</span>
-                    <div className="map-toggle" role="group" aria-label="Type de carte">
-                      <button type="button" data-active={mapMode === 'globe'} onClick={() => setMapMode('globe')}>
-                        Globe
-                      </button>
-                      <button type="button" data-active={mapMode === 'flat'} onClick={() => setMapMode('flat')}>
-                        Carte
-                      </button>
-                    </div>
-                  </div>
-                  <WorldMap
-                    mode={mapMode}
-                    className="full"
-                    pin={pin ?? feedback?.playerPin ?? null}
-                    selectedIso={!feedback ? selected?.id ?? null : null}
-                    target={feedback?.coords ?? null}
-                    targetIso={feedback?.isoN ?? null}
-                    onPick={!busy && question?.status === 'open' && !feedback ? pick : undefined}
-                    labels
-                  />
-                  <div className="row small muted" style={{ marginTop: 8, justifyContent: 'space-between' }}>
-                    <span>
-                      {selected
-                        ? `Votre choix : ${selected.name}`
-                        : pin
-                        ? 'Pleine mer — cliquez sur un pays.'
-                        : 'Faites glisser pour tourner, molette pour zoomer, puis cliquez sur un pays.'}
-                    </span>
-                    {pin && !feedback && question?.status === 'open' && (
-                      <button
-                        className="btn btn-sm btn-ghost"
-                        type="button"
-                        onClick={() => {
-                          setPin(null)
-                          setSelected(null)
-                        }}
-                      >
-                        Effacer
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {!feedback && question?.status !== 'answered' && (
-                  <div className="card card-tight">
-                    <div className="spread" style={{ gap: 14 }}>
-                      <div>
-                        <div className="stat-label">Votre réponse</div>
-                        <div style={{ fontSize: 20, fontWeight: 600, marginTop: 2 }}>
-                          {selected ? selected.name : <span className="muted">Aucun pays sélectionné</span>}
-                        </div>
-                        <p className="tiny muted" style={{ margin: '4px 0 0' }}>
-                          Emplacement exact : tous les points · bon pays : 60 % · à quelques kilomètres : 40 %.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-lg"
-                        onClick={() => void submit()}
-                        disabled={busy || !selected || question?.status !== 'open'}
-                      >
-                        {busy ? 'Vérification…' : 'Valider ma réponse'}
-                      </button>
-                    </div>
-                    {error && (
-                      <p className="small rose" style={{ margin: '10px 0 0' }}>
-                        {error}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {!feedback && question?.status === 'answered' && (
-                  <div className="card card-tight" style={{ textAlign: 'center' }}>
-                    <span className="pill pill-gold">
-                      <span className="dot" /> Réponse envoyée
-                    </span>
-                    <p className="muted small" style={{ margin: '10px 0 0' }}>
-                      Vérification en cours…
-                    </p>
-                  </div>
-                )}
-
-                {feedback && (
-                  <div
-                    className={`feedback ${
-                      feedback.outcome === 'correct' ? 'ok' : feedback.outcome === 'skipped' ? 'mid' : 'ko'
-                    }`}
-                  >
-                    <div className="spread">
-                      <h3 style={{ margin: 0, fontSize: 20 }}>
-                        {PRECISION_TEXT[feedback.precision] ?? (feedback.outcome === 'correct' ? '✅ Correct' : '❌ Raté')}
-                      </h3>
-                      <span className={`pill ${feedback.outcome === 'correct' ? 'pill-green' : 'pill-gold'}`}>
-                        {feedback.points > 0 ? `+${feedback.points} points` : '0 point'}
-                      </span>
-                    </div>
-
-                    <p style={{ margin: '12px 0 6px' }}>
-                      Réponse attendue : <strong className="gold">{feedback.answer}</strong> — {feedback.country}
-                    </p>
-                    {feedback.clickedCountry && (
-                      <p className="small muted" style={{ margin: '0 0 6px' }}>
-                        Vous avez cliqué : {feedback.clickedCountry.name}
-                      </p>
-                    )}
-                    <p className="small" style={{ marginTop: 10, color: 'var(--ink-soft)' }}>
-                      {feedback.explanation}
-                    </p>
-
-                    <div className="row" style={{ marginTop: 10 }}>
-                      <span className="pill">{feedback.country}</span>
-                      {feedback.source?.url ? (
-                        <a
-                          className="pill"
-                          href={feedback.source.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{ textDecoration: 'underline' }}
-                        >
-                          Source : {feedback.source.label}
-                        </a>
-                      ) : (
-                        <span className="pill">{feedback.source?.label}</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <aside className="side stack">
-                <div className="card card-tight">
-                  <div className="card-head">Votre progression</div>
-                  <div className="spread" style={{ marginBottom: 10 }}>
-                    <div>
-                      <div className="stat-label">Score</div>
-                      <div className="stat-value teal">{state.score}</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div className="stat-label">Niveau</div>
-                      <div className="stat-value gold">{state.level}</div>
-                    </div>
-                  </div>
-                  <div className="progress">
-                    <span style={{ width: `${Math.round(levelProgress.ratio * 100)}%` }} />
-                  </div>
-                  <p className="tiny muted" style={{ margin: '8px 0 0' }}>
-                    {levelProgress.next
-                      ? `${levelProgress.next - state.score} points avant le niveau ${levelProgress.level + 1}`
-                      : 'Niveau maximum atteint'}
-                  </p>
-
-                  <hr className="divider" />
-                  <div className="stat-grid">
-                    <div className="stat">
-                      <div className="stat-label">Bonnes réponses</div>
-                      <div className="stat-value">{state.correct}</div>
-                    </div>
-                    <div className="stat">
-                      <div className="stat-label">Questions</div>
-                      <div className="stat-value">
-                        {state.progress.index}
-                        <span className="muted" style={{ fontSize: 14 }}>
-                          /{state.progress.total}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="card card-tight">
-                  <div className="card-head">Pays trouvés</div>
-                  {state.found.length === 0 ? (
-                    <p className="small muted" style={{ margin: 0 }}>
-                      Vos bonnes réponses s&apos;ajouteront ici, comme les escales d&apos;un carnet de voyage.
-                    </p>
-                  ) : (
-                    <div className="country-list">
-                      {state.found.map((country) => (
-                        <span className="pill pill-teal" key={country}>
-                          {country}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="card card-tight">
-                  <div className="card-head">Comment répondre</div>
-                  <ul className="small muted" style={{ margin: 0, paddingLeft: 16, lineHeight: 1.8 }}>
-                    <li>Cliquez sur le pays (ou la région) qui répond à la question.</li>
-                    <li>Emplacement exact : tous les points ; bon pays : 60 % ; à côté : 40 %.</li>
-                    <li>Un indice coûte 5 points, et le présentateur voit tout.</li>
-                  </ul>
-                </div>
-              </aside>
+                  </svg>
+                </button>
+              )}
             </div>
-          )}
-
-          {state.status === 'finished' && state.finished && (
-            <div className="stack">
-              <div className="card" style={{ textAlign: 'center', padding: 40 }}>
-                <div style={{ fontSize: 52 }} aria-hidden>
-                  {state.finished.badge.emoji}
-                </div>
-                <span className="eyebrow" style={{ justifyContent: 'center' }}>
-                  Voyage terminé
-                </span>
-                <h2 className="display-sm" style={{ marginTop: 10 }}>
-                  {state.finished.badge.label}
-                </h2>
-                <p className="muted">
-                  {state.finished.correct} bonne{state.finished.correct > 1 ? 's' : ''} réponse
-                  {state.finished.correct > 1 ? 's' : ''} sur {state.finished.total} — {state.finished.score} points.
+            {question.attempts > 0 && question.status === 'open' && !feedback && (
+              <p className="notice" role="status">
+                Essayez un autre pays. Cette seconde chance vaut la moitié des points.
+              </p>
+            )}
+            {question.hints.length > 0 && (
+              <ul className="hint-list" aria-label="Indices reçus">
+                {question.hints.map((hint, index) => (
+                  <li key={index}>
+                    <strong>Indice {index + 1}</strong> {hint}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="game-map">
+              <div className="map-options map-toggle" role="group" aria-label="Type de carte">
+                <button type="button" aria-pressed={mapMode === 'globe'} onClick={() => setMapMode('globe')}>
+                  Globe
+                </button>
+                <button type="button" aria-pressed={mapMode === 'flat'} onClick={() => setMapMode('flat')}>
+                  Carte
+                </button>
+              </div>
+              <WorldMap
+                mode={mapMode}
+                className="play-map"
+                pin={pin ?? feedback?.playerPin ?? null}
+                selectedIso={!feedback ? (selected?.id ?? null) : null}
+                target={feedback?.coords ?? null}
+                targetIso={feedback?.isoN ?? null}
+                onPick={!busy && connected && question.status === 'open' && !feedback ? pick : undefined}
+                labels
+              />
+            </div>
+            {!feedback && (
+              <div className="selection-row">
+                <p className={selected ? 'selected-country' : 'selection-placeholder'} aria-live="polite">
+                  {selected?.name ?? 'Choisissez un pays sur la carte'}
                 </p>
-
-                <div className="recap" style={{ marginTop: 18, textAlign: 'left' }}>
-                  <div className="stat">
-                    <div className="stat-label">Score final</div>
-                    <div className="stat-value teal">{state.finished.score}</div>
-                  </div>
-                  <div className="stat">
-                    <div className="stat-label">Niveau atteint</div>
-                    <div className="stat-value gold">{state.level}</div>
-                  </div>
-                  <div className="stat">
-                    <div className="stat-label">Pays visités</div>
-                    <div className="stat-value">{state.finished.found.length}</div>
-                  </div>
-                </div>
-
-                <div className="country-list" style={{ justifyContent: 'center', marginTop: 18 }}>
-                  {state.finished.found.map((country) => (
-                    <span className="pill pill-teal" key={country}>
-                      {country}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="row" style={{ justifyContent: 'center', marginTop: 24 }}>
-                  <button className="btn btn-primary" type="button" onClick={leave}>
-                    Rejoindre une autre salle
-                  </button>
-                  <Link className="btn" href="/">
-                    Retour à l&apos;accueil
-                  </Link>
-                </div>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => void submit()}
+                  disabled={busy || !connected || !selected || question.status !== 'open'}
+                >
+                  {busy || question.status === 'answered' ? 'Vérification…' : 'Valider'}
+                </button>
               </div>
-            </div>
-          )}
+            )}
+            {error && !feedback && (
+              <p className="error-message" role="alert">
+                {error}
+              </p>
+            )}
+            {feedback && (
+              <section
+                className={`feedback ${feedback.outcome === 'correct' ? 'ok' : feedback.outcome === 'skipped' ? 'mid' : 'ko'}`}
+                aria-label="Résultat"
+                aria-live="polite"
+              >
+                <div className="feedback-heading">
+                  <h2>{PRECISION_TEXT[feedback.precision] ?? 'Réponse vérifiée'}</h2>
+                  <strong>
+                    {feedback.points > 0 ? '+' : ''}
+                    {feedback.points} pts
+                  </strong>
+                </div>
+                <p className="feedback-answer">
+                  Réponse : <strong>{feedback.answer}</strong>
+                  {feedback.answer !== feedback.country && ` — ${feedback.country}`}
+                </p>
+                <QuestionDetails explanation={feedback.explanation} source={feedback.source} />
+              </section>
+            )}
+          </section>
+        )}
 
-          {state.status === 'playing' && !question && !feedback && (
-            <div className="card" style={{ textAlign: 'center', padding: 40 }}>
-              <p className="muted">Question en préparation…</p>
-            </div>
-          )}
-        </div>
+        {state.status === 'playing' && !question && (
+          <p className="waiting-state" role="status">
+            Préparation de la question…
+          </p>
+        )}
+
+        {state.status === 'finished' && state.finished && (
+          <section className="panel result-card">
+            <p className="overline">Partie terminée</p>
+            <h1>{state.finished.badge.label}</h1>
+            <p className="result-score">
+              {state.finished.score}
+              <span>points</span>
+            </p>
+            <p className="muted">
+              {state.finished.correct} / {state.finished.total} bonnes réponses
+            </p>
+            <details className="disclosure result-details">
+              <summary>Votre parcours</summary>
+              <div className="disclosure-content">
+                <p>
+                  Niveau {state.level} · {state.finished.found.length} pays trouvés
+                </p>
+                {state.finished.found.length > 0 && (
+                  <p className="muted">{state.finished.found.join(', ')}</p>
+                )}
+              </div>
+            </details>
+            <button className="btn btn-primary btn-block" type="button" onClick={leave}>
+              Rejoindre une autre partie
+            </button>
+          </section>
+        )}
       </main>
     </div>
   )

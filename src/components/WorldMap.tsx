@@ -765,13 +765,19 @@ export default function WorldMap({
       {interactive && (
         <div className="map-hud-right">
           <button type="button" className="pill" onClick={() => zoomBy(1.45)} aria-label="Zoom avant" title="Zoom avant">
-            ＋
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+            </svg>
           </button>
           <button type="button" className="pill" onClick={() => zoomBy(1 / 1.45)} aria-label="Zoom arrière" title="Zoom arrière">
-            −
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+              <path d="M5 12h14" strokeLinecap="round" />
+            </svg>
           </button>
           <button type="button" className="pill" onClick={resetView} aria-label="Revenir à la vue globale" title="Vue globale">
-            ⟲
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+              <path d="M4 10a8 8 0 1 1 2 8M4 4v6h6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
         </div>
       )}

@@ -15,9 +15,28 @@ les indices et les commandes de validation.
 
 ---
 
-## Aperçu
+## Interface épurée
 
-| Globe (accueil, rotation automatique) | Carte du monde, pays réels |
+- **Accueil** : créer une salle ou rejoindre une partie.
+- **Joueur** : question, grande carte, pays choisi et bouton **Valider**. Le score et le numéro de
+  question restent discrets ; les cartes de progression et les règles répétées ont été retirées.
+- **Présentateur** : thème, difficulté et nombre de questions. En partie, les commandes changent
+  selon le contexte : indice / passer, puis question suivante.
+- Options de seconde chance, explications, sources, historique et corrections restent accessibles
+  dans des sections **repliées par défaut**, sans encombrer le jeu.
+
+### Aperçu des écrans
+
+| Joueur | Présentateur |
+| --- | --- |
+| ![Question, globe et validation](docs/apercus/interface-joueur.png) | ![Commandes essentielles et réponse privée](docs/apercus/interface-presentateur.png) |
+
+[Voir l’interface mobile](docs/apercus/interface-mobile.png).
+
+<details>
+<summary>Aperçus de la carte et des routes</summary>
+
+| Globe coloré | Carte du monde, pays réels |
 | --- | --- |
 | ![Globe coloré](docs/apercus/globe.png) | ![Carte du monde](docs/apercus/carte-monde.png) |
 
@@ -25,7 +44,9 @@ les indices et les commandes de validation.
 | --- | --- |
 | ![Europe à fort zoom](docs/apercus/carte-europe.png) | ![Zoom avec repères](docs/apercus/carte-zoom.png) |
 
-Aperçus générés sans navigateur par `npm run preview:map` (voir `docs/DONNEES.md`).
+Aperçus cartographiques générés sans navigateur par `npm run preview:map` (voir `docs/DONNEES.md`).
+
+</details>
 
 ## 1. Démarrage
 
@@ -42,6 +63,7 @@ npm run dev          # http://localhost:3000 (écoute aussi sur le réseau local
 | `npm run typecheck` | Vérification TypeScript |
 | `npm run smoke` | Test de bout en bout du moteur (voir §8) |
 | `npm run test:map` | Géométrie des pays, clics, barème et confidentialité (sans serveur) |
+| `npm run test:ui` | Parcours navigateur sur ordinateur et mobile (Playwright) |
 | `npm run preview:map` | Génère les aperçus PNG du globe et des routes |
 
 Le port se change avec `PORT=4000 npm run dev`.
@@ -71,16 +93,16 @@ utilisée dans le navigateur : il fonctionne donc aussi bien en local que derri�
 
 | Exigence du dossier | Mise en œuvre |
 | --- | --- |
-| Écran joueur : rejoindre par code/QR, pseudo, statut | `/jouer` — formulaire, reprise de session, pastille de connexion |
+| Écran joueur : rejoindre par code/QR, pseudo, statut | `/jouer` — code et pseudo, reprise de session, alerte en cas de déconnexion |
 | Globe / carte 3D zoomable, repères, retour à la vue globale | `src/components/WorldMap.tsx` — projection orthographique + carte plate (D3), rotation au doigt, molette/pincement, retour à la vue globale |
 | « Colore la terre », pays réels | 241 pays et territoires Natural Earth à l’échelle 1:50 millions, coloriés comme un atlas, noms français au survol |
 | Routes réelles détaillées selon le zoom | Lacs (toujours), rivières dès ×1,35, **routes réelles** (Natural Earth à l’échelle 1:10 millions) dès ×2,2, frontières renforcées — voir `docs/DONNEES.md` |
-| Réponse par clic sur la carte | Clic → pays détecté (point-in-polygon), confirmation du nom, bouton *Valider ma réponse* |
+| Réponse par clic sur la carte | Clic → pays détecté (point-in-polygon), confirmation du nom, bouton *Valider* |
 | Écoute de la question | Synthèse vocale (`speechSynthesis`) ; la dictée a été retirée, la réponse est cartographique |
-| Score, niveau, progression, feedback | Barre de niveau, carnet de pays trouvés, panneau de résultat |
+| Score, niveau, progression, feedback | Score pendant la partie, résultat après validation, niveau et pays dans le bilan repliable |
 | Interface présentateur : créer/démarrer/terminer | `/presentateur` — salle, QR, réglages, commandes |
-| Réponse privée, explication, source | Carte dorée « visible par vous seul », variantes acceptées, source |
-| Commandes : afficher, répéter, indice, valider, incorrecte, passer, suivante | Barre de commandes + lecture de l'énoncé côté joueur |
+| Réponse privée, explication, source | Panneau privé du présentateur ; explication et source dans une section repliable |
+| Commandes : indice, passer, suivante, correction | Commandes contextuelles ; corrections et fin anticipée sous *Autres actions*, lecture de l’énoncé côté joueur |
 | Temps réel | Socket.IO (repli long-polling automatique) |
 | Accessibilité / robustesse | Réponse à la souris ou au doigt, zoom par boutons, contrastes, `aria-*`, `prefers-reduced-motion`, jeu utilisable sans voix ni WebGL |
 | Sécurité / vie privée | Code de salle aléatoire, jeton présentateur, filtrage strict des états envoyés, données en mémoire seulement |
@@ -219,6 +241,22 @@ l’accusé de réception d’une seconde chance (pas seulement sur l’événem
 `npm run test:map` : 21 tests sans serveur — pays traversant l’antiméridien (États-Unis, Russie,
 Nouvelle-Zélande, Kiribati), petits pays, comparaison géométrique sur 512 points, clics hors de la
 Terre, coordonnées invalides, barème et confidentialité avant résolution.
+
+**Navigateur** — `npm run test:ui` : 8 scénarios (4 sur ordinateur, 4 sur mobile) couvrent
+l’accueil minimal, les trois critères de création, la prise en compte réelle de la difficulté,
+les erreurs de code et une partie complète : clic sur la carte, confidentialité pendant la seconde
+chance, indice, validation, correction du présentateur, bilan, nouvelle partie et rechargement des
+sessions. Le débordement horizontal est vérifié sur les deux formats.
+
+Installer Chromium une seule fois, puis lancer les tests :
+
+```powershell
+npx playwright install chromium
+npm run test:ui
+```
+
+Playwright réutilise le serveur déjà ouvert sur le port 3000, sinon il lance un serveur temporaire.
+Les traces et captures d’échec sont rangées dans `.cache/playwright-results/` (ignoré par Git).
 
 **Manuel** — la liste du dossier de conception :
 
