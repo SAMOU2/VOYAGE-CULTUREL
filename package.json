@@ -1,48 +1,39 @@
 {
-  "name": "voyage-culturel",
-  "version": "0.1.0",
+  "name": "voyage-culturel-stand",
+  "version": "1.0.0",
   "private": true,
-  "description": "Jeu culturel en réseau local : globe interactif, question et présentateur.",
   "type": "module",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
-    "dev": "node server/index.mjs",
-    "build": "next build",
-    "start": "NODE_ENV=production node server/index.mjs",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit",
-    "smoke": "node scripts/smoke.mjs",
-    "preview:map": "node scripts/preview-map.mjs",
-    "test": "node --test scripts/test-map.mjs scripts/test-questions.mjs scripts/test-connections.mjs",
-    "test:map": "node --test scripts/test-map.mjs",
-    "test:questions": "node --test scripts/test-questions.mjs",
-    "test:connections": "node --test scripts/test-connections.mjs",
-    "test:ui": "playwright test"
-  },
-  "dependencies": {
-    "@fontsource-variable/inter": "^5.3.0",
-    "@fontsource-variable/outfit": "^5.3.0",
-    "d3-geo": "^3.1.1",
-    "express": "^4.21.2",
-    "next": "15.5.29",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "socket.io": "^4.8.4",
-    "socket.io-client": "^4.8.4",
-    "topojson-client": "^3.1.0",
-    "world-atlas": "^2.0.2"
+    "dev": "tsx scripts/run.ts dev",
+    "start": "node backend/dist/scripts/run.js start",
+    "build": "npm run build --workspaces",
+    "typecheck": "tsc -p backend/tsconfig.json --noEmit && tsc -p frontend/tsconfig.json --noEmit && tsc -p tests/tsconfig.json --noEmit",
+    "test": "tsx --test tests/unit/bank.test.ts tests/unit/geometry.test.ts tests/unit/stand.test.ts tests/unit/store.test.ts tests/unit/realtime.test.ts",
+    "test:ui": "playwright test",
+    "smoke": "tsx scripts/smoke.ts",
+    "build:geo": "tsx scripts/build-geo.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@napi-rs/canvas": "^1.1.0",
     "@playwright/test": "^1.64.1",
-    "@types/d3-geo": "^3.1.0",
-    "@types/express": "^4.17.21",
+    "@types/geojson": "^7946.0.16",
     "@types/node": "^22.10.0",
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
     "@types/topojson-client": "^3.1.5",
     "i18n-iso-countries": "^7.14.0",
-    "topojson-server": "^3.0.1",
-    "topojson-simplify": "^3.0.3",
-    "typescript": "^5.7.0"
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "world-atlas": "^2.0.2",
+    "prettier": "^3.9.10"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "overrides": {
+    "postcss": "8.5.32"
   }
 }

@@ -1,0 +1,21 @@
+{
+  "name": "@voyage/backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --include ../data/questions.json --include ../data/countries.json src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/backend/src/index.js"
+  },
+  "dependencies": {
+    "d3-geo": "^3.1.1",
+    "express": "^4.21.2",
+    "socket.io": "^4.8.4",
+    "topojson-client": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/d3-geo": "^3.1.0",
+    "@types/express": "^4.17.21"
+  }
+}

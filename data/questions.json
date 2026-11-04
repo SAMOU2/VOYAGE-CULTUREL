@@ -1,1820 +1,2606 @@
 {
-  "version": "2.0.0",
+  "version": "3.0.0",
   "checkedAt": "2026-11-04",
   "themes": [
-    { "id": "capitales", "label": "Capitales", "emoji": "🏛️", "color": "#5eead4" },
-    { "id": "monuments", "label": "Monuments & patrimoine", "emoji": "🗿", "color": "#fbbf24" },
-    { "id": "langues", "label": "Langues & peuples", "emoji": "💬", "color": "#a78bfa" },
-    { "id": "nature", "label": "Fleuves, montagnes & nature", "emoji": "🏔️", "color": "#34d399" },
-    { "id": "traditions", "label": "Traditions & fêtes", "emoji": "🎭", "color": "#fb7185" },
-    { "id": "histoire", "label": "Histoire & civilisations", "emoji": "📜", "color": "#f97316" }
+    {
+      "id": "capitales",
+      "label": "Capitales",
+      "emoji": "🏛️",
+      "color": "#5eead4"
+    },
+    {
+      "id": "monuments",
+      "label": "Monuments & patrimoine",
+      "emoji": "🗿",
+      "color": "#fbbf24"
+    },
+    {
+      "id": "langues",
+      "label": "Langues & peuples",
+      "emoji": "💬",
+      "color": "#a78bfa"
+    },
+    {
+      "id": "nature",
+      "label": "Nature & paysages",
+      "emoji": "🏔️",
+      "color": "#34d399"
+    },
+    {
+      "id": "traditions",
+      "label": "Traditions & fêtes",
+      "emoji": "🎭",
+      "color": "#fb7185"
+    },
+    {
+      "id": "histoire",
+      "label": "Histoire & civilisations",
+      "emoji": "📜",
+      "color": "#f97316"
+    }
   ],
   "difficulties": [
-    { "id": "facile", "value": 1, "label": "Facile", "points": 10 },
-    { "id": "moyen", "value": 2, "label": "Moyen", "points": 20 },
-    { "id": "difficile", "value": 3, "label": "Difficile", "points": 30 },
-    { "id": "expert", "value": 4, "label": "Expert", "points": 40 }
-  ],
-  "questions": [
     {
-      "id": "cap-001",
-      "theme": "capitales",
-      "difficulty": 1,
-      "country": "France",
-      "countryCode": "FR",
-      "isoN": "250",
-      "question": "Dans quel pays Paris est-elle la capitale ?",
-      "answer": "France",
-      "accepted": ["France"],
-      "hints": ["Cherchez en Europe de l’Ouest.", "Ce pays est voisin de l’Espagne et de l’Allemagne."],
-      "explanation": "Paris est la capitale et la ville la plus peuplée de France. Elle est aussi le chef-lieu de la région Île-de-France.",
-      "coords": [2.3522, 48.8566],
-      "source": { "label": "Larousse — Paris", "url": "https://www.larousse.fr/encyclopedie" }
+      "id": "facile",
+      "value": 1,
+      "label": "Facile",
+      "points": 10
     },
     {
-      "id": "cap-002",
-      "theme": "capitales",
-      "difficulty": 1,
-      "country": "Japon",
-      "countryCode": "JP",
-      "isoN": "392",
-      "question": "Tokyo est la capitale de quel pays ?",
-      "answer": "Japon",
-      "accepted": ["Japon", "Japan"],
-      "hints": ["Cherchez un archipel d’Asie de l’Est.", "Son drapeau porte un disque rouge sur fond blanc."],
-      "explanation": "Tokyo devient la capitale impériale en 1868, lorsque l'empereur Meiji quitte Kyoto. Edo est renommée Tokyo, « capitale de l'Est ».",
-      "coords": [139.6917, 35.6895],
-      "source": { "label": "Britannica — Tokyo", "url": "https://www.britannica.com/place/Tokyo" }
+      "id": "moyen",
+      "value": 2,
+      "label": "Moyen",
+      "points": 20
     },
     {
-      "id": "cap-003",
-      "theme": "capitales",
-      "difficulty": 1,
-      "country": "Italie",
-      "countryCode": "IT",
-      "isoN": "380",
-      "question": "Quel pays a Rome pour capitale ?",
-      "answer": "Italie",
-      "accepted": ["Italie", "Italy"],
-      "hints": ["Cherchez en Europe du Sud.", "Sa péninsule est souvent comparée à une botte."],
-      "explanation": "Rome est la capitale de l'Italie depuis 1871. Elle est traversée par le Tibre et compte un patrimoine antique exceptionnel.",
-      "coords": [12.4964, 41.9028],
-      "source": { "label": "Britannica — Rome", "url": "https://www.britannica.com/place/Rome" }
+      "id": "difficile",
+      "value": 3,
+      "label": "Difficile",
+      "points": 30
     },
     {
-      "id": "cap-004",
-      "theme": "capitales",
-      "difficulty": 1,
-      "country": "Égypte",
-      "countryCode": "EG",
-      "isoN": "818",
-      "question": "Le Caire est la capitale de quel pays ?",
-      "answer": "Égypte",
-      "accepted": ["Égypte", "Egypt"],
-      "hints": ["Cherchez en Afrique du Nord.", "Le Nil y rejoint la mer Méditerranée."],
-      "explanation": "Le Caire a été fondée en 969 par la dynastie fatimide. C'est la capitale politique et culturelle du monde arabe.",
-      "coords": [31.2357, 30.0444],
-      "source": { "label": "Britannica — Cairo", "url": "https://www.britannica.com/place/Cairo" }
-    },
-    {
-      "id": "cap-005",
-      "theme": "capitales",
-      "difficulty": 1,
-      "country": "Brésil",
-      "countryCode": "BR",
-      "isoN": "076",
-      "question": "Quel pays a Brasilia pour capitale depuis 1960 ?",
-      "answer": "Brésil",
-      "accepted": ["Brésil", "Brazil"],
-      "hints": ["Cherchez en Amérique du Sud.", "C’est le plus grand pays du continent et sa capitale est Brasilia."],
-      "explanation": "Brasilia a été inaugurée le 21 avril 1960 sous la présidence de Juscelino Kubitschek, pour désengorger le littoral au profit de l'intérieur du pays.",
-      "coords": [-47.9292, -15.7801],
-      "source": { "label": "UNESCO — Brasilia", "url": "https://whc.unesco.org/fr/list/445/" }
-    },
-    {
-      "id": "cap-006",
-      "theme": "capitales",
-      "difficulty": 2,
-      "country": "Australie",
-      "countryCode": "AU",
-      "isoN": "036",
-      "question": "Canberra, et non Sydney, est la capitale de quel pays ?",
-      "answer": "Australie",
-      "accepted": ["Australie", "Australia"],
-      "hints": ["Cherchez en Océanie.", "Ce pays occupe un continent entre les océans Indien et Pacifique."],
-      "explanation": "Canberra a été dessinée par les architectes Walter Burley Griffin et Marion Mahony Griffin après un concours international en 1911. Le Parlement fédéral y siège depuis 1927.",
-      "coords": [149.13, -35.2809],
-      "source": { "label": "Britannica — Canberra", "url": "https://www.britannica.com/place/Canberra" }
-    },
-    {
-      "id": "cap-007",
-      "theme": "capitales",
-      "difficulty": 2,
-      "country": "Canada",
-      "countryCode": "CA",
-      "isoN": "124",
-      "question": "Quel pays a Ottawa pour capitale ?",
-      "answer": "Canada",
-      "accepted": ["Canada"],
-      "hints": ["Cherchez en Amérique du Nord.", "Ce grand pays se trouve au nord des États-Unis."],
-      "explanation": "Ottawa a été choisie en 1857 par la reine Victoria comme capitale de la province du Canada, puis confirmée comme capitale fédérale en 1867.",
-      "coords": [-75.6972, 45.4215],
-      "source": { "label": "Britannica — Ottawa", "url": "https://www.britannica.com/place/Ottawa" }
-    },
-    {
-      "id": "cap-008",
-      "theme": "capitales",
-      "difficulty": 2,
-      "country": "Maroc",
-      "countryCode": "MA",
-      "isoN": "504",
-      "question": "Rabat est la capitale de quel pays ?",
-      "answer": "Maroc",
-      "accepted": ["Maroc", "Morocco"],
-      "hints": ["Cherchez dans le nord-ouest de l’Afrique.", "Ce pays fait face à l’Espagne, de l’autre côté du détroit de Gibraltar."],
-      "explanation": "Rabat est la capitale administrative du Maroc depuis 1912. La ville est inscrite au patrimoine mondial de l'UNESCO depuis 2012.",
-      "coords": [-6.8498, 34.0209],
-      "source": { "label": "UNESCO — Rabat", "url": "https://whc.unesco.org/fr/list/1401/" }
-    },
-    {
-      "id": "cap-009",
-      "theme": "capitales",
-      "difficulty": 2,
-      "country": "Nigeria",
-      "countryCode": "NG",
-      "isoN": "566",
-      "question": "Quel pays a transféré sa capitale de Lagos à Abuja en 1991 ?",
-      "answer": "Nigeria",
-      "accepted": ["Nigeria"],
-      "hints": ["Cherchez en Afrique de l’Ouest.", "Ce pays du golfe de Guinée est voisin du Bénin et du Cameroun."],
-      "explanation": "Abuja a été planifiée dans les années 1970 et est devenue officiellement capitale en décembre 1991, afin de rééquilibrer le pays.",
-      "coords": [7.3986, 9.0765],
-      "source": { "label": "Britannica — Abuja", "url": "https://www.britannica.com/place/Abuja" }
-    },
-    {
-      "id": "cap-010",
-      "theme": "capitales",
-      "difficulty": 3,
-      "country": "Kazakhstan",
-      "countryCode": "KZ",
-      "isoN": "398",
-      "question": "Astana, appelée Noursoultan entre 2019 et 2022, est la capitale de quel pays ?",
-      "answer": "Kazakhstan",
-      "accepted": ["Kazakhstan"],
-      "hints": ["Cherchez en Asie centrale.", "Ce pays est voisin de la Russie et de la Chine."],
-      "explanation": "Astana, signifiant « capitale », est devenue capitale du Kazakhstan en 1997 à la place d'Almaty. Elle a porté le nom de Noursoultan de 2019 à 2022.",
-      "coords": [71.4304, 51.1694],
-      "source": { "label": "Britannica — Astana", "url": "https://www.britannica.com/place/Astana" }
-    },
-    {
-      "id": "cap-011",
-      "theme": "capitales",
-      "difficulty": 3,
-      "country": "Myanmar",
-      "countryCode": "MM",
-      "isoN": "104",
-      "question": "Naypyidaw a remplacé Rangoun comme capitale de quel pays ?",
-      "answer": "Myanmar",
-      "accepted": ["Myanmar", "Birmanie"],
-      "hints": ["Cherchez en Asie du Sud-Est.", "Ce pays est situé entre le Bangladesh et la Thaïlande."],
-      "explanation": "Naypyidaw est la capitale du Myanmar depuis 2006. Cette ville nouvelle, aux larges avenues presque désertes, a surpris les observateurs.",
-      "coords": [96.1297, 19.7633],
-      "source": { "label": "Britannica — Naypyidaw", "url": "https://www.britannica.com/place/Naypyidaw" }
-    },
-    {
-      "id": "cap-012",
-      "theme": "capitales",
-      "difficulty": 3,
-      "country": "Tanzanie",
-      "countryCode": "TZ",
-      "isoN": "834",
-      "question": "Quel pays a Dodoma pour capitale, tandis que Dar es Salam reste une grande métropole ?",
-      "answer": "Tanzanie",
-      "accepted": ["Tanzanie", "United Republic of Tanzania"],
-      "hints": ["Cherchez en Afrique de l’Est.", "Ce pays abrite le Kilimandjaro et l’archipel de Zanzibar."],
-      "explanation": "Dodoma a remplacé Dar es Salam comme capitale en 1974 pour recentrer le pouvoir, mais l'administration n'a suivi que progressivement.",
-      "coords": [35.7395, -6.163],
-      "source": { "label": "Britannica — Dodoma", "url": "https://www.britannica.com/place/Dodoma" }
-    },
-    {
-      "id": "mon-001",
-      "theme": "monuments",
-      "difficulty": 1,
-      "country": "Inde",
-      "countryCode": "IN",
-      "isoN": "356",
-      "question": "Dans quel pays se trouve le Taj Mahal ?",
-      "answer": "Inde",
-      "accepted": ["Inde", "India"],
-      "hints": ["Cherchez en Asie du Sud.", "Ce grand pays a New Delhi pour capitale."],
-      "explanation": "Le Taj Mahal a été élevé entre 1632 et 1653. Il est inscrit au patrimoine mondial de l'UNESCO depuis 1983.",
-      "coords": [78.0421, 27.1751],
-      "source": { "label": "UNESCO — Taj Mahal", "url": "https://whc.unesco.org/fr/list/252/" }
-    },
-    {
-      "id": "mon-002",
-      "theme": "monuments",
-      "difficulty": 1,
-      "country": "Grèce",
-      "countryCode": "GR",
-      "isoN": "300",
-      "question": "Quel pays abrite le Parthénon, sur l’Acropole d’Athènes ?",
-      "answer": "Grèce",
-      "accepted": ["Grèce", "Greece"],
-      "hints": ["Cherchez dans le sud-est de l’Europe.", "Athènes est la capitale de ce pays."],
-      "explanation": "Le Parthénon a été construit entre 447 et 432 av. J.-C. par les architectes Ictinos et Callicratès, avec le sculpteur Phidias.",
-      "coords": [23.7257, 37.9715],
-      "source": { "label": "UNESCO — Acropole d'Athènes", "url": "https://whc.unesco.org/fr/list/404/" }
-    },
-    {
-      "id": "mon-003",
-      "theme": "monuments",
-      "difficulty": 1,
-      "country": "Chine",
-      "countryCode": "CN",
-      "isoN": "156",
-      "question": "Dans quel pays se trouve la Grande Muraille ?",
-      "answer": "Chine",
-      "accepted": ["Chine", "People's Republic of China"],
-      "hints": ["Cherchez en Asie de l’Est.", "Pékin est la capitale de ce grand pays."],
-      "explanation": "La Grande Muraille est un ensemble de fortifications édifiées du IIIe siècle av. J.-C. au XVIIe siècle pour protéger la Chine des incursions du nord.",
-      "coords": [116.5704, 40.4319],
-      "source": { "label": "UNESCO — La Grande Muraille", "url": "https://whc.unesco.org/fr/list/438/" }
-    },
-    {
-      "id": "mon-004",
-      "theme": "monuments",
-      "difficulty": 1,
-      "country": "Pérou",
-      "countryCode": "PE",
-      "isoN": "604",
-      "question": "Quel pays abrite la cité inca du Machu Picchu ?",
-      "answer": "Pérou",
-      "accepted": ["Pérou", "Peru"],
-      "hints": ["Cherchez sur la façade pacifique de l’Amérique du Sud.", "Ce pays a Lima pour capitale."],
-      "explanation": "Machu Picchu a probablement été bâtie pour l'empereur Pachacutec vers 1450. L'archéologue américain Hiram Bingham la fait connaître en 1911.",
-      "coords": [-72.545, -13.1631],
-      "source": { "label": "UNESCO — Machu Picchu", "url": "https://whc.unesco.org/fr/list/274/" }
-    },
-    {
-      "id": "mon-005",
-      "theme": "monuments",
-      "difficulty": 1,
-      "country": "Égypte",
-      "countryCode": "EG",
-      "isoN": "818",
-      "question": "Dans quel pays se trouvent les pyramides de Gizeh ?",
-      "answer": "Égypte",
-      "accepted": ["Égypte", "Egypt"],
-      "hints": ["Cherchez en Afrique du Nord.", "Le Nil y rejoint la mer Méditerranée."],
-      "explanation": "Le plateau de Gizeh réunit les pyramides de Khéops, Khéphren et Mykérinos, élevées vers 2560-2450 av. J.-C. Seule des sept merveilles antiques encore debout, la grande pyramide est classée à l'UNESCO.",
-      "coords": [31.1342, 29.9792],
-      "source": { "label": "UNESCO — Memphis et sa nécropole", "url": "https://whc.unesco.org/fr/list/86/" }
-    },
-    {
-      "id": "mon-006",
-      "theme": "monuments",
-      "difficulty": 2,
-      "country": "Jordanie",
-      "countryCode": "JO",
-      "isoN": "400",
-      "question": "Dans quel pays peut-on visiter Pétra, la cité taillée dans le grès rose ?",
-      "answer": "Jordanie",
-      "accepted": ["Jordanie", "Jordan"],
-      "hints": ["Cherchez au Moyen-Orient.", "Ce pays a Amman pour capitale."],
-      "explanation": "Pétra fut la capitale du royaume nabatéen du IVe siècle av. J.-C. au IIe siècle apr. J.-C. Elle est inscrite au patrimoine mondial depuis 1985.",
-      "coords": [35.4444, 30.3285],
-      "source": { "label": "UNESCO — Pétra", "url": "https://whc.unesco.org/fr/list/326/" }
-    },
-    {
-      "id": "mon-007",
-      "theme": "monuments",
-      "difficulty": 2,
-      "country": "Turquie",
-      "countryCode": "TR",
-      "isoN": "792",
-      "question": "Quel pays abrite Sainte-Sophie, à Istanbul ?",
-      "answer": "Turquie",
-      "accepted": ["Turquie", "Türkiye"],
-      "hints": ["Cherchez entre l’Europe et l’Asie.", "Ankara est la capitale de ce pays."],
-      "explanation": "Sainte-Sophie (Ayasofya) fut la plus grande église du monde chrétien pendant près de mille ans, avant de devenir mosquée en 1453, puis musée en 1935 et de nouveau mosquée en 2020.",
-      "coords": [28.9802, 41.0086],
-      "source": { "label": "Britannica — Hagia Sophia", "url": "https://www.britannica.com/topic/Hagia-Sophia" }
-    },
-    {
-      "id": "mon-008",
-      "theme": "monuments",
-      "difficulty": 2,
-      "country": "Mexique",
-      "countryCode": "MX",
-      "isoN": "484",
-      "question": "Dans quel pays se trouve la cité maya de Chichén Itzá ?",
-      "answer": "Mexique",
-      "accepted": ["Mexique", "Mexico"],
-      "hints": ["Cherchez en Amérique du Nord.", "Ce pays se trouve immédiatement au sud des États-Unis."],
-      "explanation": "Chichén Itzá a prospéré entre le VIIe et le XIIIe siècle. Le temple de Kukulkán (El Castillo) compte 365 marches, une par jour de l'année maya.",
-      "coords": [-88.5686, 20.6843],
-      "source": { "label": "UNESCO — Chichén Itzá", "url": "https://whc.unesco.org/fr/list/483/" }
-    },
-    {
-      "id": "mon-009",
-      "theme": "monuments",
-      "difficulty": 2,
-      "country": "Cambodge",
-      "countryCode": "KH",
-      "isoN": "116",
-      "question": "Quel pays abrite les temples d’Angkor, près de Siem Reap ?",
-      "answer": "Cambodge",
-      "accepted": ["Cambodge", "Cambodia"],
-      "hints": ["Cherchez en Asie du Sud-Est.", "Ce pays a Phnom Penh pour capitale."],
-      "explanation": "Angkor Vat couvre environ 200 hectares et symbolise le mont Méru. Il est inscrit au patrimoine mondial depuis 1992 et représente l'apogée de l'Empire khmer.",
-      "coords": [103.867, 13.4125],
-      "source": { "label": "UNESCO — Angkor", "url": "https://whc.unesco.org/fr/list/668/" }
-    },
-    {
-      "id": "mon-010",
-      "theme": "monuments",
-      "difficulty": 3,
-      "country": "Mali",
-      "countryCode": "ML",
-      "isoN": "466",
-      "question": "Quel pays abrite la grande mosquée en terre de Djenné ?",
-      "answer": "Mali",
-      "accepted": ["Mali"],
-      "hints": ["Cherchez en Afrique de l’Ouest.", "Ce pays enclavé a Bamako pour capitale."],
-      "explanation": "La Grande Mosquée de Djenné, reconstruite en 1907, est le plus grand bâtiment en terre crue au monde. La ville est classée à l'UNESCO depuis 1988.",
-      "coords": [-4.555, 13.9056],
-      "source": { "label": "UNESCO — Djenné", "url": "https://whc.unesco.org/fr/list/116/" }
-    },
-    {
-      "id": "mon-011",
-      "theme": "monuments",
-      "difficulty": 3,
-      "country": "Italie",
-      "countryCode": "IT",
-      "isoN": "380",
-      "question": "Dans quel pays se trouve Pompéi, la ville ensevelie par le Vésuve ?",
-      "answer": "Italie",
-      "accepted": ["Italie", "Italy"],
-      "hints": ["Cherchez en Europe du Sud.", "Sa péninsule est souvent comparée à une botte."],
-      "explanation": "L'éruption du Vésuve en 79 apr. J.-C. a recouvert Pompéi de cendres, préservant une ville romaine entière. Les fouilles systématiques commencent en 1748.",
-      "coords": [14.4989, 40.7497],
-      "source": { "label": "UNESCO — Zones archéologiques de Pompéi", "url": "https://whc.unesco.org/fr/list/829/" }
-    },
-    {
-      "id": "mon-012",
-      "theme": "monuments",
-      "difficulty": 3,
-      "country": "Éthiopie",
-      "countryCode": "ET",
-      "isoN": "231",
-      "question": "Dans quel pays les églises de Lalibela ont-elles été creusées dans le roc ?",
-      "answer": "Éthiopie",
-      "accepted": ["Éthiopie", "Ethiopia"],
-      "hints": ["Cherchez dans la Corne de l’Afrique.", "Ce pays a Addis-Abeba pour capitale."],
-      "explanation": "Creusées au XIIIe siècle sous le roi Lalibela, ces onze églises sont taillées d'un seul bloc dans la roche. Elles sont classées à l'UNESCO depuis 1978 et restent un lieu de pèlerinage.",
-      "coords": [39.047, 12.0317],
-      "source": { "label": "UNESCO — Églises creusées dans le roc de Lalibela", "url": "https://whc.unesco.org/fr/list/18/" }
-    },
-    {
-      "id": "lan-001",
-      "theme": "langues",
-      "difficulty": 1,
-      "country": "Brésil",
-      "countryCode": "BR",
-      "isoN": "076",
-      "question": "Quel grand pays d’Amérique du Sud a le portugais pour langue officielle ?",
-      "answer": "Brésil",
-      "accepted": ["Brésil", "Brazil"],
-      "hints": ["Cherchez en Amérique du Sud.", "C’est le plus grand pays du continent et sa capitale est Brasilia."],
-      "explanation": "Le portugais est la langue officielle du Brésil depuis la colonisation portugaise au XVIe siècle. Le Brésil compte plus de 200 millions de lusophones.",
-      "coords": [-47.9292, -15.7801],
-      "source": { "label": "Britannica — Portuguese language", "url": "https://www.britannica.com/topic/Portuguese-language" }
-    },
-    {
-      "id": "lan-002",
-      "theme": "langues",
-      "difficulty": 1,
-      "country": "Égypte",
-      "countryCode": "EG",
-      "isoN": "818",
-      "question": "Quel pays arabophone a Le Caire pour capitale ?",
-      "answer": "Égypte",
-      "accepted": ["Égypte", "Egypt"],
-      "hints": ["Cherchez en Afrique du Nord.", "Le Nil y rejoint la mer Méditerranée."],
-      "explanation": "L'arabe est la langue officielle de l'Égypte. L'arabe égyptien, très différent de l'arabe classique, est compris dans tout le monde arabe grâce au cinéma et à la chanson.",
-      "coords": [31.2357, 30.0444],
-      "source": { "label": "Britannica — Arabic language", "url": "https://www.britannica.com/topic/Arabic-language" }
-    },
-    {
-      "id": "lan-003",
-      "theme": "langues",
-      "difficulty": 1,
-      "country": "Japon",
-      "countryCode": "JP",
-      "isoN": "392",
-      "question": "Dans quel pays utilise-t-on les kanji, les hiragana et les katakana ?",
-      "answer": "Japon",
-      "accepted": ["Japon", "Japan"],
-      "hints": ["Cherchez un archipel d’Asie de l’Est.", "Son drapeau porte un disque rouge sur fond blanc."],
-      "explanation": "Le japonais utilise les kanji (caractères chinois), les hiragana (syllabaire pour la grammaire) et les katakana (mots étrangers). Les kanji ont été introduits vers le IVe siècle.",
-      "coords": [139.6917, 35.6895],
-      "source": { "label": "Britannica — Japanese language", "url": "https://www.britannica.com/topic/Japanese-language" }
-    },
-    {
-      "id": "lan-004",
-      "theme": "langues",
-      "difficulty": 1,
-      "country": "Mexique",
-      "countryCode": "MX",
-      "isoN": "484",
-      "question": "Quel pays hispanophone se trouve immédiatement au sud des États-Unis ?",
-      "answer": "Mexique",
-      "accepted": ["Mexique", "Mexico"],
-      "hints": ["Cherchez en Amérique du Nord.", "Ce pays se trouve immédiatement au sud des États-Unis."],
-      "explanation": "Le Mexique est le pays qui compte le plus de locuteurs de l'espagnol au monde, devant la Colombie et l'Espagne. L'espagnol n'est toutefois pas langue officielle au niveau fédéral.",
-      "coords": [-99.1332, 19.4326],
-      "source": { "label": "Britannica — Spanish language", "url": "https://www.britannica.com/topic/Spanish-language" }
-    },
-    {
-      "id": "lan-005",
-      "theme": "langues",
-      "difficulty": 1,
-      "country": "Kenya",
-      "countryCode": "KE",
-      "isoN": "404",
-      "question": "Quel pays a Nairobi pour capitale et le swahili parmi ses langues officielles ?",
-      "answer": "Kenya",
-      "accepted": ["Kenya"],
-      "hints": ["Cherchez en Afrique de l’Est.", "Nairobi est la capitale de ce pays voisin de la Tanzanie."],
-      "explanation": "Le swahili et l’anglais sont les langues officielles du Kenya, dont Nairobi est la capitale. Le swahili est aussi parlé dans plusieurs autres pays d’Afrique de l’Est.",
-      "coords": [36.8219, -1.2921],
-      "source": { "label": "Britannica — Swahili language", "url": "https://www.britannica.com/topic/Swahili-language" }
-    },
-    {
-      "id": "lan-006",
-      "theme": "langues",
-      "difficulty": 2,
-      "country": "Suisse",
-      "countryCode": "CH",
-      "isoN": "756",
-      "question": "Quel pays reconnaît l’allemand, le français, l’italien et le romanche comme langues nationales ?",
-      "answer": "Suisse",
-      "accepted": ["Suisse", "Switzerland"],
-      "hints": ["Cherchez au centre de l’Europe.", "Ce pays alpin est voisin de la France, de l’Allemagne et de l’Italie."],
-      "explanation": "La Suisse reconnaît quatre langues nationales : l’allemand, le français, l’italien et le romanche.",
-      "coords": [7.4474, 46.948],
-      "source": { "label": "Britannica — Switzerland", "url": "https://www.britannica.com/place/Switzerland" }
-    },
-    {
-      "id": "lan-007",
-      "theme": "langues",
-      "difficulty": 2,
-      "country": "Inde",
-      "countryCode": "IN",
-      "isoN": "356",
-      "question": "Quel pays a New Delhi pour capitale et le hindi parmi ses langues officielles fédérales ?",
-      "answer": "Inde",
-      "accepted": ["Inde", "India"],
-      "hints": ["Cherchez en Asie du Sud.", "Ce grand pays a New Delhi pour capitale."],
-      "explanation": "Le hindi est parlé par environ 40 % de la population indienne. L'anglais reste langue officielle associée de l'Union, et l'Inde reconnaît 22 langues dans sa Constitution.",
-      "coords": [77.209, 28.6139],
-      "source": { "label": "Britannica — Hindi language", "url": "https://www.britannica.com/topic/Hindi-language" }
-    },
-    {
-      "id": "lan-008",
-      "theme": "langues",
-      "difficulty": 2,
-      "country": "Afrique du Sud",
-      "countryCode": "ZA",
-      "isoN": "710",
-      "question": "Quel pays, dont Johannesburg est une grande ville, reconnaît douze langues officielles depuis 2023 ?",
-      "answer": "Afrique du Sud",
-      "accepted": ["Afrique du Sud", "South Africa"],
-      "hints": ["Cherchez à la pointe sud de l’Afrique.", "Ce pays entoure entièrement le Lesotho."],
-      "explanation": "L'Afrique du Sud compte 12 langues officielles depuis l'inscription de la langue des signes sud-africaine dans la Constitution en 2023. Le zoulou est la plus parlée.",
-      "coords": [28.0473, -26.2041],
-      "source": { "label": "Britannica — South Africa", "url": "https://www.britannica.com/place/South-Africa" }
-    },
-    {
-      "id": "lan-009",
-      "theme": "langues",
-      "difficulty": 2,
-      "country": "Nouvelle-Zélande",
-      "countryCode": "NZ",
-      "isoN": "554",
-      "question": "Dans quel pays le maori, aussi appelé te reo Māori, est-il une langue officielle ?",
-      "answer": "Nouvelle-Zélande",
-      "accepted": ["Nouvelle-Zélande", "New Zealand"],
-      "hints": ["Cherchez en Océanie, au sud-est de l’Australie.", "Wellington est la capitale de ce pays insulaire."],
-      "explanation": "Le maori, ou te reo Māori, est une langue officielle de Nouvelle-Zélande depuis 1987. La langue des signes néo-zélandaise est également officielle depuis 2006.",
-      "coords": [174.7633, -36.8485],
-      "source": { "label": "Britannica — Māori language", "url": "https://www.britannica.com/topic/Maori-language" }
-    },
-    {
-      "id": "lan-010",
-      "theme": "langues",
-      "difficulty": 3,
-      "country": "Bolivie",
-      "countryCode": "BO",
-      "isoN": "068",
-      "question": "Quel pays andin reconnaît l’espagnol et 36 langues autochtones dans sa Constitution de 2009 ?",
-      "answer": "Bolivie",
-      "accepted": ["Bolivie", "Bolivia"],
-      "hints": ["Cherchez en Amérique du Sud.", "Ce pays enclavé est voisin du Pérou et du Paraguay."],
-      "explanation": "La Constitution de la Bolivie de 2009 reconnaît l’espagnol et 36 langues autochtones, dont le quechua, l’aymara et le guarani.",
-      "coords": [-68.1193, -16.4897],
-      "source": { "label": "Britannica — Bolivia", "url": "https://www.britannica.com/place/Bolivia" }
-    },
-    {
-      "id": "lan-011",
-      "theme": "langues",
-      "difficulty": 3,
-      "country": "Papouasie-Nouvelle-Guinée",
-      "countryCode": "PG",
-      "isoN": "598",
-      "question": "Quel pays du Pacifique, dont la capitale est Port Moresby, compte plus de 800 langues ?",
-      "answer": "Papouasie-Nouvelle-Guinée",
-      "accepted": ["Papouasie-Nouvelle-Guinée", "Papua New Guinea", "Papouasie Nouvelle Guinée"],
-      "hints": ["Cherchez dans le Pacifique, au nord de l’Australie.", "Ce pays a Port Moresby pour capitale."],
-      "explanation": "La Papouasie-Nouvelle-Guinée est l’un des pays les plus riches en diversité linguistique, avec plus de 800 langues. Le tok pisin y sert largement de langue véhiculaire.",
-      "coords": [147.15, -9.4438],
-      "source": { "label": "Britannica — Papua New Guinea", "url": "https://www.britannica.com/place/Papua-New-Guinea" }
-    },
-    {
-      "id": "lan-012",
-      "theme": "langues",
-      "difficulty": 3,
-      "country": "Malte",
-      "countryCode": "MT",
-      "isoN": "470",
-      "question": "Quel pays insulaire de l’Union européenne possède une langue sémitique écrite en alphabet latin ?",
-      "answer": "Malte",
-      "accepted": ["Malte", "Malta"],
-      "hints": ["Cherchez une île de la mer Méditerranée.", "Ce pays se situe au sud de la Sicile."],
-      "explanation": "Le maltais est une langue sémitique issue de l’arabe sicilien médiéval et écrite en alphabet latin. Avec l’anglais, il est officiel à Malte.",
-      "coords": [14.5146, 35.8989],
-      "source": { "label": "Britannica — Maltese language", "url": "https://www.britannica.com/topic/Maltese-language" }
-    },
-    {
-      "id": "nat-001",
-      "theme": "nature",
-      "difficulty": 1,
-      "country": "Égypte",
-      "countryCode": "EG",
-      "isoN": "818",
-      "question": "Dans quel pays le Nil forme-t-il son grand delta avant de rejoindre la Méditerranée ?",
-      "answer": "Égypte",
-      "accepted": ["Égypte", "Egypt"],
-      "hints": ["Cherchez en Afrique du Nord.", "Le Nil y rejoint la mer Méditerranée."],
-      "explanation": "Le Nil est l'un des plus longs fleuves du monde. Sans lui, l'Égypte serait un désert : 95 % de la population vit sur ses rives et son delta.",
-      "coords": [31.2357, 30.0444],
-      "source": { "label": "Britannica — Nile River", "url": "https://www.britannica.com/place/Nile-River" }
-    },
-    {
-      "id": "nat-002",
-      "theme": "nature",
-      "difficulty": 1,
-      "country": "Népal",
-      "countryCode": "NP",
-      "isoN": "524",
-      "question": "Quel pays, dont la capitale est Katmandou, abrite le versant sud de l’Everest ?",
-      "answer": "Népal",
-      "accepted": ["Népal", "Nepal"],
-      "hints": ["Cherchez dans l’Himalaya.", "Ce pays se trouve entre l’Inde et la Chine."],
-      "explanation": "L’Everest se trouve sur la frontière entre le Népal et la Chine. Son versant sud et l’itinéraire du camp de base sud se trouvent au Népal.",
-      "coords": [86.85, 27.85],
-      "source": { "label": "Britannica — Mount Everest", "url": "https://www.britannica.com/place/Mount-Everest" }
-    },
-    {
-      "id": "nat-003",
-      "theme": "nature",
-      "difficulty": 1,
-      "country": "Brésil",
-      "countryCode": "BR",
-      "isoN": "076",
-      "question": "Quel pays, dont la capitale est Brasilia, abrite la plus grande partie de la forêt amazonienne ?",
-      "answer": "Brésil",
-      "accepted": ["Brésil", "Brazil"],
-      "hints": ["Cherchez en Amérique du Sud.", "C’est le plus grand pays du continent et sa capitale est Brasilia."],
-      "explanation": "La forêt amazonienne couvre environ 5,5 millions de km², dont 60 % au Brésil. Elle abrite une biodiversité exceptionnelle et joue un rôle majeur dans le climat mondial.",
-      "coords": [-62.2159, -3.4653],
-      "source": { "label": "Britannica — Amazon Rainforest", "url": "https://www.britannica.com/place/Amazon-Rainforest" }
-    },
-    {
-      "id": "nat-004",
-      "theme": "nature",
-      "difficulty": 1,
-      "country": "Australie",
-      "countryCode": "AU",
-      "isoN": "036",
-      "question": "Au large de quel pays se trouve la Grande Barrière de corail ?",
-      "answer": "Australie",
-      "accepted": ["Australie", "Australia"],
-      "hints": ["Cherchez en Océanie.", "Ce pays occupe un continent entre les océans Indien et Pacifique."],
-      "explanation": "La Grande Barrière de corail s'étend sur environ 2 300 km. Inscrite à l'UNESCO en 1981, elle est menacée par le réchauffement des océans.",
-      "coords": [147.6992, -18.2871],
-      "source": { "label": "UNESCO — Grande Barrière de corail", "url": "https://whc.unesco.org/fr/list/154/" }
-    },
-    {
-      "id": "nat-005",
-      "theme": "nature",
-      "difficulty": 1,
-      "country": "Russie",
-      "countryCode": "RU",
-      "isoN": "643",
-      "question": "Dans quel pays se trouve le lac Baïkal, en Sibérie ?",
-      "answer": "Russie",
-      "accepted": ["Russie", "Russian Federation"],
-      "hints": ["Cherchez dans le nord de l’Eurasie.", "Moscou est la capitale de ce très grand pays."],
-      "explanation": "Le lac Baïkal est le plus ancien (25 millions d'années) et le plus profond lac du monde. Il abrite le phoque d'eau douce du Baïkal, unique au monde.",
-      "coords": [107.6, 53.5],
-      "source": { "label": "UNESCO — Lac Baïkal", "url": "https://whc.unesco.org/fr/list/754/" }
-    },
-    {
-      "id": "nat-006",
-      "theme": "nature",
-      "difficulty": 2,
-      "country": "Tanzanie",
-      "countryCode": "TZ",
-      "isoN": "834",
-      "question": "Quel pays abrite le Kilimandjaro, le plus haut sommet d’Afrique ?",
-      "answer": "Tanzanie",
-      "accepted": ["Tanzanie", "United Republic of Tanzania"],
-      "hints": ["Cherchez en Afrique de l’Est.", "Ce pays abrite le Kilimandjaro et l’archipel de Zanzibar."],
-      "explanation": "Le Kilimandjaro, dans le nord de la Tanzanie, est un volcan stratifié couronné de neiges éternelles. Il est inscrit au patrimoine mondial depuis 1987.",
-      "coords": [37.3556, -3.0674],
-      "source": { "label": "UNESCO — Parc national du Kilimandjaro", "url": "https://whc.unesco.org/fr/list/403/" }
-    },
-    {
-      "id": "nat-007",
-      "theme": "nature",
-      "difficulty": 2,
-      "country": "Canada",
-      "countryCode": "CA",
-      "isoN": "124",
-      "question": "Quel pays abrite la ville de Niagara Falls située dans la province de l’Ontario ?",
-      "answer": "Canada",
-      "accepted": ["Canada"],
-      "hints": ["Cherchez en Amérique du Nord.", "Ce grand pays se trouve au nord des États-Unis."],
-      "explanation": "La ville de Niagara Falls en Ontario est au Canada. Les chutes du Niagara sont partagées avec les États-Unis : la question vise ici précisément le côté de l’Ontario.",
-      "coords": [-79.0849, 43.0962],
-      "source": { "label": "Britannica — Niagara Falls", "url": "https://www.britannica.com/place/Niagara-Falls" }
-    },
-    {
-      "id": "nat-008",
-      "theme": "nature",
-      "difficulty": 2,
-      "country": "Islande",
-      "countryCode": "IS",
-      "isoN": "352",
-      "question": "Dans quel pays se trouve Geysir, la source chaude qui a donné son nom aux geysers ?",
-      "answer": "Islande",
-      "accepted": ["Islande", "Iceland"],
-      "hints": ["Cherchez une île de l’Atlantique Nord.", "Ce pays se situe au sud-est du Groenland et sa capitale est Reykjavik."],
-      "explanation": "Le mot « geyser » vient de Geysir, en Islande. Sa voisine Strokkur jaillit encore toutes les 5 à 10 minutes. L'île est posée sur la dorsale médio-atlantique.",
-      "coords": [-20.302, 64.3104],
-      "source": { "label": "Britannica — Geyser", "url": "https://www.britannica.com/science/geyser" }
-    },
-    {
-      "id": "nat-009",
-      "theme": "nature",
-      "difficulty": 2,
-      "country": "Argentine",
-      "countryCode": "AR",
-      "isoN": "032",
-      "question": "Quel pays abrite le parc national d’Iguazú situé dans la province de Misiones ?",
-      "answer": "Argentine",
-      "accepted": ["Argentine", "Argentina"],
-      "hints": ["Cherchez dans le sud de l’Amérique du Sud.", "Ce pays a Buenos Aires pour capitale."],
-      "explanation": "Le parc national d’Iguazú se trouve en Argentine, dans la province de Misiones. Le parc voisin d’Iguaçu se trouve au Brésil.",
-      "coords": [-54.444, -25.7],
-      "source": { "label": "UNESCO — Parc national de l’Iguazú", "url": "https://whc.unesco.org/fr/list/303/" }
-    },
-    {
-      "id": "nat-010",
-      "theme": "nature",
-      "difficulty": 3,
-      "country": "Venezuela",
-      "countryCode": "VE",
-      "isoN": "862",
-      "question": "Quel pays abrite le Salto Ángel, la plus haute chute d’eau du monde ?",
-      "answer": "Venezuela",
-      "accepted": ["Venezuela"],
-      "hints": ["Cherchez au nord de l’Amérique du Sud.", "Ce pays a Caracas pour capitale."],
-      "explanation": "Le Salto Ángel (Kerepakupai Merú en pemón) tombe de 979 m. Il est alimenté par les pluies du plateau gréseux du tepuy Auyán-tepui, dans le Gran Sabana.",
-      "coords": [-62.5353, 5.9675],
-      "source": { "label": "UNESCO — Parc national de Canaima", "url": "https://whc.unesco.org/fr/list/701/" }
-    },
-    {
-      "id": "nat-011",
-      "theme": "nature",
-      "difficulty": 3,
-      "country": "Éthiopie",
-      "countryCode": "ET",
-      "isoN": "231",
-      "question": "Quel pays abrite le site volcanique de Dallol, dans la dépression du Danakil ?",
-      "answer": "Éthiopie",
-      "accepted": ["Éthiopie", "Ethiopia"],
-      "hints": ["Cherchez dans la Corne de l’Afrique.", "Ce pays a Addis-Abeba pour capitale."],
-      "explanation": "Dallol se trouve dans la dépression du Danakil, au nord-est de l’Éthiopie. Le site est connu pour ses formations de sel et son activité hydrothermale.",
-      "coords": [40.2983, 14.2417],
-      "source": { "label": "Britannica — Danakil Depression", "url": "https://www.britannica.com/place/Danakil-Depression" }
-    },
-    {
-      "id": "nat-012",
-      "theme": "nature",
-      "difficulty": 3,
-      "country": "Jordanie",
-      "countryCode": "JO",
-      "isoN": "400",
-      "question": "Dans quel pays se trouve le désert de Wadi Rum, célèbre pour ses falaises de grès ?",
-      "answer": "Jordanie",
-      "accepted": ["Jordanie", "Jordan"],
-      "hints": ["Cherchez au Moyen-Orient.", "Ce pays a Amman pour capitale."],
-      "explanation": "Le Wadi Rum se situe dans le sud de la Jordanie. Ses paysages désertiques de grès et de granite sont inscrits au patrimoine mondial.",
-      "coords": [35.43, 29.58],
-      "source": { "label": "UNESCO — Zone protégée du Wadi Rum", "url": "https://whc.unesco.org/fr/list/1377/" }
-    },
-    {
-      "id": "tra-001",
-      "theme": "traditions",
-      "difficulty": 1,
-      "country": "Italie",
-      "countryCode": "IT",
-      "isoN": "380",
-      "question": "De quel pays la pizza napolitaine est-elle originaire ?",
-      "answer": "Italie",
-      "accepted": ["Italie", "Italy"],
-      "hints": ["Cherchez en Europe du Sud.", "Sa péninsule est souvent comparée à une botte."],
-      "explanation": "L'« art du pizzaiolo napolitain » est inscrit au patrimoine immatériel de l'UNESCO depuis 2017. La pizza margherita aurait été créée en 1889 pour la reine Marguerite de Savoie.",
-      "coords": [14.2681, 40.8518],
-      "source": { "label": "UNESCO — Art du pizzaiolo napolitain", "url": "https://ich.unesco.org/fr/RL/00722" }
-    },
-    {
-      "id": "tra-002",
-      "theme": "traditions",
-      "difficulty": 1,
-      "country": "Japon",
-      "countryCode": "JP",
-      "isoN": "392",
-      "question": "Dans quel pays pratique-t-on le hanami, la contemplation des cerisiers en fleurs ?",
-      "answer": "Japon",
-      "accepted": ["Japon", "Japan"],
-      "hints": ["Cherchez un archipel d’Asie de l’Est.", "Son drapeau porte un disque rouge sur fond blanc."],
-      "explanation": "Le hanami consiste à pique-niquer sous les cerisiers en fleurs (sakura), de fin mars à début avril. La pratique remonte à la période Nara (VIIIe siècle).",
-      "coords": [139.6917, 35.6895],
-      "source": { "label": "Britannica — Hanami", "url": "https://www.britannica.com/topic/hanami" }
-    },
-    {
-      "id": "tra-003",
-      "theme": "traditions",
-      "difficulty": 1,
-      "country": "Mexique",
-      "countryCode": "MX",
-      "isoN": "484",
-      "question": "Quel pays est connu pour le Día de Muertos, avec ses autels et ses crânes en sucre ?",
-      "answer": "Mexique",
-      "accepted": ["Mexique", "Mexico"],
-      "hints": ["Cherchez en Amérique du Nord.", "Ce pays se trouve immédiatement au sud des États-Unis."],
-      "explanation": "Le Día de Muertos mêle traditions mésoaméricaines et catholiques. Les familles installent des autels avec photos, plats préférés et fleurs orange pour guider les âmes.",
-      "coords": [-99.1332, 19.4326],
-      "source": { "label": "UNESCO — Día de Muertos", "url": "https://ich.unesco.org/fr/RL/00252" }
-    },
-    {
-      "id": "tra-004",
-      "theme": "traditions",
-      "difficulty": 1,
-      "country": "Chine",
-      "countryCode": "CN",
-      "isoN": "156",
-      "question": "Dans quel pays se trouve Pékin, où la fête du Printemps marque le Nouvel An lunaire ?",
-      "answer": "Chine",
-      "accepted": ["Chine", "People's Republic of China"],
-      "hints": ["Cherchez en Asie de l’Est.", "Pékin est la capitale de ce grand pays."],
-      "explanation": "La fête du Printemps (Chunjie) dure environ quinze jours et se termine par la fête des Lanternes. Elle est célébrée aussi en Corée, au Vietnam et dans les diasporas.",
-      "coords": [116.4074, 39.9042],
-      "source": { "label": "Britannica — Chinese New Year", "url": "https://www.britannica.com/topic/Chinese-New-Year" }
-    },
-    {
-      "id": "tra-005",
-      "theme": "traditions",
-      "difficulty": 1,
-      "country": "Inde",
-      "countryCode": "IN",
-      "isoN": "356",
-      "question": "Dans quel pays la fête de Holi est-elle née ?",
-      "answer": "Inde",
-      "accepted": ["Inde", "India"],
-      "hints": ["Cherchez en Asie du Sud.", "Ce grand pays a New Delhi pour capitale."],
-      "explanation": "Holi est célébrée en mars, à la pleine lune de Phalguna. Elle commémore l'histoire de Holika et Prahlada et marque l'arrivée du printemps.",
-      "coords": [77.209, 28.6139],
-      "source": { "label": "Britannica — Holi", "url": "https://www.britannica.com/topic/Holi" }
-    },
-    {
-      "id": "tra-006",
-      "theme": "traditions",
-      "difficulty": 2,
-      "country": "Espagne",
-      "countryCode": "ES",
-      "isoN": "724",
-      "question": "Dans quel pays est né le flamenco, en Andalousie ?",
-      "answer": "Espagne",
-      "accepted": ["Espagne", "Spain"],
-      "hints": ["Cherchez dans le sud-ouest de l’Europe.", "Ce pays de la péninsule Ibérique a Madrid pour capitale."],
-      "explanation": "Le flamenco est né en Andalousie de la rencontre des cultures gitane, arabe, juive et andalouse. L'UNESCO l'inscrit au patrimoine immatériel en 2010.",
-      "coords": [-5.9845, 37.3891],
-      "source": { "label": "UNESCO — Flamenco", "url": "https://ich.unesco.org/fr/RL/00363" }
-    },
-    {
-      "id": "tra-007",
-      "theme": "traditions",
-      "difficulty": 2,
-      "country": "Maroc",
-      "countryCode": "MA",
-      "isoN": "504",
-      "question": "Quel pays abrite la place Jemaa el-Fna, célèbre pour ses conteurs et ses musiciens ?",
-      "answer": "Maroc",
-      "accepted": ["Maroc", "Morocco"],
-      "hints": ["Cherchez dans le nord-ouest de l’Afrique.", "Ce pays fait face à l’Espagne, de l’autre côté du détroit de Gibraltar."],
-      "explanation": "La place Jemaa el-Fna se trouve à Marrakech, au Maroc. Son espace culturel réunit conteurs, musiciens, artistes et pratiques populaires.",
-      "coords": [-7.989, 31.6258],
-      "source": { "label": "UNESCO — Espace culturel de la place Jemaa el-Fna", "url": "https://ich.unesco.org/fr/RL/00014" }
-    },
-    {
-      "id": "tra-008",
-      "theme": "traditions",
-      "difficulty": 2,
-      "country": "Turquie",
-      "countryCode": "TR",
-      "isoN": "792",
-      "question": "Quel pays abrite Konya et la cérémonie des derviches tourneurs mevlevis ?",
-      "answer": "Turquie",
-      "accepted": ["Turquie", "Türkiye"],
-      "hints": ["Cherchez entre l’Europe et l’Asie.", "Ankara est la capitale de ce pays."],
-      "explanation": "La cérémonie sema des derviches mevlevis, fondée sur la pensée du poète Rûmî (XIIIe siècle), est inscrite à l'UNESCO en 2008. Elle est célébrée chaque décembre à Konya.",
-      "coords": [32.4846, 37.8746],
-      "source": { "label": "UNESCO — Cérémonie Mevlevi Sema", "url": "https://ich.unesco.org/fr/RL/00100" }
-    },
-    {
-      "id": "tra-009",
-      "theme": "traditions",
-      "difficulty": 2,
-      "country": "Argentine",
-      "countryCode": "AR",
-      "isoN": "032",
-      "question": "Dans quel pays se trouve Buenos Aires, l’un des berceaux du tango ?",
-      "answer": "Argentine",
-      "accepted": ["Argentine", "Argentina"],
-      "hints": ["Cherchez dans le sud de l’Amérique du Sud.", "Ce pays a Buenos Aires pour capitale."],
-      "explanation": "Buenos Aires se trouve en Argentine. Le tango s’est développé dans la région du Río de la Plata, à la fois en Argentine et en Uruguay ; la question vise la ville de Buenos Aires.",
-      "coords": [-58.3816, -34.6037],
-      "source": { "label": "UNESCO — Tango", "url": "https://ich.unesco.org/fr/RL/00258" }
-    },
-    {
-      "id": "tra-010",
-      "theme": "traditions",
-      "difficulty": 3,
-      "country": "Bolivie",
-      "countryCode": "BO",
-      "isoN": "068",
-      "question": "Dans quel pays la fête d’Alasita, à La Paz, célèbre-t-elle les souhaits avec des objets miniatures ?",
-      "answer": "Bolivie",
-      "accepted": ["Bolivie", "Bolivia"],
-      "hints": ["Cherchez en Amérique du Sud.", "Ce pays enclavé est voisin du Pérou et du Paraguay."],
-      "explanation": "La feria de Alasitas, à La Paz, remonte à la période préhispanique et se déroule autour du 24 janvier. On y achète miniatures et billets pour que le rêve devienne réalité.",
-      "coords": [-68.1193, -16.4897],
-      "source": { "label": "UNESCO — Parcours rituels dans la ville de La Paz pendant l’Alasita", "url": "https://ich.unesco.org/fr/RL/01182" }
-    },
-    {
-      "id": "tra-011",
-      "theme": "traditions",
-      "difficulty": 3,
-      "country": "Papouasie-Nouvelle-Guinée",
-      "countryCode": "PG",
-      "isoN": "598",
-      "question": "Quel pays accueille le festival de Goroka et ses rassemblements de danses appelés sing-sing ?",
-      "answer": "Papouasie-Nouvelle-Guinée",
-      "accepted": ["Papouasie-Nouvelle-Guinée", "Papua New Guinea", "Papouasie Nouvelle Guinée"],
-      "hints": ["Cherchez dans le Pacifique, au nord de l’Australie.", "Ce pays a Port Moresby pour capitale."],
-      "explanation": "Les sing-sing réunissent des dizaines de groupes ethniques venus montrer leurs chants, danses et parures. Le Goroka Show, créé en 1957, est le plus connu.",
-      "coords": [145.3833, -6.0833],
-      "source": { "label": "Britannica — Papua New Guinea", "url": "https://www.britannica.com/place/Papua-New-Guinea" }
-    },
-    {
-      "id": "tra-012",
-      "theme": "traditions",
-      "difficulty": 3,
-      "country": "Corée du Sud",
-      "countryCode": "KR",
-      "isoN": "410",
-      "question": "Quel pays, dont la capitale est Séoul, a fait inscrire le kimjang à l’UNESCO en 2013 ?",
-      "answer": "Corée du Sud",
-      "accepted": ["Corée du Sud", "South Korea", "République de Corée"],
-      "hints": ["Cherchez en Asie de l’Est.", "Ce pays occupe le sud de la péninsule située entre la Chine et le Japon."],
-      "explanation": "Le kimjang est la préparation collective du kimchi avant l'hiver. Inscrit à l'UNESCO en 2013, il renforce les liens familiaux et communautaires en Corée.",
-      "coords": [126.978, 37.5665],
-      "source": { "label": "UNESCO — Kimjang", "url": "https://ich.unesco.org/fr/RL/00881" }
-    },
-    {
-      "id": "his-001",
-      "theme": "histoire",
-      "difficulty": 1,
-      "country": "France",
-      "countryCode": "FR",
-      "isoN": "250",
-      "question": "Dans quel pays se trouve le musée du Louvre, où est exposée la Joconde ?",
-      "answer": "France",
-      "accepted": ["France"],
-      "hints": ["Cherchez en Europe de l’Ouest.", "Ce pays est voisin de l’Espagne et de l’Allemagne."],
-      "explanation": "Le palais du Louvre devient musée en 1793. Il conserve la Joconde de Léonard de Vinci et près de 500 000 œuvres, dont 35 000 exposées.",
-      "coords": [2.3376, 48.8606],
-      "source": { "label": "Musée du Louvre", "url": "https://www.louvre.fr/" }
-    },
-    {
-      "id": "his-002",
-      "theme": "histoire",
-      "difficulty": 1,
-      "country": "Chine",
-      "countryCode": "CN",
-      "isoN": "156",
-      "question": "Quel pays abrite Xi’an, l’un des points de départ historiques des routes de la soie ?",
-      "answer": "Chine",
-      "accepted": ["Chine", "People's Republic of China"],
-      "hints": ["Cherchez en Asie de l’Est.", "Pékin est la capitale de ce grand pays."],
-      "explanation": "La route de la soie reliait Xi'an au monde méditerranéen. Elle transportait soie, épices, papier et religions, et fut active jusqu'à l'essor de la navigation océanique.",
-      "coords": [108.9398, 34.3416],
-      "source": { "label": "Britannica — Silk Road", "url": "https://www.britannica.com/topic/Silk-Road-trade-route" }
-    },
-    {
-      "id": "his-003",
-      "theme": "histoire",
-      "difficulty": 1,
-      "country": "Royaume-Uni",
-      "countryCode": "GB",
-      "isoN": "826",
-      "question": "Dans quel pays actuel peut-on visiter le mur d’Hadrien, au nord de l’Angleterre ?",
-      "answer": "Royaume-Uni",
-      "accepted": ["Royaume-Uni", "United Kingdom", "Grande-Bretagne", "Royaume Uni"],
-      "hints": ["Cherchez au nord-ouest de l’Europe.", "Londres est la capitale de ce pays."],
-      "explanation": "Le mur d'Hadrien a été bâti sur ordre de l'empereur Hadrien à partir de 122 apr. J.-C. Il est inscrit à l'UNESCO depuis 1987.",
-      "coords": [-2.3, 55],
-      "source": { "label": "UNESCO — Frontières de l'Empire romain", "url": "https://whc.unesco.org/fr/list/430/" }
-    },
-    {
-      "id": "his-004",
-      "theme": "histoire",
-      "difficulty": 1,
-      "country": "Allemagne",
-      "countryCode": "DE",
-      "isoN": "276",
-      "question": "Dans quel pays actuel se trouve Berlin, dont le mur est tombé en 1989 ?",
-      "answer": "Allemagne",
-      "accepted": ["Allemagne", "Germany"],
-      "hints": ["Cherchez en Europe centrale.", "Berlin est la capitale de ce pays."],
-      "explanation": "Le mur de Berlin a été construit dans la nuit du 12 au 13 août 1961. Sa chute, le 9 novembre 1989, ouvre la voie à la réunification du 3 octobre 1990.",
-      "coords": [13.404, 52.52],
-      "source": { "label": "Britannica — Berlin Wall", "url": "https://www.britannica.com/topic/Berlin-Wall" }
-    },
-    {
-      "id": "his-005",
-      "theme": "histoire",
-      "difficulty": 1,
-      "country": "Islande",
-      "countryCode": "IS",
-      "isoN": "352",
-      "question": "Quel pays insulaire, colonisé par des Vikings, a Reykjavik pour capitale ?",
-      "answer": "Islande",
-      "accepted": ["Islande", "Iceland"],
-      "hints": ["Cherchez une île de l’Atlantique Nord.", "Ce pays se situe au sud-est du Groenland et sa capitale est Reykjavik."],
-      "explanation": "Les Vikings, venus de Scandinavie, fondent Reykjavik vers 874. Leif Erikson atteint le Vinland (Terre-Neuve) vers l'an 1000, cinq siècles avant Colomb.",
-      "coords": [-21.9426, 64.1466],
-      "source": { "label": "Britannica — Viking", "url": "https://www.britannica.com/topic/Viking-people" }
-    },
-    {
-      "id": "his-006",
-      "theme": "histoire",
-      "difficulty": 2,
-      "country": "Grèce",
-      "countryCode": "GR",
-      "isoN": "300",
-      "question": "Dans quel pays actuel se trouve Sparte, la cité antique rivale d’Athènes ?",
-      "answer": "Grèce",
-      "accepted": ["Grèce", "Greece"],
-      "hints": ["Cherchez dans le sud-est de l’Europe.", "Athènes est la capitale de ce pays."],
-      "explanation": "Sparte, cité oligarchique, vainc Athènes en 404 av. J.-C. après 27 ans de guerre. Sa société reposait sur l'éducation militaire des citoyens et le travail des hilotes.",
-      "coords": [22.3795, 37.0745],
-      "source": { "label": "Britannica — Sparta", "url": "https://www.britannica.com/place/Sparta" }
-    },
-    {
-      "id": "his-007",
-      "theme": "histoire",
-      "difficulty": 2,
-      "country": "Mexique",
-      "countryCode": "MX",
-      "isoN": "484",
-      "question": "Quel pays actuel abrite le site de Tenochtitlan, l’ancienne capitale des Aztèques ?",
-      "answer": "Mexique",
-      "accepted": ["Mexique", "Mexico"],
-      "hints": ["Cherchez en Amérique du Nord.", "Ce pays se trouve immédiatement au sud des États-Unis."],
-      "explanation": "Les Mexicas, appelés Aztèques, fondent Tenochtitlan en 1325. Leur empire domine le centre du Mexique jusqu'à sa chute face aux Espagnols en 1521.",
-      "coords": [-99.1332, 19.4326],
-      "source": { "label": "Britannica — Aztec", "url": "https://www.britannica.com/topic/Aztec" }
-    },
-    {
-      "id": "his-008",
-      "theme": "histoire",
-      "difficulty": 2,
-      "country": "Cambodge",
-      "countryCode": "KH",
-      "isoN": "116",
-      "question": "Dans quel pays actuel se trouve Angkor, l’ancienne capitale de l’Empire khmer ?",
-      "answer": "Cambodge",
-      "accepted": ["Cambodge", "Cambodia"],
-      "hints": ["Cherchez en Asie du Sud-Est.", "Ce pays a Phnom Penh pour capitale."],
-      "explanation": "L'Empire khmer domine une grande partie de l'Asie du Sud-Est continentale entre 802 et 1431. Angkor, sa capitale, était alors la plus grande ville préindustrielle du monde.",
-      "coords": [103.867, 13.4125],
-      "source": { "label": "UNESCO — Angkor", "url": "https://whc.unesco.org/fr/list/668/" }
-    },
-    {
-      "id": "his-009",
-      "theme": "histoire",
-      "difficulty": 2,
-      "country": "Pérou",
-      "countryCode": "PE",
-      "isoN": "604",
-      "question": "Quel pays actuel abrite Cuzco, l’ancienne capitale de l’Empire inca ?",
-      "answer": "Pérou",
-      "accepted": ["Pérou", "Peru"],
-      "hints": ["Cherchez sur la façade pacifique de l’Amérique du Sud.", "Ce pays a Lima pour capitale."],
-      "explanation": "L'Empire inca (Tahuantinsuyu, « les quatre quartiers ») s'étendait sur 4 000 km le long des Andes. Il s'effondre en 1533 avec la capture de l'empereur Atahualpa.",
-      "coords": [-71.9675, -13.5319],
-      "source": { "label": "Britannica — Inca", "url": "https://www.britannica.com/topic/Inca" }
-    },
-    {
-      "id": "his-010",
-      "theme": "histoire",
-      "difficulty": 3,
-      "country": "Mali",
-      "countryCode": "ML",
-      "isoN": "466",
-      "question": "Quel pays actuel abrite Tombouctou, développée sous le règne de Mansa Moussa ?",
-      "answer": "Mali",
-      "accepted": ["Mali"],
-      "hints": ["Cherchez en Afrique de l’Ouest.", "Ce pays enclavé a Bamako pour capitale."],
-      "explanation": "Mansa Moussa règne sur l'Empire du Mali de 1312 à 1337. Son pèlerinage de 1324, avec des tonnes d'or, le rend célèbre jusqu'en Europe. Tombouctou devient un foyer intellectuel.",
-      "coords": [-3.0026, 16.7735],
-      "source": { "label": "Britannica — Mansa Musa", "url": "https://www.britannica.com/biography/Musa-I-of-Mali" }
-    },
-    {
-      "id": "his-011",
-      "theme": "histoire",
-      "difficulty": 3,
-      "country": "Inde",
-      "countryCode": "IN",
-      "isoN": "356",
-      "question": "Dans quel pays actuel se trouve Pataliputra, capitale de l’empire d’Ashoka ?",
-      "answer": "Inde",
-      "accepted": ["Inde", "India"],
-      "hints": ["Cherchez en Asie du Sud.", "Ce grand pays a New Delhi pour capitale."],
-      "explanation": "Ashoka règne de 268 à 232 av. J.-C. Après la sanglante conquête du Kalinga, il se convertit au bouddhisme et diffuse ses édits de tolérance sur des piliers à travers l'Inde.",
-      "coords": [85.443, 25.6],
-      "source": { "label": "Britannica — Ashoka", "url": "https://www.britannica.com/biography/Ashoka" }
-    },
-    {
-      "id": "his-012",
-      "theme": "histoire",
-      "difficulty": 3,
-      "country": "Éthiopie",
-      "countryCode": "ET",
-      "isoN": "231",
-      "question": "Quel pays a préservé son indépendance grâce à la victoire d’Adoua en 1896 ?",
-      "answer": "Éthiopie",
-      "accepted": ["Éthiopie", "Ethiopia"],
-      "hints": ["Cherchez dans la Corne de l’Afrique.", "Ce pays a Addis-Abeba pour capitale."],
-      "explanation": "En 1896, la victoire d’Adoua sur l’armée italienne permet à l’Éthiopie de préserver son indépendance.",
-      "coords": [38.9, 14.16],
-      "source": { "label": "Britannica — Battle of Adwa", "url": "https://www.britannica.com/event/Battle-of-Adwa" }
-    },
-    {
-      "id": "cap-013",
-      "theme": "capitales",
-      "difficulty": 2,
-      "country": "Algérie",
-      "countryCode": "DZ",
-      "isoN": "012",
-      "question": "Alger est la capitale de quel pays ?",
-      "answer": "Algérie",
-      "accepted": ["Algérie", "Algeria"],
-      "hints": ["Cherchez en Afrique du Nord.", "C’est le plus grand pays d’Afrique par sa superficie."],
-      "explanation": "Alger est la capitale de l’Algérie, sur la côte méditerranéenne.",
-      "coords": [3.0588, 36.7538],
-      "source": { "label": "Britannica — Algiers", "url": "https://www.britannica.com/place/Algiers" }
-    },
-    {
-      "id": "cap-014",
-      "theme": "capitales",
-      "difficulty": 3,
-      "country": "Slovénie",
-      "countryCode": "SI",
-      "isoN": "705",
-      "question": "Quel pays a Ljubljana pour capitale ?",
-      "answer": "Slovénie",
-      "accepted": ["Slovénie", "Slovenia"],
-      "hints": ["Cherchez en Europe centrale.", "Ce pays est voisin de l’Italie, de l’Autriche et de la Croatie."],
-      "explanation": "Ljubljana est la capitale de la Slovénie, pays situé entre l’Italie, l’Autriche, la Hongrie et la Croatie.",
-      "coords": [14.5058, 46.0569],
-      "source": { "label": "Britannica — Ljubljana", "url": "https://www.britannica.com/place/Ljubljana" }
-    },
-    {
-      "id": "cap-015",
-      "theme": "capitales",
-      "difficulty": 3,
-      "country": "Monténégro",
-      "countryCode": "ME",
-      "isoN": "499",
-      "question": "Podgorica est la capitale de quel pays des Balkans ?",
-      "answer": "Monténégro",
-      "accepted": ["Monténégro", "Montenegro"],
-      "hints": ["Cherchez dans les Balkans, en Europe.", "Ce petit pays borde la mer Adriatique, entre la Croatie et l’Albanie."],
-      "explanation": "Podgorica est la capitale du Monténégro. Cetinje est l’ancienne capitale royale.",
-      "coords": [19.2594, 42.4304],
-      "source": { "label": "Britannica — Podgorica", "url": "https://www.britannica.com/place/Podgorica" }
-    },
-    {
-      "id": "cap-016",
-      "theme": "capitales",
-      "difficulty": 4,
-      "country": "Bhoutan",
-      "countryCode": "BT",
-      "isoN": "064",
-      "question": "Quel pays de l’Himalaya a Thimphou pour capitale ?",
-      "answer": "Bhoutan",
-      "accepted": ["Bhoutan", "Bhutan"],
-      "hints": ["Cherchez dans l’Himalaya.", "Ce royaume est situé entre l’Inde et la Chine, à l’est du Népal."],
-      "explanation": "Thimphou est la capitale du Bhoutan, royaume situé entre l’Inde et la Chine.",
-      "coords": [89.639, 27.4728],
-      "source": { "label": "Britannica — Thimphu", "url": "https://www.britannica.com/place/Thimphu" }
-    },
-    {
-      "id": "cap-017",
-      "theme": "capitales",
-      "difficulty": 4,
-      "country": "Botswana",
-      "countryCode": "BW",
-      "isoN": "072",
-      "question": "Quel pays a Gaborone pour capitale ?",
-      "answer": "Botswana",
-      "accepted": ["Botswana"],
-      "hints": ["Cherchez en Afrique australe.", "Ce pays enclavé est voisin de la Namibie, du Zimbabwe et de l’Afrique du Sud."],
-      "explanation": "Gaborone est la capitale du Botswana depuis l’indépendance du pays en 1966.",
-      "coords": [25.9231, -24.6282],
-      "source": { "label": "Britannica — Gaborone", "url": "https://www.britannica.com/place/Gaborone" }
-    },
-    {
-      "id": "cap-018",
-      "theme": "capitales",
-      "difficulty": 4,
-      "country": "Suriname",
-      "countryCode": "SR",
-      "isoN": "740",
-      "question": "Paramaribo est la capitale de quel pays d’Amérique du Sud ?",
-      "answer": "Suriname",
-      "accepted": ["Suriname"],
-      "hints": ["Cherchez dans le nord de l’Amérique du Sud.", "Ce pays se trouve entre le Guyana et la Guyane française."],
-      "explanation": "Paramaribo est la capitale du Suriname, sur le fleuve du même nom.",
-      "coords": [-55.2038, 5.852],
-      "source": { "label": "UNESCO — Centre-ville historique de Paramaribo", "url": "https://whc.unesco.org/fr/list/940/" }
-    },
-    {
-      "id": "cap-019",
-      "theme": "capitales",
-      "difficulty": 4,
-      "country": "Érythrée",
-      "countryCode": "ER",
-      "isoN": "232",
-      "question": "Quel pays de la Corne de l’Afrique a Asmara pour capitale ?",
-      "answer": "Érythrée",
-      "accepted": ["Érythrée", "Eritrea"],
-      "hints": ["Cherchez dans la Corne de l’Afrique.", "Ce pays borde la mer Rouge et est voisin de l’Éthiopie."],
-      "explanation": "Asmara est la capitale de l’Érythrée. Son architecture moderniste est inscrite au patrimoine mondial.",
-      "coords": [38.9318, 15.3229],
-      "source": { "label": "UNESCO — Asmara", "url": "https://whc.unesco.org/fr/list/1550/" }
-    },
-    {
-      "id": "cap-020",
-      "theme": "capitales",
-      "difficulty": 4,
-      "country": "Timor-Leste",
-      "countryCode": "TL",
-      "isoN": "626",
-      "question": "Dili est la capitale de quel pays indépendant depuis 2002 ?",
-      "answer": "Timor-Leste",
-      "accepted": ["Timor-Leste", "Timor oriental"],
-      "hints": ["Cherchez en Asie du Sud-Est.", "Ce pays occupe la partie orientale de l’île de Timor."],
-      "explanation": "Dili est la capitale du Timor-Leste, qui occupe la partie orientale de l’île de Timor.",
-      "coords": [125.5795, -8.5569],
-      "source": { "label": "Britannica — Dili", "url": "https://www.britannica.com/place/Dili" }
-    },
-    {
-      "id": "mon-013",
-      "theme": "monuments",
-      "difficulty": 2,
-      "country": "Espagne",
-      "countryCode": "ES",
-      "isoN": "724",
-      "question": "Dans quel pays se trouve l’Alhambra de Grenade ?",
-      "answer": "Espagne",
-      "accepted": ["Espagne", "Spain"],
-      "hints": ["Cherchez dans le sud-ouest de l’Europe.", "Ce pays de la péninsule Ibérique a Madrid pour capitale."],
-      "explanation": "L’Alhambra se trouve à Grenade, en Espagne. Elle témoigne notamment de l’architecture nasride.",
-      "coords": [-3.5881, 37.176],
-      "source": { "label": "UNESCO — Alhambra, Generalife et Albaicin", "url": "https://whc.unesco.org/fr/list/314/" }
-    },
-    {
-      "id": "mon-014",
-      "theme": "monuments",
-      "difficulty": 3,
-      "country": "Indonésie",
-      "countryCode": "ID",
-      "isoN": "360",
-      "question": "Quel pays abrite le temple bouddhique de Borobudur, sur l’île de Java ?",
-      "answer": "Indonésie",
-      "accepted": ["Indonésie", "Indonesia"],
-      "hints": ["Cherchez un archipel d’Asie du Sud-Est.", "Ce pays abrite notamment les îles de Java et de Sumatra."],
-      "explanation": "Borobudur se trouve sur l’île de Java, en Indonésie. Cet ensemble monumental a été édifié aux VIIIe et IXe siècles.",
-      "coords": [110.2038, -7.6079],
-      "source": { "label": "UNESCO — Ensemble de Borobudur", "url": "https://whc.unesco.org/fr/list/592/" }
-    },
-    {
-      "id": "mon-015",
-      "theme": "monuments",
-      "difficulty": 3,
-      "country": "Liban",
-      "countryCode": "LB",
-      "isoN": "422",
-      "question": "Dans quel pays peut-on visiter les grands temples romains de Baalbek ?",
-      "answer": "Liban",
-      "accepted": ["Liban", "Lebanon"],
-      "hints": ["Cherchez sur la côte orientale de la Méditerranée.", "Ce pays a Beyrouth pour capitale."],
-      "explanation": "Les temples de Baalbek se trouvent dans la plaine de la Bekaa, au Liban.",
-      "coords": [36.2038, 34.0076],
-      "source": { "label": "UNESCO — Baalbek", "url": "https://whc.unesco.org/fr/list/294/" }
-    },
-    {
-      "id": "mon-016",
-      "theme": "monuments",
-      "difficulty": 4,
-      "country": "Namibie",
-      "countryCode": "NA",
-      "isoN": "516",
-      "question": "Quel pays abrite les gravures rupestres de Twyfelfontein ?",
-      "answer": "Namibie",
-      "accepted": ["Namibie", "Namibia"],
-      "hints": ["Cherchez dans le sud-ouest de l’Afrique.", "Ce pays côtier a Windhoek pour capitale."],
-      "explanation": "Twyfelfontein se situe en Namibie. Le site rassemble un ensemble majeur de gravures rupestres d’Afrique australe.",
-      "coords": [14.373, -20.5957],
-      "source": { "label": "UNESCO — Twyfelfontein ou /Ui-//aes", "url": "https://whc.unesco.org/fr/list/1255/" }
-    },
-    {
-      "id": "mon-017",
-      "theme": "monuments",
-      "difficulty": 4,
-      "country": "Zimbabwe",
-      "countryCode": "ZW",
-      "isoN": "716",
-      "question": "Près de Masvingo, quel pays abrite les ruines d’une cité médiévale aux grandes enceintes de pierre ?",
-      "answer": "Zimbabwe",
-      "accepted": ["Zimbabwe"],
-      "hints": ["Cherchez en Afrique australe.", "Ce pays enclavé a Harare pour capitale."],
-      "explanation": "Les ruines du Grand Zimbabwe se trouvent dans le pays qui a repris le nom de cette cité historique lors de son indépendance.",
-      "coords": [30.9333, -20.2667],
-      "source": { "label": "UNESCO — Monument national du Grand Zimbabwe", "url": "https://whc.unesco.org/fr/list/364/" }
-    },
-    {
-      "id": "mon-018",
-      "theme": "monuments",
-      "difficulty": 4,
-      "country": "Turquie",
-      "countryCode": "TR",
-      "isoN": "792",
-      "question": "Quel pays actuel abrite Hattousa, l’ancienne capitale des Hittites ?",
-      "answer": "Turquie",
-      "accepted": ["Turquie", "Türkiye"],
-      "hints": ["Cherchez entre l’Europe et l’Asie.", "Ankara est la capitale de ce pays."],
-      "explanation": "Hattousa se trouve près de Boğazkale, en Turquie. C’était la capitale de l’Empire hittite.",
-      "coords": [34.615, 40.019],
-      "source": { "label": "UNESCO — Hattousa", "url": "https://whc.unesco.org/fr/list/377/" }
-    },
-    {
-      "id": "mon-019",
-      "theme": "monuments",
-      "difficulty": 4,
-      "country": "Pakistan",
-      "countryCode": "PK",
-      "isoN": "586",
-      "question": "Dans quel pays se trouve le monastère bouddhique de Takht-i-Bahi ?",
-      "answer": "Pakistan",
-      "accepted": ["Pakistan"],
-      "hints": ["Cherchez en Asie du Sud.", "Ce pays est voisin de l’Inde et a Islamabad pour capitale."],
-      "explanation": "Takht-i-Bahi est un monastère bouddhique du Gandhara situé dans l’actuel Pakistan.",
-      "coords": [71.945, 34.32],
-      "source": { "label": "UNESCO — Ruines bouddhiques de Takht-i-Bahi", "url": "https://whc.unesco.org/fr/list/140/" }
-    },
-    {
-      "id": "mon-020",
-      "theme": "monuments",
-      "difficulty": 4,
-      "country": "Libye",
-      "countryCode": "LY",
-      "isoN": "434",
-      "question": "Quel pays abrite la cité romaine de Leptis Magna, près de la ville d’Al-Khums ?",
-      "answer": "Libye",
-      "accepted": ["Libye", "Libya"],
-      "hints": ["Cherchez en Afrique du Nord.", "Ce pays méditerranéen a Tripoli pour capitale."],
-      "explanation": "Leptis Magna se trouve sur la côte méditerranéenne de la Libye. La cité a connu un grand développement sous Septime Sévère.",
-      "coords": [14.293, 32.639],
-      "source": { "label": "UNESCO — Site archéologique de Leptis Magna", "url": "https://whc.unesco.org/fr/list/183/" }
-    },
-    {
-      "id": "lan-013",
-      "theme": "langues",
-      "difficulty": 2,
-      "country": "Portugal",
-      "countryCode": "PT",
-      "isoN": "620",
-      "question": "Quel pays européen a Lisbonne pour capitale et le portugais pour langue officielle ?",
-      "answer": "Portugal",
-      "accepted": ["Portugal"],
-      "hints": ["Cherchez dans la péninsule Ibérique.", "Ce pays est à l’ouest de l’Espagne."],
-      "explanation": "Lisbonne est la capitale du Portugal. Le portugais est aussi parlé sur d’autres continents, notamment au Brésil.",
-      "coords": [-9.1393, 38.7223],
-      "source": { "label": "Britannica — Portugal", "url": "https://www.britannica.com/place/Portugal" }
-    },
-    {
-      "id": "lan-014",
-      "theme": "langues",
-      "difficulty": 3,
-      "country": "Hongrie",
-      "countryCode": "HU",
-      "isoN": "348",
-      "question": "Dans quel pays le hongrois, une langue ouralienne, est-il la langue officielle nationale ?",
-      "answer": "Hongrie",
-      "accepted": ["Hongrie", "Hungary"],
-      "hints": ["Cherchez en Europe centrale.", "Ce pays a Budapest pour capitale."],
-      "explanation": "Le hongrois est la langue officielle de la Hongrie. Il appartient à la famille des langues ouraliennes.",
-      "coords": [19.0402, 47.4979],
-      "source": { "label": "Britannica — Hungarian language", "url": "https://www.britannica.com/topic/Hungarian-language" }
-    },
-    {
-      "id": "lan-015",
-      "theme": "langues",
-      "difficulty": 3,
-      "country": "Géorgie",
-      "countryCode": "GE",
-      "isoN": "268",
-      "question": "Quel pays a Tbilissi pour capitale et utilise l’alphabet mkhedruli pour sa langue nationale ?",
-      "answer": "Géorgie",
-      "accepted": ["Géorgie", "Georgia"],
-      "hints": ["Cherchez dans le Caucase.", "Ce pays a Tbilissi pour capitale et borde la mer Noire."],
-      "explanation": "Le géorgien utilise notamment l’écriture mkhedruli. Tbilissi est la capitale de la Géorgie.",
-      "coords": [44.793, 41.7151],
-      "source": { "label": "Britannica — Georgian language", "url": "https://www.britannica.com/topic/Georgian-language" }
-    },
-    {
-      "id": "lan-016",
-      "theme": "langues",
-      "difficulty": 4,
-      "country": "Lesotho",
-      "countryCode": "LS",
-      "isoN": "426",
-      "question": "Quel pays a Maseru pour capitale et le sesotho et l’anglais pour langues officielles ?",
-      "answer": "Lesotho",
-      "accepted": ["Lesotho"],
-      "hints": ["Cherchez en Afrique australe.", "Ce pays est entièrement entouré par l’Afrique du Sud."],
-      "explanation": "Le sesotho et l’anglais sont les langues officielles du Lesotho, un pays entièrement enclavé dans l’Afrique du Sud.",
-      "coords": [27.4833, -29.3167],
-      "source": { "label": "Britannica — Lesotho", "url": "https://www.britannica.com/place/Lesotho" }
-    },
-    {
-      "id": "lan-017",
-      "theme": "langues",
-      "difficulty": 4,
-      "country": "Bhoutan",
-      "countryCode": "BT",
-      "isoN": "064",
-      "question": "Dans quel pays le dzongkha est-il la langue nationale officielle ?",
-      "answer": "Bhoutan",
-      "accepted": ["Bhoutan", "Bhutan"],
-      "hints": ["Cherchez dans l’Himalaya.", "Ce royaume est situé entre l’Inde et la Chine, à l’est du Népal."],
-      "explanation": "Le dzongkha est la langue nationale officielle du Bhoutan. Il s’écrit avec l’écriture tibétaine.",
-      "coords": [89.639, 27.4728],
-      "source": { "label": "Britannica — Bhutan", "url": "https://www.britannica.com/place/Bhutan" }
-    },
-    {
-      "id": "lan-018",
-      "theme": "langues",
-      "difficulty": 4,
-      "country": "Timor-Leste",
-      "countryCode": "TL",
-      "isoN": "626",
-      "question": "Quel pays d’Asie du Sud-Est a le tétoum et le portugais pour langues officielles ?",
-      "answer": "Timor-Leste",
-      "accepted": ["Timor-Leste", "Timor oriental"],
-      "hints": ["Cherchez en Asie du Sud-Est.", "Ce pays occupe la partie orientale de l’île de Timor."],
-      "explanation": "Le tétoum et le portugais sont les langues officielles du Timor-Leste.",
-      "coords": [125.5795, -8.5569],
-      "source": { "label": "Britannica — East Timor", "url": "https://www.britannica.com/place/East-Timor" }
-    },
-    {
-      "id": "lan-019",
-      "theme": "langues",
-      "difficulty": 4,
-      "country": "Arménie",
-      "countryCode": "AM",
-      "isoN": "051",
-      "question": "Dans quel pays l’alphabet national a-t-il été créé par Mesrop Machtots au début du Ve siècle ?",
-      "answer": "Arménie",
-      "accepted": ["Arménie", "Armenia"],
-      "hints": ["Cherchez dans le Caucase du Sud.", "Ce pays a Erevan pour capitale."],
-      "explanation": "Mesrop Machtots a créé l’alphabet arménien vers 405. Cet alphabet est toujours utilisé en Arménie.",
-      "coords": [44.509, 40.181],
-      "source": { "label": "Britannica — Armenian alphabet", "url": "https://www.britannica.com/topic/Armenian-alphabet" }
-    },
-    {
-      "id": "lan-020",
-      "theme": "langues",
-      "difficulty": 4,
-      "country": "Suriname",
-      "countryCode": "SR",
-      "isoN": "740",
-      "question": "Quel pays d’Amérique du Sud a le néerlandais pour langue officielle ?",
-      "answer": "Suriname",
-      "accepted": ["Suriname"],
-      "hints": ["Cherchez dans le nord de l’Amérique du Sud.", "Ce pays se trouve entre le Guyana et la Guyane française."],
-      "explanation": "Le Suriname est le seul État souverain d’Amérique du Sud dont la langue officielle est le néerlandais.",
-      "coords": [-55.2038, 5.852],
-      "source": { "label": "Britannica — Suriname", "url": "https://www.britannica.com/place/Suriname" }
-    },
-    {
-      "id": "nat-013",
-      "theme": "nature",
-      "difficulty": 2,
-      "country": "Équateur",
-      "countryCode": "EC",
-      "isoN": "218",
-      "question": "À quel pays appartient l’archipel des Galápagos ?",
-      "answer": "Équateur",
-      "accepted": ["Équateur", "Ecuador"],
-      "hints": ["Cherchez sur la côte pacifique de l’Amérique du Sud.", "Ce pays a Quito pour capitale."],
-      "explanation": "Les îles Galápagos appartiennent à l’Équateur et se situent dans l’océan Pacifique, à environ 1 000 km du continent.",
-      "coords": [-91.07, -0.65],
-      "source": { "label": "UNESCO — Îles Galápagos", "url": "https://whc.unesco.org/fr/list/1/" }
-    },
-    {
-      "id": "nat-014",
-      "theme": "nature",
-      "difficulty": 3,
-      "country": "Tanzanie",
-      "countryCode": "TZ",
-      "isoN": "834",
-      "question": "Dans quel pays se trouve le cratère du Ngorongoro ?",
-      "answer": "Tanzanie",
-      "accepted": ["Tanzanie", "United Republic of Tanzania"],
-      "hints": ["Cherchez en Afrique de l’Est.", "Ce pays abrite le Kilimandjaro et l’archipel de Zanzibar."],
-      "explanation": "Le Ngorongoro est une grande caldeira située dans le nord de la Tanzanie.",
-      "coords": [35.587, -3.18],
-      "source": { "label": "UNESCO — Zone de conservation du Ngorongoro", "url": "https://whc.unesco.org/fr/list/39/" }
-    },
-    {
-      "id": "nat-015",
-      "theme": "nature",
-      "difficulty": 3,
-      "country": "Chili",
-      "countryCode": "CL",
-      "isoN": "152",
-      "question": "Quel pays abrite le désert d’Atacama, entre les Andes et l’océan Pacifique ?",
-      "answer": "Chili",
-      "accepted": ["Chili", "Chile"],
-      "hints": ["Cherchez le long du Pacifique, en Amérique du Sud.", "Ce pays forme une longue bande à l’ouest de l’Argentine."],
-      "explanation": "Le désert d’Atacama se trouve au nord du Chili. Il compte parmi les régions les plus arides du monde.",
-      "coords": [-68.25, -23.2],
-      "source": { "label": "Britannica — Atacama Desert", "url": "https://www.britannica.com/place/Atacama-Desert" }
-    },
-    {
-      "id": "nat-016",
-      "theme": "nature",
-      "difficulty": 4,
-      "country": "Bolivie",
-      "countryCode": "BO",
-      "isoN": "068",
-      "question": "Dans quel pays se trouve le salar d’Uyuni, immense désert de sel de l’Altiplano ?",
-      "answer": "Bolivie",
-      "accepted": ["Bolivie", "Bolivia"],
-      "hints": ["Cherchez en Amérique du Sud.", "Ce pays enclavé est voisin du Pérou et du Paraguay."],
-      "explanation": "Le salar d’Uyuni se situe en Bolivie. Il constitue la plus vaste étendue de sel du monde.",
-      "coords": [-67.49, -20.13],
-      "source": { "label": "Britannica — Uyuni Salt Flat", "url": "https://www.britannica.com/place/Uyuni-Salt-Flat" }
-    },
-    {
-      "id": "nat-017",
-      "theme": "nature",
-      "difficulty": 4,
-      "country": "Yémen",
-      "countryCode": "YE",
-      "isoN": "887",
-      "question": "À quel pays appartient Socotra, l’île connue pour ses dragonniers en forme de parasol ?",
-      "answer": "Yémen",
-      "accepted": ["Yémen", "Yemen"],
-      "hints": ["Cherchez au sud de la péninsule Arabique.", "Ce pays est voisin de l’Arabie saoudite et d’Oman."],
-      "explanation": "L’archipel de Socotra appartient au Yémen et abrite de nombreuses espèces endémiques.",
-      "coords": [53.87, 12.5],
-      "source": { "label": "UNESCO — Archipel de Socotra", "url": "https://whc.unesco.org/fr/list/1263/" }
-    },
-    {
-      "id": "nat-018",
-      "theme": "nature",
-      "difficulty": 4,
-      "country": "Botswana",
-      "countryCode": "BW",
-      "isoN": "072",
-      "question": "Dans quel pays se trouve le delta intérieur de l’Okavango ?",
-      "answer": "Botswana",
-      "accepted": ["Botswana"],
-      "hints": ["Cherchez en Afrique australe.", "Ce pays enclavé est voisin de la Namibie, du Zimbabwe et de l’Afrique du Sud."],
-      "explanation": "L’Okavango forme un delta intérieur dans le nord du Botswana, au lieu de rejoindre la mer.",
-      "coords": [23, -19.3],
-      "source": { "label": "UNESCO — Delta de l’Okavango", "url": "https://whc.unesco.org/fr/list/1432/" }
-    },
-    {
-      "id": "nat-019",
-      "theme": "nature",
-      "difficulty": 4,
-      "country": "Inde",
-      "countryCode": "IN",
-      "isoN": "356",
-      "question": "Dans quel pays se trouve Mawsynram, village connu pour ses précipitations exceptionnelles ?",
-      "answer": "Inde",
-      "accepted": ["Inde", "India"],
-      "hints": ["Cherchez en Asie du Sud.", "Ce grand pays a New Delhi pour capitale."],
-      "explanation": "Mawsynram se trouve dans l’État du Meghalaya, dans le nord-est de l’Inde. La région connaît des pluies de mousson très abondantes.",
-      "coords": [91.13, 25.3],
-      "source": { "label": "Britannica — Meghalaya", "url": "https://www.britannica.com/place/Meghalaya" }
-    },
-    {
-      "id": "nat-020",
-      "theme": "nature",
-      "difficulty": 4,
-      "country": "Indonésie",
-      "countryCode": "ID",
-      "isoN": "360",
-      "question": "Quel pays abrite le parc national de Komodo et ses grands varans ?",
-      "answer": "Indonésie",
-      "accepted": ["Indonésie", "Indonesia"],
-      "hints": ["Cherchez un archipel d’Asie du Sud-Est.", "Ce pays abrite notamment les îles de Java et de Sumatra."],
-      "explanation": "Le parc national de Komodo se trouve en Indonésie, entre les îles de Sumbawa et de Florès.",
-      "coords": [119.49, -8.55],
-      "source": { "label": "UNESCO — Parc national de Komodo", "url": "https://whc.unesco.org/fr/list/609/" }
-    },
-    {
-      "id": "tra-013",
-      "theme": "traditions",
-      "difficulty": 2,
-      "country": "Allemagne",
-      "countryCode": "DE",
-      "isoN": "276",
-      "question": "Dans quel pays se déroule l’Oktoberfest de Munich ?",
-      "answer": "Allemagne",
-      "accepted": ["Allemagne", "Germany"],
-      "hints": ["Cherchez en Europe centrale.", "Berlin est la capitale de ce pays."],
-      "explanation": "L’Oktoberfest est une fête populaire organisée chaque année à Munich, en Allemagne.",
-      "coords": [11.582, 48.1351],
-      "source": { "label": "Britannica — Oktoberfest", "url": "https://www.britannica.com/topic/Oktoberfest" }
-    },
-    {
-      "id": "tra-014",
-      "theme": "traditions",
-      "difficulty": 3,
-      "country": "Mongolie",
-      "countryCode": "MN",
-      "isoN": "496",
-      "question": "Quel pays célèbre le Naadam avec la lutte, les courses de chevaux et le tir à l’arc ?",
-      "answer": "Mongolie",
-      "accepted": ["Mongolie", "Mongolia"],
-      "hints": ["Cherchez en Asie orientale.", "Ce pays enclavé se trouve entre la Russie et la Chine."],
-      "explanation": "Le Naadam est une grande fête traditionnelle de Mongolie centrée sur trois disciplines sportives.",
-      "coords": [106.917, 47.918],
-      "source": { "label": "UNESCO — Le Naadam", "url": "https://ich.unesco.org/fr/RL/00395" }
-    },
-    {
-      "id": "tra-015",
-      "theme": "traditions",
-      "difficulty": 3,
-      "country": "Indonésie",
-      "countryCode": "ID",
-      "isoN": "360",
-      "question": "Dans quel pays la danse Saman est-elle pratiquée par les communautés Gayo d’Aceh ?",
-      "answer": "Indonésie",
-      "accepted": ["Indonésie", "Indonesia"],
-      "hints": ["Cherchez un archipel d’Asie du Sud-Est.", "Ce pays abrite notamment les îles de Java et de Sumatra."],
-      "explanation": "La danse Saman est pratiquée par les communautés Gayo d’Aceh, sur l’île de Sumatra en Indonésie.",
-      "coords": [97.3, 4.3],
-      "source": { "label": "UNESCO — La danse Saman", "url": "https://ich.unesco.org/fr/USL/00509" }
-    },
-    {
-      "id": "tra-016",
-      "theme": "traditions",
-      "difficulty": 4,
-      "country": "Estonie",
-      "countryCode": "EE",
-      "isoN": "233",
-      "question": "Quel pays accueille à Tallinn le Laulupidu, un grand rassemblement de chant choral ?",
-      "answer": "Estonie",
-      "accepted": ["Estonie", "Estonia"],
-      "hints": ["Cherchez au bord de la mer Baltique.", "Ce pays a Tallinn pour capitale, face à la Finlande."],
-      "explanation": "Le Laulupidu de Tallinn est une fête du chant en Estonie. Il s’inscrit dans la tradition des célébrations de chants et danses baltes.",
-      "coords": [24.7536, 59.437],
-      "source": { "label": "UNESCO — Célébrations de chants et danses baltes", "url": "https://ich.unesco.org/fr/RL/00087" }
-    },
-    {
-      "id": "tra-017",
-      "theme": "traditions",
-      "difficulty": 4,
-      "country": "Géorgie",
-      "countryCode": "GE",
-      "isoN": "268",
-      "question": "Quel pays est associé à la vinification traditionnelle en qvevri, de grandes jarres enterrées ?",
-      "answer": "Géorgie",
-      "accepted": ["Géorgie", "Georgia"],
-      "hints": ["Cherchez dans le Caucase.", "Ce pays a Tbilissi pour capitale et borde la mer Noire."],
-      "explanation": "La vinification en qvevri est une tradition de Géorgie. Le vin fermente et se conserve dans de grandes jarres de terre cuite enterrées.",
-      "coords": [45.47, 41.92],
-      "source": { "label": "UNESCO — Vinification traditionnelle en qvevri", "url": "https://ich.unesco.org/fr/RL/00870" }
-    },
-    {
-      "id": "tra-018",
-      "theme": "traditions",
-      "difficulty": 4,
-      "country": "Kirghizistan",
-      "countryCode": "KG",
-      "isoN": "417",
-      "question": "Quel pays a fait inscrire à l’UNESCO la trilogie épique Manas, Semetey et Seytek ?",
-      "answer": "Kirghizistan",
-      "accepted": ["Kirghizistan", "Kyrgyzstan"],
-      "hints": ["Cherchez en Asie centrale.", "Ce pays montagneux a Bichkek pour capitale."],
-      "explanation": "La trilogie Manas, Semetey et Seytek est une tradition épique du Kirghizistan, transmise par des conteurs spécialisés.",
-      "coords": [74.5698, 42.8746],
-      "source": { "label": "UNESCO — Trilogie épique Manas, Semetey et Seytek", "url": "https://ich.unesco.org/fr/RL/00876" }
-    },
-    {
-      "id": "tra-019",
-      "theme": "traditions",
-      "difficulty": 4,
-      "country": "Ouzbékistan",
-      "countryCode": "UZ",
-      "isoN": "860",
-      "question": "Dans quel pays l’Askiya, un art du dialogue humoristique, est-il traditionnel ?",
-      "answer": "Ouzbékistan",
-      "accepted": ["Ouzbékistan", "Uzbekistan"],
-      "hints": ["Cherchez en Asie centrale.", "Ce pays a Tachkent pour capitale."],
-      "explanation": "L’Askiya est un art du dialogue humoristique en Ouzbékistan, fondé sur la répartie et les jeux de mots.",
-      "coords": [69.2401, 41.2995],
-      "source": { "label": "UNESCO — L’Askiya", "url": "https://ich.unesco.org/fr/RL/00971" }
-    },
-    {
-      "id": "tra-020",
-      "theme": "traditions",
-      "difficulty": 4,
-      "country": "Cambodge",
-      "countryCode": "KH",
-      "isoN": "116",
-      "question": "Quel pays est à l’origine du Sbek Thom, un théâtre d’ombres à grandes figures de cuir ?",
-      "answer": "Cambodge",
-      "accepted": ["Cambodge", "Cambodia"],
-      "hints": ["Cherchez en Asie du Sud-Est.", "Ce pays a Phnom Penh pour capitale."],
-      "explanation": "Le Sbek Thom est un théâtre d’ombres khmer du Cambodge, utilisant de grandes figures de cuir ajouré.",
-      "coords": [104.9282, 11.5564],
-      "source": { "label": "UNESCO — Le Sbek Thom", "url": "https://ich.unesco.org/fr/RL/00108" }
-    },
-    {
-      "id": "his-013",
-      "theme": "histoire",
-      "difficulty": 2,
-      "country": "Tunisie",
-      "countryCode": "TN",
-      "isoN": "788",
-      "question": "Dans quel pays actuel se trouvent les ruines de Carthage ?",
-      "answer": "Tunisie",
-      "accepted": ["Tunisie", "Tunisia"],
-      "hints": ["Cherchez en Afrique du Nord.", "Ce pays méditerranéen est voisin de l’Algérie et de la Libye."],
-      "explanation": "Carthage se situe près de Tunis, en Tunisie. La cité punique a été l’une des grandes puissances de la Méditerranée antique.",
-      "coords": [10.3233, 36.8528],
-      "source": { "label": "UNESCO — Site archéologique de Carthage", "url": "https://whc.unesco.org/fr/list/37/" }
-    },
-    {
-      "id": "his-014",
-      "theme": "histoire",
-      "difficulty": 3,
-      "country": "Iran",
-      "countryCode": "IR",
-      "isoN": "364",
-      "question": "Quel pays actuel abrite Persépolis, l’une des capitales de l’Empire achéménide ?",
-      "answer": "Iran",
-      "accepted": ["Iran", "Islamic Republic of Iran"],
-      "hints": ["Cherchez au Moyen-Orient.", "Ce pays a Téhéran pour capitale."],
-      "explanation": "Persépolis se trouve dans l’actuel Iran. La cité a été fondée sous Darius Ier et développée par ses successeurs.",
-      "coords": [52.8914, 29.9352],
-      "source": { "label": "UNESCO — Persépolis", "url": "https://whc.unesco.org/fr/list/114/" }
-    },
-    {
-      "id": "his-015",
-      "theme": "histoire",
-      "difficulty": 3,
-      "country": "Ouzbékistan",
-      "countryCode": "UZ",
-      "isoN": "860",
-      "question": "Dans quel pays actuel se trouve Samarcande, la capitale choisie par Tamerlan ?",
-      "answer": "Ouzbékistan",
-      "accepted": ["Ouzbékistan", "Uzbekistan"],
-      "hints": ["Cherchez en Asie centrale.", "Ce pays a Tachkent pour capitale."],
-      "explanation": "Samarcande se situe dans l’actuel Ouzbékistan. Tamerlan en a fait la capitale de son empire au XIVe siècle.",
-      "coords": [66.975, 39.654],
-      "source": { "label": "UNESCO — Samarcande, carrefour de cultures", "url": "https://whc.unesco.org/fr/list/603/" }
-    },
-    {
-      "id": "his-016",
-      "theme": "histoire",
-      "difficulty": 4,
-      "country": "Bénin",
-      "countryCode": "BJ",
-      "isoN": "204",
-      "question": "Dans quel pays actuel se trouve Abomey, l’ancienne capitale du royaume du Dahomey ?",
-      "answer": "Bénin",
-      "accepted": ["Bénin", "Benin"],
-      "hints": ["Cherchez en Afrique de l’Ouest.", "Ce pays est situé entre le Togo et le Nigeria."],
-      "explanation": "Abomey et ses palais royaux se trouvent au Bénin. La ville fut la capitale du royaume du Dahomey.",
-      "coords": [1.983, 7.185],
-      "source": { "label": "UNESCO — Palais royaux d’Abomey", "url": "https://whc.unesco.org/fr/list/323/" }
-    },
-    {
-      "id": "his-017",
-      "theme": "histoire",
-      "difficulty": 4,
-      "country": "Pakistan",
-      "countryCode": "PK",
-      "isoN": "586",
-      "question": "Quel pays actuel abrite Mohenjo-daro, une grande cité de la civilisation de l’Indus ?",
-      "answer": "Pakistan",
-      "accepted": ["Pakistan"],
-      "hints": ["Cherchez en Asie du Sud.", "Ce pays est voisin de l’Inde et a Islamabad pour capitale."],
-      "explanation": "Mohenjo-daro se trouve dans l’actuel Pakistan, dans la province du Sind. La cité appartient à la civilisation de l’Indus.",
-      "coords": [68.138, 27.329],
-      "source": { "label": "UNESCO — Ruines archéologiques de Mohenjo-daro", "url": "https://whc.unesco.org/fr/list/138/" }
-    },
-    {
-      "id": "his-018",
-      "theme": "histoire",
-      "difficulty": 4,
-      "country": "Pérou",
-      "countryCode": "PE",
-      "isoN": "604",
-      "question": "Dans quel pays se trouve Caral-Supe, l’un des plus anciens centres urbains des Amériques ?",
-      "answer": "Pérou",
-      "accepted": ["Pérou", "Peru"],
-      "hints": ["Cherchez sur la façade pacifique de l’Amérique du Sud.", "Ce pays a Lima pour capitale."],
-      "explanation": "La cité de Caral-Supe se situe au Pérou. Elle témoigne d’une civilisation de la côte centrale vieille d’environ cinq millénaires.",
-      "coords": [-77.52, -10.89],
-      "source": { "label": "UNESCO — Ville sacrée de Caral-Supe", "url": "https://whc.unesco.org/fr/list/1269/" }
-    },
-    {
-      "id": "his-019",
-      "theme": "histoire",
-      "difficulty": 4,
-      "country": "Malte",
-      "countryCode": "MT",
-      "isoN": "470",
-      "question": "Quel pays insulaire abrite La Valette, ville fondée par les chevaliers de l’ordre de Saint-Jean ?",
-      "answer": "Malte",
-      "accepted": ["Malte", "Malta"],
-      "hints": ["Cherchez une île de la mer Méditerranée.", "Ce pays se situe au sud de la Sicile."],
-      "explanation": "La Valette est la capitale de Malte. Sa fondation au XVIe siècle est liée aux chevaliers de l’ordre de Saint-Jean.",
-      "coords": [14.5146, 35.8989],
-      "source": { "label": "Britannica — Valletta", "url": "https://www.britannica.com/place/Valletta" }
-    },
-    {
-      "id": "his-020",
-      "theme": "histoire",
-      "difficulty": 4,
-      "country": "Bangladesh",
-      "countryCode": "BD",
-      "isoN": "050",
-      "question": "Quel pays actuel abrite Paharpur et les ruines du monastère de Somapura Mahavihara ?",
-      "answer": "Bangladesh",
-      "accepted": ["Bangladesh"],
-      "hints": ["Cherchez en Asie du Sud.", "Ce pays a Dacca pour capitale et se situe à l’est de l’Inde."],
-      "explanation": "Les ruines du grand monastère bouddhique de Paharpur se trouvent dans l’actuel Bangladesh.",
-      "coords": [88.977, 25.031],
-      "source": { "label": "UNESCO — Ruines du Vihara bouddhique de Paharpur", "url": "https://whc.unesco.org/fr/list/322/" }
+      "id": "expert",
+      "value": 4,
+      "label": "Expert",
+      "points": 40
     }
-  ]
+  ],
+  "byCountry": {
+    "104": [
+      {
+        "id": "cap-011",
+        "countryId": "104",
+        "theme": "capitales",
+        "difficulty": 3,
+        "question": "Naypyidaw a remplacé Rangoun comme capitale de quel pays ?",
+        "hints": [
+          "Cherchez en Asie du Sud-Est.",
+          "Ce pays est situé entre le Bangladesh et la Thaïlande."
+        ],
+        "explanation": "Naypyidaw est la capitale du Myanmar depuis 2006. Cette ville nouvelle, aux larges avenues presque désertes, a surpris les observateurs.",
+        "location": [
+          96.1297,
+          19.7633
+        ],
+        "source": {
+          "label": "Britannica — Naypyidaw",
+          "url": "https://www.britannica.com/place/Naypyidaw"
+        }
+      }
+    ],
+    "116": [
+      {
+        "id": "mon-009",
+        "countryId": "116",
+        "theme": "monuments",
+        "difficulty": 2,
+        "question": "Quel pays abrite les temples d’Angkor, près de Siem Reap ?",
+        "hints": [
+          "Cherchez en Asie du Sud-Est.",
+          "Ce pays a Phnom Penh pour capitale."
+        ],
+        "explanation": "Angkor Vat couvre environ 200 hectares et symbolise le mont Méru. Il est inscrit au patrimoine mondial depuis 1992 et représente l'apogée de l'Empire khmer.",
+        "location": [
+          103.867,
+          13.4125
+        ],
+        "source": {
+          "label": "UNESCO — Angkor",
+          "url": "https://whc.unesco.org/fr/list/668/"
+        }
+      },
+      {
+        "id": "his-008",
+        "countryId": "116",
+        "theme": "histoire",
+        "difficulty": 2,
+        "question": "Dans quel pays actuel se trouve Angkor, l’ancienne capitale de l’Empire khmer ?",
+        "hints": [
+          "Cherchez en Asie du Sud-Est.",
+          "Ce pays a Phnom Penh pour capitale."
+        ],
+        "explanation": "L'Empire khmer domine une grande partie de l'Asie du Sud-Est continentale entre 802 et 1431. Angkor, sa capitale, était alors la plus grande ville préindustrielle du monde.",
+        "location": [
+          103.867,
+          13.4125
+        ],
+        "source": {
+          "label": "UNESCO — Angkor",
+          "url": "https://whc.unesco.org/fr/list/668/"
+        }
+      },
+      {
+        "id": "tra-020",
+        "countryId": "116",
+        "theme": "traditions",
+        "difficulty": 4,
+        "question": "Quel pays est à l’origine du Sbek Thom, un théâtre d’ombres à grandes figures de cuir ?",
+        "hints": [
+          "Cherchez en Asie du Sud-Est.",
+          "Ce pays a Phnom Penh pour capitale."
+        ],
+        "explanation": "Le Sbek Thom est un théâtre d’ombres khmer du Cambodge, utilisant de grandes figures de cuir ajouré.",
+        "location": [
+          104.9282,
+          11.5564
+        ],
+        "source": {
+          "label": "UNESCO — Le Sbek Thom",
+          "url": "https://ich.unesco.org/fr/RL/00108"
+        }
+      }
+    ],
+    "124": [
+      {
+        "id": "cap-007",
+        "countryId": "124",
+        "theme": "capitales",
+        "difficulty": 2,
+        "question": "Quel pays a Ottawa pour capitale ?",
+        "hints": [
+          "Cherchez en Amérique du Nord.",
+          "Ce grand pays se trouve au nord des États-Unis."
+        ],
+        "explanation": "Ottawa a été choisie en 1857 par la reine Victoria comme capitale de la province du Canada, puis confirmée comme capitale fédérale en 1867.",
+        "location": [
+          -75.6972,
+          45.4215
+        ],
+        "source": {
+          "label": "Britannica — Ottawa",
+          "url": "https://www.britannica.com/place/Ottawa"
+        }
+      },
+      {
+        "id": "nat-007",
+        "countryId": "124",
+        "theme": "nature",
+        "difficulty": 2,
+        "question": "Quel pays abrite la ville de Niagara Falls située dans la province de l’Ontario ?",
+        "hints": [
+          "Cherchez en Amérique du Nord.",
+          "Ce grand pays se trouve au nord des États-Unis."
+        ],
+        "explanation": "La ville de Niagara Falls en Ontario est au Canada. Les chutes du Niagara sont partagées avec les États-Unis : la question vise ici précisément le côté de l’Ontario.",
+        "location": [
+          -79.0849,
+          43.0962
+        ],
+        "source": {
+          "label": "Britannica — Niagara Falls",
+          "url": "https://www.britannica.com/place/Niagara-Falls"
+        }
+      }
+    ],
+    "152": [
+      {
+        "id": "nat-015",
+        "countryId": "152",
+        "theme": "nature",
+        "difficulty": 3,
+        "question": "Quel pays abrite le désert d’Atacama, entre les Andes et l’océan Pacifique ?",
+        "hints": [
+          "Cherchez le long du Pacifique, en Amérique du Sud.",
+          "Ce pays forme une longue bande à l’ouest de l’Argentine."
+        ],
+        "explanation": "Le désert d’Atacama se trouve au nord du Chili. Il compte parmi les régions les plus arides du monde.",
+        "location": [
+          -68.25,
+          -23.2
+        ],
+        "source": {
+          "label": "Britannica — Atacama Desert",
+          "url": "https://www.britannica.com/place/Atacama-Desert"
+        }
+      }
+    ],
+    "156": [
+      {
+        "id": "mon-003",
+        "countryId": "156",
+        "theme": "monuments",
+        "difficulty": 1,
+        "question": "Dans quel pays se trouve la Grande Muraille ?",
+        "hints": [
+          "Cherchez en Asie de l’Est.",
+          "Pékin est la capitale de ce grand pays."
+        ],
+        "explanation": "La Grande Muraille est un ensemble de fortifications édifiées du IIIe siècle av. J.-C. au XVIIe siècle pour protéger la Chine des incursions du nord.",
+        "location": [
+          116.5704,
+          40.4319
+        ],
+        "source": {
+          "label": "UNESCO — La Grande Muraille",
+          "url": "https://whc.unesco.org/fr/list/438/"
+        }
+      },
+      {
+        "id": "tra-004",
+        "countryId": "156",
+        "theme": "traditions",
+        "difficulty": 1,
+        "question": "Dans quel pays se trouve Pékin, où la fête du Printemps marque le Nouvel An lunaire ?",
+        "hints": [
+          "Cherchez en Asie de l’Est.",
+          "Pékin est la capitale de ce grand pays."
+        ],
+        "explanation": "La fête du Printemps (Chunjie) dure environ quinze jours et se termine par la fête des Lanternes. Elle est célébrée aussi en Corée, au Vietnam et dans les diasporas.",
+        "location": [
+          116.4074,
+          39.9042
+        ],
+        "source": {
+          "label": "Britannica — Chinese New Year",
+          "url": "https://www.britannica.com/topic/Chinese-New-Year"
+        }
+      },
+      {
+        "id": "his-002",
+        "countryId": "156",
+        "theme": "histoire",
+        "difficulty": 1,
+        "question": "Quel pays abrite Xi’an, l’un des points de départ historiques des routes de la soie ?",
+        "hints": [
+          "Cherchez en Asie de l’Est.",
+          "Pékin est la capitale de ce grand pays."
+        ],
+        "explanation": "La route de la soie reliait Xi'an au monde méditerranéen. Elle transportait soie, épices, papier et religions, et fut active jusqu'à l'essor de la navigation océanique.",
+        "location": [
+          108.9398,
+          34.3416
+        ],
+        "source": {
+          "label": "Britannica — Silk Road",
+          "url": "https://www.britannica.com/topic/Silk-Road-trade-route"
+        }
+      }
+    ],
+    "204": [
+      {
+        "id": "his-016",
+        "countryId": "204",
+        "theme": "histoire",
+        "difficulty": 4,
+        "question": "Dans quel pays actuel se trouve Abomey, l’ancienne capitale du royaume du Dahomey ?",
+        "hints": [
+          "Cherchez en Afrique de l’Ouest.",
+          "Ce pays est situé entre le Togo et le Nigeria."
+        ],
+        "explanation": "Abomey et ses palais royaux se trouvent au Bénin. La ville fut la capitale du royaume du Dahomey.",
+        "location": [
+          1.983,
+          7.185
+        ],
+        "source": {
+          "label": "UNESCO — Palais royaux d’Abomey",
+          "url": "https://whc.unesco.org/fr/list/323/"
+        }
+      }
+    ],
+    "218": [
+      {
+        "id": "nat-013",
+        "countryId": "218",
+        "theme": "nature",
+        "difficulty": 2,
+        "question": "À quel pays appartient l’archipel des Galápagos ?",
+        "hints": [
+          "Cherchez sur la côte pacifique de l’Amérique du Sud.",
+          "Ce pays a Quito pour capitale."
+        ],
+        "explanation": "Les îles Galápagos appartiennent à l’Équateur et se situent dans l’océan Pacifique, à environ 1 000 km du continent.",
+        "location": [
+          -91.07,
+          -0.65
+        ],
+        "source": {
+          "label": "UNESCO — Îles Galápagos",
+          "url": "https://whc.unesco.org/fr/list/1/"
+        }
+      }
+    ],
+    "231": [
+      {
+        "id": "mon-012",
+        "countryId": "231",
+        "theme": "monuments",
+        "difficulty": 3,
+        "question": "Dans quel pays les églises de Lalibela ont-elles été creusées dans le roc ?",
+        "hints": [
+          "Cherchez dans la Corne de l’Afrique.",
+          "Ce pays a Addis-Abeba pour capitale."
+        ],
+        "explanation": "Creusées au XIIIe siècle sous le roi Lalibela, ces onze églises sont taillées d'un seul bloc dans la roche. Elles sont classées à l'UNESCO depuis 1978 et restent un lieu de pèlerinage.",
+        "location": [
+          39.047,
+          12.0317
+        ],
+        "source": {
+          "label": "UNESCO — Églises creusées dans le roc de Lalibela",
+          "url": "https://whc.unesco.org/fr/list/18/"
+        }
+      },
+      {
+        "id": "nat-011",
+        "countryId": "231",
+        "theme": "nature",
+        "difficulty": 3,
+        "question": "Quel pays abrite le site volcanique de Dallol, dans la dépression du Danakil ?",
+        "hints": [
+          "Cherchez dans la Corne de l’Afrique.",
+          "Ce pays a Addis-Abeba pour capitale."
+        ],
+        "explanation": "Dallol se trouve dans la dépression du Danakil, au nord-est de l’Éthiopie. Le site est connu pour ses formations de sel et son activité hydrothermale.",
+        "location": [
+          40.2983,
+          14.2417
+        ],
+        "source": {
+          "label": "Britannica — Danakil Depression",
+          "url": "https://www.britannica.com/place/Danakil-Depression"
+        }
+      },
+      {
+        "id": "his-012",
+        "countryId": "231",
+        "theme": "histoire",
+        "difficulty": 3,
+        "question": "Quel pays a préservé son indépendance grâce à la victoire d’Adoua en 1896 ?",
+        "hints": [
+          "Cherchez dans la Corne de l’Afrique.",
+          "Ce pays a Addis-Abeba pour capitale."
+        ],
+        "explanation": "En 1896, la victoire d’Adoua sur l’armée italienne permet à l’Éthiopie de préserver son indépendance.",
+        "location": [
+          38.9,
+          14.16
+        ],
+        "source": {
+          "label": "Britannica — Battle of Adwa",
+          "url": "https://www.britannica.com/event/Battle-of-Adwa"
+        }
+      }
+    ],
+    "232": [
+      {
+        "id": "cap-019",
+        "countryId": "232",
+        "theme": "capitales",
+        "difficulty": 4,
+        "question": "Quel pays de la Corne de l’Afrique a Asmara pour capitale ?",
+        "hints": [
+          "Cherchez dans la Corne de l’Afrique.",
+          "Ce pays borde la mer Rouge et est voisin de l’Éthiopie."
+        ],
+        "explanation": "Asmara est la capitale de l’Érythrée. Son architecture moderniste est inscrite au patrimoine mondial.",
+        "location": [
+          38.9318,
+          15.3229
+        ],
+        "source": {
+          "label": "UNESCO — Asmara",
+          "url": "https://whc.unesco.org/fr/list/1550/"
+        }
+      }
+    ],
+    "233": [
+      {
+        "id": "tra-016",
+        "countryId": "233",
+        "theme": "traditions",
+        "difficulty": 4,
+        "question": "Quel pays accueille à Tallinn le Laulupidu, un grand rassemblement de chant choral ?",
+        "hints": [
+          "Cherchez au bord de la mer Baltique.",
+          "Ce pays a Tallinn pour capitale, face à la Finlande."
+        ],
+        "explanation": "Le Laulupidu de Tallinn est une fête du chant en Estonie. Il s’inscrit dans la tradition des célébrations de chants et danses baltes.",
+        "location": [
+          24.7536,
+          59.437
+        ],
+        "source": {
+          "label": "UNESCO — Célébrations de chants et danses baltes",
+          "url": "https://ich.unesco.org/fr/RL/00087"
+        }
+      }
+    ],
+    "250": [
+      {
+        "id": "cap-001",
+        "countryId": "250",
+        "theme": "capitales",
+        "difficulty": 1,
+        "question": "Dans quel pays Paris est-elle la capitale ?",
+        "hints": [
+          "Cherchez en Europe de l’Ouest.",
+          "Ce pays est voisin de l’Espagne et de l’Allemagne."
+        ],
+        "explanation": "Paris est la capitale et la ville la plus peuplée de France. Elle est aussi le chef-lieu de la région Île-de-France.",
+        "location": [
+          2.3522,
+          48.8566
+        ],
+        "source": {
+          "label": "Larousse — Paris",
+          "url": "https://www.larousse.fr/encyclopedie"
+        }
+      },
+      {
+        "id": "his-001",
+        "countryId": "250",
+        "theme": "histoire",
+        "difficulty": 1,
+        "question": "Dans quel pays se trouve le musée du Louvre, où est exposée la Joconde ?",
+        "hints": [
+          "Cherchez en Europe de l’Ouest.",
+          "Ce pays est voisin de l’Espagne et de l’Allemagne."
+        ],
+        "explanation": "Le palais du Louvre devient musée en 1793. Il conserve la Joconde de Léonard de Vinci et près de 500 000 œuvres, dont 35 000 exposées.",
+        "location": [
+          2.3376,
+          48.8606
+        ],
+        "source": {
+          "label": "Musée du Louvre",
+          "url": "https://www.louvre.fr/"
+        }
+      }
+    ],
+    "268": [
+      {
+        "id": "lan-015",
+        "countryId": "268",
+        "theme": "langues",
+        "difficulty": 3,
+        "question": "Quel pays a Tbilissi pour capitale et utilise l’alphabet mkhedruli pour sa langue nationale ?",
+        "hints": [
+          "Cherchez dans le Caucase.",
+          "Ce pays a Tbilissi pour capitale et borde la mer Noire."
+        ],
+        "explanation": "Le géorgien utilise notamment l’écriture mkhedruli. Tbilissi est la capitale de la Géorgie.",
+        "location": [
+          44.793,
+          41.7151
+        ],
+        "source": {
+          "label": "Britannica — Georgian language",
+          "url": "https://www.britannica.com/topic/Georgian-language"
+        }
+      },
+      {
+        "id": "tra-017",
+        "countryId": "268",
+        "theme": "traditions",
+        "difficulty": 4,
+        "question": "Quel pays est associé à la vinification traditionnelle en qvevri, de grandes jarres enterrées ?",
+        "hints": [
+          "Cherchez dans le Caucase.",
+          "Ce pays a Tbilissi pour capitale et borde la mer Noire."
+        ],
+        "explanation": "La vinification en qvevri est une tradition de Géorgie. Le vin fermente et se conserve dans de grandes jarres de terre cuite enterrées.",
+        "location": [
+          45.47,
+          41.92
+        ],
+        "source": {
+          "label": "UNESCO — Vinification traditionnelle en qvevri",
+          "url": "https://ich.unesco.org/fr/RL/00870"
+        }
+      }
+    ],
+    "276": [
+      {
+        "id": "his-004",
+        "countryId": "276",
+        "theme": "histoire",
+        "difficulty": 1,
+        "question": "Dans quel pays actuel se trouve Berlin, dont le mur est tombé en 1989 ?",
+        "hints": [
+          "Cherchez en Europe centrale.",
+          "Berlin est la capitale de ce pays."
+        ],
+        "explanation": "Le mur de Berlin a été construit dans la nuit du 12 au 13 août 1961. Sa chute, le 9 novembre 1989, ouvre la voie à la réunification du 3 octobre 1990.",
+        "location": [
+          13.404,
+          52.52
+        ],
+        "source": {
+          "label": "Britannica — Berlin Wall",
+          "url": "https://www.britannica.com/topic/Berlin-Wall"
+        }
+      },
+      {
+        "id": "tra-013",
+        "countryId": "276",
+        "theme": "traditions",
+        "difficulty": 2,
+        "question": "Dans quel pays se déroule l’Oktoberfest de Munich ?",
+        "hints": [
+          "Cherchez en Europe centrale.",
+          "Berlin est la capitale de ce pays."
+        ],
+        "explanation": "L’Oktoberfest est une fête populaire organisée chaque année à Munich, en Allemagne.",
+        "location": [
+          11.582,
+          48.1351
+        ],
+        "source": {
+          "label": "Britannica — Oktoberfest",
+          "url": "https://www.britannica.com/topic/Oktoberfest"
+        }
+      }
+    ],
+    "300": [
+      {
+        "id": "mon-002",
+        "countryId": "300",
+        "theme": "monuments",
+        "difficulty": 1,
+        "question": "Quel pays abrite le Parthénon, sur l’Acropole d’Athènes ?",
+        "hints": [
+          "Cherchez dans le sud-est de l’Europe.",
+          "Athènes est la capitale de ce pays."
+        ],
+        "explanation": "Le Parthénon a été construit entre 447 et 432 av. J.-C. par les architectes Ictinos et Callicratès, avec le sculpteur Phidias.",
+        "location": [
+          23.7257,
+          37.9715
+        ],
+        "source": {
+          "label": "UNESCO — Acropole d'Athènes",
+          "url": "https://whc.unesco.org/fr/list/404/"
+        }
+      },
+      {
+        "id": "his-006",
+        "countryId": "300",
+        "theme": "histoire",
+        "difficulty": 2,
+        "question": "Dans quel pays actuel se trouve Sparte, la cité antique rivale d’Athènes ?",
+        "hints": [
+          "Cherchez dans le sud-est de l’Europe.",
+          "Athènes est la capitale de ce pays."
+        ],
+        "explanation": "Sparte, cité oligarchique, vainc Athènes en 404 av. J.-C. après 27 ans de guerre. Sa société reposait sur l'éducation militaire des citoyens et le travail des hilotes.",
+        "location": [
+          22.3795,
+          37.0745
+        ],
+        "source": {
+          "label": "Britannica — Sparta",
+          "url": "https://www.britannica.com/place/Sparta"
+        }
+      }
+    ],
+    "348": [
+      {
+        "id": "lan-014",
+        "countryId": "348",
+        "theme": "langues",
+        "difficulty": 3,
+        "question": "Dans quel pays le hongrois, une langue ouralienne, est-il la langue officielle nationale ?",
+        "hints": [
+          "Cherchez en Europe centrale.",
+          "Ce pays a Budapest pour capitale."
+        ],
+        "explanation": "Le hongrois est la langue officielle de la Hongrie. Il appartient à la famille des langues ouraliennes.",
+        "location": [
+          19.0402,
+          47.4979
+        ],
+        "source": {
+          "label": "Britannica — Hungarian language",
+          "url": "https://www.britannica.com/topic/Hungarian-language"
+        }
+      }
+    ],
+    "352": [
+      {
+        "id": "nat-008",
+        "countryId": "352",
+        "theme": "nature",
+        "difficulty": 2,
+        "question": "Dans quel pays se trouve Geysir, la source chaude qui a donné son nom aux geysers ?",
+        "hints": [
+          "Cherchez une île de l’Atlantique Nord.",
+          "Ce pays se situe au sud-est du Groenland et sa capitale est Reykjavik."
+        ],
+        "explanation": "Le mot « geyser » vient de Geysir, en Islande. Sa voisine Strokkur jaillit encore toutes les 5 à 10 minutes. L'île est posée sur la dorsale médio-atlantique.",
+        "location": [
+          -20.302,
+          64.3104
+        ],
+        "source": {
+          "label": "Britannica — Geyser",
+          "url": "https://www.britannica.com/science/geyser"
+        }
+      },
+      {
+        "id": "his-005",
+        "countryId": "352",
+        "theme": "histoire",
+        "difficulty": 1,
+        "question": "Quel pays insulaire, colonisé par des Vikings, a Reykjavik pour capitale ?",
+        "hints": [
+          "Cherchez une île de l’Atlantique Nord.",
+          "Ce pays se situe au sud-est du Groenland et sa capitale est Reykjavik."
+        ],
+        "explanation": "Les Vikings, venus de Scandinavie, fondent Reykjavik vers 874. Leif Erikson atteint le Vinland (Terre-Neuve) vers l'an 1000, cinq siècles avant Colomb.",
+        "location": [
+          -21.9426,
+          64.1466
+        ],
+        "source": {
+          "label": "Britannica — Viking",
+          "url": "https://www.britannica.com/topic/Viking-people"
+        }
+      }
+    ],
+    "356": [
+      {
+        "id": "mon-001",
+        "countryId": "356",
+        "theme": "monuments",
+        "difficulty": 1,
+        "question": "Dans quel pays se trouve le Taj Mahal ?",
+        "hints": [
+          "Cherchez en Asie du Sud.",
+          "Ce grand pays a New Delhi pour capitale."
+        ],
+        "explanation": "Le Taj Mahal a été élevé entre 1632 et 1653. Il est inscrit au patrimoine mondial de l'UNESCO depuis 1983.",
+        "location": [
+          78.0421,
+          27.1751
+        ],
+        "source": {
+          "label": "UNESCO — Taj Mahal",
+          "url": "https://whc.unesco.org/fr/list/252/"
+        }
+      },
+      {
+        "id": "lan-007",
+        "countryId": "356",
+        "theme": "langues",
+        "difficulty": 2,
+        "question": "Quel pays a New Delhi pour capitale et le hindi parmi ses langues officielles fédérales ?",
+        "hints": [
+          "Cherchez en Asie du Sud.",
+          "Ce grand pays a New Delhi pour capitale."
+        ],
+        "explanation": "Le hindi est parlé par environ 40 % de la population indienne. L'anglais reste langue officielle associée de l'Union, et l'Inde reconnaît 22 langues dans sa Constitution.",
+        "location": [
+          77.209,
+          28.6139
+        ],
+        "source": {
+          "label": "Britannica — Hindi language",
+          "url": "https://www.britannica.com/topic/Hindi-language"
+        }
+      },
+      {
+        "id": "tra-005",
+        "countryId": "356",
+        "theme": "traditions",
+        "difficulty": 1,
+        "question": "Dans quel pays la fête de Holi est-elle née ?",
+        "hints": [
+          "Cherchez en Asie du Sud.",
+          "Ce grand pays a New Delhi pour capitale."
+        ],
+        "explanation": "Holi est célébrée en mars, à la pleine lune de Phalguna. Elle commémore l'histoire de Holika et Prahlada et marque l'arrivée du printemps.",
+        "location": [
+          77.209,
+          28.6139
+        ],
+        "source": {
+          "label": "Britannica — Holi",
+          "url": "https://www.britannica.com/topic/Holi"
+        }
+      },
+      {
+        "id": "his-011",
+        "countryId": "356",
+        "theme": "histoire",
+        "difficulty": 3,
+        "question": "Dans quel pays actuel se trouve Pataliputra, capitale de l’empire d’Ashoka ?",
+        "hints": [
+          "Cherchez en Asie du Sud.",
+          "Ce grand pays a New Delhi pour capitale."
+        ],
+        "explanation": "Ashoka règne de 268 à 232 av. J.-C. Après la sanglante conquête du Kalinga, il se convertit au bouddhisme et diffuse ses édits de tolérance sur des piliers à travers l'Inde.",
+        "location": [
+          85.443,
+          25.6
+        ],
+        "source": {
+          "label": "Britannica — Ashoka",
+          "url": "https://www.britannica.com/biography/Ashoka"
+        }
+      },
+      {
+        "id": "nat-019",
+        "countryId": "356",
+        "theme": "nature",
+        "difficulty": 4,
+        "question": "Dans quel pays se trouve Mawsynram, village connu pour ses précipitations exceptionnelles ?",
+        "hints": [
+          "Cherchez en Asie du Sud.",
+          "Ce grand pays a New Delhi pour capitale."
+        ],
+        "explanation": "Mawsynram se trouve dans l’État du Meghalaya, dans le nord-est de l’Inde. La région connaît des pluies de mousson très abondantes.",
+        "location": [
+          91.13,
+          25.3
+        ],
+        "source": {
+          "label": "Britannica — Meghalaya",
+          "url": "https://www.britannica.com/place/Meghalaya"
+        }
+      }
+    ],
+    "360": [
+      {
+        "id": "mon-014",
+        "countryId": "360",
+        "theme": "monuments",
+        "difficulty": 3,
+        "question": "Quel pays abrite le temple bouddhique de Borobudur, sur l’île de Java ?",
+        "hints": [
+          "Cherchez un archipel d’Asie du Sud-Est.",
+          "Ce pays abrite notamment les îles de Java et de Sumatra."
+        ],
+        "explanation": "Borobudur se trouve sur l’île de Java, en Indonésie. Cet ensemble monumental a été édifié aux VIIIe et IXe siècles.",
+        "location": [
+          110.2038,
+          -7.6079
+        ],
+        "source": {
+          "label": "UNESCO — Ensemble de Borobudur",
+          "url": "https://whc.unesco.org/fr/list/592/"
+        }
+      },
+      {
+        "id": "nat-020",
+        "countryId": "360",
+        "theme": "nature",
+        "difficulty": 4,
+        "question": "Quel pays abrite le parc national de Komodo et ses grands varans ?",
+        "hints": [
+          "Cherchez un archipel d’Asie du Sud-Est.",
+          "Ce pays abrite notamment les îles de Java et de Sumatra."
+        ],
+        "explanation": "Le parc national de Komodo se trouve en Indonésie, entre les îles de Sumbawa et de Florès.",
+        "location": [
+          119.49,
+          -8.55
+        ],
+        "source": {
+          "label": "UNESCO — Parc national de Komodo",
+          "url": "https://whc.unesco.org/fr/list/609/"
+        }
+      },
+      {
+        "id": "tra-015",
+        "countryId": "360",
+        "theme": "traditions",
+        "difficulty": 3,
+        "question": "Dans quel pays la danse Saman est-elle pratiquée par les communautés Gayo d’Aceh ?",
+        "hints": [
+          "Cherchez un archipel d’Asie du Sud-Est.",
+          "Ce pays abrite notamment les îles de Java et de Sumatra."
+        ],
+        "explanation": "La danse Saman est pratiquée par les communautés Gayo d’Aceh, sur l’île de Sumatra en Indonésie.",
+        "location": [
+          97.3,
+          4.3
+        ],
+        "source": {
+          "label": "UNESCO — La danse Saman",
+          "url": "https://ich.unesco.org/fr/USL/00509"
+        }
+      }
+    ],
+    "364": [
+      {
+        "id": "his-014",
+        "countryId": "364",
+        "theme": "histoire",
+        "difficulty": 3,
+        "question": "Quel pays actuel abrite Persépolis, l’une des capitales de l’Empire achéménide ?",
+        "hints": [
+          "Cherchez au Moyen-Orient.",
+          "Ce pays a Téhéran pour capitale."
+        ],
+        "explanation": "Persépolis se trouve dans l’actuel Iran. La cité a été fondée sous Darius Ier et développée par ses successeurs.",
+        "location": [
+          52.8914,
+          29.9352
+        ],
+        "source": {
+          "label": "UNESCO — Persépolis",
+          "url": "https://whc.unesco.org/fr/list/114/"
+        }
+      }
+    ],
+    "380": [
+      {
+        "id": "cap-003",
+        "countryId": "380",
+        "theme": "capitales",
+        "difficulty": 1,
+        "question": "Quel pays a Rome pour capitale ?",
+        "hints": [
+          "Cherchez en Europe du Sud.",
+          "Sa péninsule est souvent comparée à une botte."
+        ],
+        "explanation": "Rome est la capitale de l'Italie depuis 1871. Elle est traversée par le Tibre et compte un patrimoine antique exceptionnel.",
+        "location": [
+          12.4964,
+          41.9028
+        ],
+        "source": {
+          "label": "Britannica — Rome",
+          "url": "https://www.britannica.com/place/Rome"
+        }
+      },
+      {
+        "id": "mon-011",
+        "countryId": "380",
+        "theme": "monuments",
+        "difficulty": 3,
+        "question": "Dans quel pays se trouve Pompéi, la ville ensevelie par le Vésuve ?",
+        "hints": [
+          "Cherchez en Europe du Sud.",
+          "Sa péninsule est souvent comparée à une botte."
+        ],
+        "explanation": "L'éruption du Vésuve en 79 apr. J.-C. a recouvert Pompéi de cendres, préservant une ville romaine entière. Les fouilles systématiques commencent en 1748.",
+        "location": [
+          14.4989,
+          40.7497
+        ],
+        "source": {
+          "label": "UNESCO — Zones archéologiques de Pompéi",
+          "url": "https://whc.unesco.org/fr/list/829/"
+        }
+      },
+      {
+        "id": "tra-001",
+        "countryId": "380",
+        "theme": "traditions",
+        "difficulty": 1,
+        "question": "De quel pays la pizza napolitaine est-elle originaire ?",
+        "hints": [
+          "Cherchez en Europe du Sud.",
+          "Sa péninsule est souvent comparée à une botte."
+        ],
+        "explanation": "L'« art du pizzaiolo napolitain » est inscrit au patrimoine immatériel de l'UNESCO depuis 2017. La pizza margherita aurait été créée en 1889 pour la reine Marguerite de Savoie.",
+        "location": [
+          14.2681,
+          40.8518
+        ],
+        "source": {
+          "label": "UNESCO — Art du pizzaiolo napolitain",
+          "url": "https://ich.unesco.org/fr/RL/00722"
+        }
+      }
+    ],
+    "392": [
+      {
+        "id": "cap-002",
+        "countryId": "392",
+        "theme": "capitales",
+        "difficulty": 1,
+        "question": "Tokyo est la capitale de quel pays ?",
+        "hints": [
+          "Cherchez un archipel d’Asie de l’Est.",
+          "Son drapeau porte un disque rouge sur fond blanc."
+        ],
+        "explanation": "Tokyo devient la capitale impériale en 1868, lorsque l'empereur Meiji quitte Kyoto. Edo est renommée Tokyo, « capitale de l'Est ».",
+        "location": [
+          139.6917,
+          35.6895
+        ],
+        "source": {
+          "label": "Britannica — Tokyo",
+          "url": "https://www.britannica.com/place/Tokyo"
+        }
+      },
+      {
+        "id": "lan-003",
+        "countryId": "392",
+        "theme": "langues",
+        "difficulty": 1,
+        "question": "Dans quel pays utilise-t-on les kanji, les hiragana et les katakana ?",
+        "hints": [
+          "Cherchez un archipel d’Asie de l’Est.",
+          "Son drapeau porte un disque rouge sur fond blanc."
+        ],
+        "explanation": "Le japonais utilise les kanji (caractères chinois), les hiragana (syllabaire pour la grammaire) et les katakana (mots étrangers). Les kanji ont été introduits vers le IVe siècle.",
+        "location": [
+          139.6917,
+          35.6895
+        ],
+        "source": {
+          "label": "Britannica — Japanese language",
+          "url": "https://www.britannica.com/topic/Japanese-language"
+        }
+      },
+      {
+        "id": "tra-002",
+        "countryId": "392",
+        "theme": "traditions",
+        "difficulty": 1,
+        "question": "Dans quel pays pratique-t-on le hanami, la contemplation des cerisiers en fleurs ?",
+        "hints": [
+          "Cherchez un archipel d’Asie de l’Est.",
+          "Son drapeau porte un disque rouge sur fond blanc."
+        ],
+        "explanation": "Le hanami consiste à pique-niquer sous les cerisiers en fleurs (sakura), de fin mars à début avril. La pratique remonte à la période Nara (VIIIe siècle).",
+        "location": [
+          139.6917,
+          35.6895
+        ],
+        "source": {
+          "label": "Britannica — Hanami",
+          "url": "https://www.britannica.com/topic/hanami"
+        }
+      }
+    ],
+    "398": [
+      {
+        "id": "cap-010",
+        "countryId": "398",
+        "theme": "capitales",
+        "difficulty": 3,
+        "question": "Astana, appelée Noursoultan entre 2019 et 2022, est la capitale de quel pays ?",
+        "hints": [
+          "Cherchez en Asie centrale.",
+          "Ce pays est voisin de la Russie et de la Chine."
+        ],
+        "explanation": "Astana, signifiant « capitale », est devenue capitale du Kazakhstan en 1997 à la place d'Almaty. Elle a porté le nom de Noursoultan de 2019 à 2022.",
+        "location": [
+          71.4304,
+          51.1694
+        ],
+        "source": {
+          "label": "Britannica — Astana",
+          "url": "https://www.britannica.com/place/Astana"
+        }
+      }
+    ],
+    "400": [
+      {
+        "id": "mon-006",
+        "countryId": "400",
+        "theme": "monuments",
+        "difficulty": 2,
+        "question": "Dans quel pays peut-on visiter Pétra, la cité taillée dans le grès rose ?",
+        "hints": [
+          "Cherchez au Moyen-Orient.",
+          "Ce pays a Amman pour capitale."
+        ],
+        "explanation": "Pétra fut la capitale du royaume nabatéen du IVe siècle av. J.-C. au IIe siècle apr. J.-C. Elle est inscrite au patrimoine mondial depuis 1985.",
+        "location": [
+          35.4444,
+          30.3285
+        ],
+        "source": {
+          "label": "UNESCO — Pétra",
+          "url": "https://whc.unesco.org/fr/list/326/"
+        }
+      },
+      {
+        "id": "nat-012",
+        "countryId": "400",
+        "theme": "nature",
+        "difficulty": 3,
+        "question": "Dans quel pays se trouve le désert de Wadi Rum, célèbre pour ses falaises de grès ?",
+        "hints": [
+          "Cherchez au Moyen-Orient.",
+          "Ce pays a Amman pour capitale."
+        ],
+        "explanation": "Le Wadi Rum se situe dans le sud de la Jordanie. Ses paysages désertiques de grès et de granite sont inscrits au patrimoine mondial.",
+        "location": [
+          35.43,
+          29.58
+        ],
+        "source": {
+          "label": "UNESCO — Zone protégée du Wadi Rum",
+          "url": "https://whc.unesco.org/fr/list/1377/"
+        }
+      }
+    ],
+    "404": [
+      {
+        "id": "lan-005",
+        "countryId": "404",
+        "theme": "langues",
+        "difficulty": 1,
+        "question": "Quel pays a Nairobi pour capitale et le swahili parmi ses langues officielles ?",
+        "hints": [
+          "Cherchez en Afrique de l’Est.",
+          "Nairobi est la capitale de ce pays voisin de la Tanzanie."
+        ],
+        "explanation": "Le swahili et l’anglais sont les langues officielles du Kenya, dont Nairobi est la capitale. Le swahili est aussi parlé dans plusieurs autres pays d’Afrique de l’Est.",
+        "location": [
+          36.8219,
+          -1.2921
+        ],
+        "source": {
+          "label": "Britannica — Swahili language",
+          "url": "https://www.britannica.com/topic/Swahili-language"
+        }
+      }
+    ],
+    "410": [
+      {
+        "id": "tra-012",
+        "countryId": "410",
+        "theme": "traditions",
+        "difficulty": 3,
+        "question": "Quel pays, dont la capitale est Séoul, a fait inscrire le kimjang à l’UNESCO en 2013 ?",
+        "hints": [
+          "Cherchez en Asie de l’Est.",
+          "Ce pays occupe le sud de la péninsule située entre la Chine et le Japon."
+        ],
+        "explanation": "Le kimjang est la préparation collective du kimchi avant l'hiver. Inscrit à l'UNESCO en 2013, il renforce les liens familiaux et communautaires en Corée.",
+        "location": [
+          126.978,
+          37.5665
+        ],
+        "source": {
+          "label": "UNESCO — Kimjang",
+          "url": "https://ich.unesco.org/fr/RL/00881"
+        }
+      }
+    ],
+    "417": [
+      {
+        "id": "tra-018",
+        "countryId": "417",
+        "theme": "traditions",
+        "difficulty": 4,
+        "question": "Quel pays a fait inscrire à l’UNESCO la trilogie épique Manas, Semetey et Seytek ?",
+        "hints": [
+          "Cherchez en Asie centrale.",
+          "Ce pays montagneux a Bichkek pour capitale."
+        ],
+        "explanation": "La trilogie Manas, Semetey et Seytek est une tradition épique du Kirghizistan, transmise par des conteurs spécialisés.",
+        "location": [
+          74.5698,
+          42.8746
+        ],
+        "source": {
+          "label": "UNESCO — Trilogie épique Manas, Semetey et Seytek",
+          "url": "https://ich.unesco.org/fr/RL/00876"
+        }
+      }
+    ],
+    "422": [
+      {
+        "id": "mon-015",
+        "countryId": "422",
+        "theme": "monuments",
+        "difficulty": 3,
+        "question": "Dans quel pays peut-on visiter les grands temples romains de Baalbek ?",
+        "hints": [
+          "Cherchez sur la côte orientale de la Méditerranée.",
+          "Ce pays a Beyrouth pour capitale."
+        ],
+        "explanation": "Les temples de Baalbek se trouvent dans la plaine de la Bekaa, au Liban.",
+        "location": [
+          36.2038,
+          34.0076
+        ],
+        "source": {
+          "label": "UNESCO — Baalbek",
+          "url": "https://whc.unesco.org/fr/list/294/"
+        }
+      }
+    ],
+    "426": [
+      {
+        "id": "lan-016",
+        "countryId": "426",
+        "theme": "langues",
+        "difficulty": 4,
+        "question": "Quel pays a Maseru pour capitale et le sesotho et l’anglais pour langues officielles ?",
+        "hints": [
+          "Cherchez en Afrique australe.",
+          "Ce pays est entièrement entouré par l’Afrique du Sud."
+        ],
+        "explanation": "Le sesotho et l’anglais sont les langues officielles du Lesotho, un pays entièrement enclavé dans l’Afrique du Sud.",
+        "location": [
+          27.4833,
+          -29.3167
+        ],
+        "source": {
+          "label": "Britannica — Lesotho",
+          "url": "https://www.britannica.com/place/Lesotho"
+        }
+      }
+    ],
+    "434": [
+      {
+        "id": "mon-020",
+        "countryId": "434",
+        "theme": "monuments",
+        "difficulty": 4,
+        "question": "Quel pays abrite la cité romaine de Leptis Magna, près de la ville d’Al-Khums ?",
+        "hints": [
+          "Cherchez en Afrique du Nord.",
+          "Ce pays méditerranéen a Tripoli pour capitale."
+        ],
+        "explanation": "Leptis Magna se trouve sur la côte méditerranéenne de la Libye. La cité a connu un grand développement sous Septime Sévère.",
+        "location": [
+          14.293,
+          32.639
+        ],
+        "source": {
+          "label": "UNESCO — Site archéologique de Leptis Magna",
+          "url": "https://whc.unesco.org/fr/list/183/"
+        }
+      }
+    ],
+    "466": [
+      {
+        "id": "mon-010",
+        "countryId": "466",
+        "theme": "monuments",
+        "difficulty": 3,
+        "question": "Quel pays abrite la grande mosquée en terre de Djenné ?",
+        "hints": [
+          "Cherchez en Afrique de l’Ouest.",
+          "Ce pays enclavé a Bamako pour capitale."
+        ],
+        "explanation": "La Grande Mosquée de Djenné, reconstruite en 1907, est le plus grand bâtiment en terre crue au monde. La ville est classée à l'UNESCO depuis 1988.",
+        "location": [
+          -4.555,
+          13.9056
+        ],
+        "source": {
+          "label": "UNESCO — Djenné",
+          "url": "https://whc.unesco.org/fr/list/116/"
+        }
+      },
+      {
+        "id": "his-010",
+        "countryId": "466",
+        "theme": "histoire",
+        "difficulty": 3,
+        "question": "Quel pays actuel abrite Tombouctou, développée sous le règne de Mansa Moussa ?",
+        "hints": [
+          "Cherchez en Afrique de l’Ouest.",
+          "Ce pays enclavé a Bamako pour capitale."
+        ],
+        "explanation": "Mansa Moussa règne sur l'Empire du Mali de 1312 à 1337. Son pèlerinage de 1324, avec des tonnes d'or, le rend célèbre jusqu'en Europe. Tombouctou devient un foyer intellectuel.",
+        "location": [
+          -3.0026,
+          16.7735
+        ],
+        "source": {
+          "label": "Britannica — Mansa Musa",
+          "url": "https://www.britannica.com/biography/Musa-I-of-Mali"
+        }
+      }
+    ],
+    "470": [
+      {
+        "id": "lan-012",
+        "countryId": "470",
+        "theme": "langues",
+        "difficulty": 3,
+        "question": "Quel pays insulaire de l’Union européenne possède une langue sémitique écrite en alphabet latin ?",
+        "hints": [
+          "Cherchez une île de la mer Méditerranée.",
+          "Ce pays se situe au sud de la Sicile."
+        ],
+        "explanation": "Le maltais est une langue sémitique issue de l’arabe sicilien médiéval et écrite en alphabet latin. Avec l’anglais, il est officiel à Malte.",
+        "location": [
+          14.5146,
+          35.8989
+        ],
+        "source": {
+          "label": "Britannica — Maltese language",
+          "url": "https://www.britannica.com/topic/Maltese-language"
+        }
+      },
+      {
+        "id": "his-019",
+        "countryId": "470",
+        "theme": "histoire",
+        "difficulty": 4,
+        "question": "Quel pays insulaire abrite La Valette, ville fondée par les chevaliers de l’ordre de Saint-Jean ?",
+        "hints": [
+          "Cherchez une île de la mer Méditerranée.",
+          "Ce pays se situe au sud de la Sicile."
+        ],
+        "explanation": "La Valette est la capitale de Malte. Sa fondation au XVIe siècle est liée aux chevaliers de l’ordre de Saint-Jean.",
+        "location": [
+          14.5146,
+          35.8989
+        ],
+        "source": {
+          "label": "Britannica — Valletta",
+          "url": "https://www.britannica.com/place/Valletta"
+        }
+      }
+    ],
+    "484": [
+      {
+        "id": "mon-008",
+        "countryId": "484",
+        "theme": "monuments",
+        "difficulty": 2,
+        "question": "Dans quel pays se trouve la cité maya de Chichén Itzá ?",
+        "hints": [
+          "Cherchez en Amérique du Nord.",
+          "Ce pays se trouve immédiatement au sud des États-Unis."
+        ],
+        "explanation": "Chichén Itzá a prospéré entre le VIIe et le XIIIe siècle. Le temple de Kukulkán (El Castillo) compte 365 marches, une par jour de l'année maya.",
+        "location": [
+          -88.5686,
+          20.6843
+        ],
+        "source": {
+          "label": "UNESCO — Chichén Itzá",
+          "url": "https://whc.unesco.org/fr/list/483/"
+        }
+      },
+      {
+        "id": "lan-004",
+        "countryId": "484",
+        "theme": "langues",
+        "difficulty": 1,
+        "question": "Quel pays hispanophone se trouve immédiatement au sud des États-Unis ?",
+        "hints": [
+          "Cherchez en Amérique du Nord.",
+          "Ce pays se trouve immédiatement au sud des États-Unis."
+        ],
+        "explanation": "Le Mexique est le pays qui compte le plus de locuteurs de l'espagnol au monde, devant la Colombie et l'Espagne. L'espagnol n'est toutefois pas langue officielle au niveau fédéral.",
+        "location": [
+          -99.1332,
+          19.4326
+        ],
+        "source": {
+          "label": "Britannica — Spanish language",
+          "url": "https://www.britannica.com/topic/Spanish-language"
+        }
+      },
+      {
+        "id": "tra-003",
+        "countryId": "484",
+        "theme": "traditions",
+        "difficulty": 1,
+        "question": "Quel pays est connu pour le Día de Muertos, avec ses autels et ses crânes en sucre ?",
+        "hints": [
+          "Cherchez en Amérique du Nord.",
+          "Ce pays se trouve immédiatement au sud des États-Unis."
+        ],
+        "explanation": "Le Día de Muertos mêle traditions mésoaméricaines et catholiques. Les familles installent des autels avec photos, plats préférés et fleurs orange pour guider les âmes.",
+        "location": [
+          -99.1332,
+          19.4326
+        ],
+        "source": {
+          "label": "UNESCO — Día de Muertos",
+          "url": "https://ich.unesco.org/fr/RL/00252"
+        }
+      },
+      {
+        "id": "his-007",
+        "countryId": "484",
+        "theme": "histoire",
+        "difficulty": 2,
+        "question": "Quel pays actuel abrite le site de Tenochtitlan, l’ancienne capitale des Aztèques ?",
+        "hints": [
+          "Cherchez en Amérique du Nord.",
+          "Ce pays se trouve immédiatement au sud des États-Unis."
+        ],
+        "explanation": "Les Mexicas, appelés Aztèques, fondent Tenochtitlan en 1325. Leur empire domine le centre du Mexique jusqu'à sa chute face aux Espagnols en 1521.",
+        "location": [
+          -99.1332,
+          19.4326
+        ],
+        "source": {
+          "label": "Britannica — Aztec",
+          "url": "https://www.britannica.com/topic/Aztec"
+        }
+      }
+    ],
+    "496": [
+      {
+        "id": "tra-014",
+        "countryId": "496",
+        "theme": "traditions",
+        "difficulty": 3,
+        "question": "Quel pays célèbre le Naadam avec la lutte, les courses de chevaux et le tir à l’arc ?",
+        "hints": [
+          "Cherchez en Asie orientale.",
+          "Ce pays enclavé se trouve entre la Russie et la Chine."
+        ],
+        "explanation": "Le Naadam est une grande fête traditionnelle de Mongolie centrée sur trois disciplines sportives.",
+        "location": [
+          106.917,
+          47.918
+        ],
+        "source": {
+          "label": "UNESCO — Le Naadam",
+          "url": "https://ich.unesco.org/fr/RL/00395"
+        }
+      }
+    ],
+    "499": [
+      {
+        "id": "cap-015",
+        "countryId": "499",
+        "theme": "capitales",
+        "difficulty": 3,
+        "question": "Podgorica est la capitale de quel pays des Balkans ?",
+        "hints": [
+          "Cherchez dans les Balkans, en Europe.",
+          "Ce petit pays borde la mer Adriatique, entre la Croatie et l’Albanie."
+        ],
+        "explanation": "Podgorica est la capitale du Monténégro. Cetinje est l’ancienne capitale royale.",
+        "location": [
+          19.2594,
+          42.4304
+        ],
+        "source": {
+          "label": "Britannica — Podgorica",
+          "url": "https://www.britannica.com/place/Podgorica"
+        }
+      }
+    ],
+    "504": [
+      {
+        "id": "cap-008",
+        "countryId": "504",
+        "theme": "capitales",
+        "difficulty": 2,
+        "question": "Rabat est la capitale de quel pays ?",
+        "hints": [
+          "Cherchez dans le nord-ouest de l’Afrique.",
+          "Ce pays fait face à l’Espagne, de l’autre côté du détroit de Gibraltar."
+        ],
+        "explanation": "Rabat est la capitale administrative du Maroc depuis 1912. La ville est inscrite au patrimoine mondial de l'UNESCO depuis 2012.",
+        "location": [
+          -6.8498,
+          34.0209
+        ],
+        "source": {
+          "label": "UNESCO — Rabat",
+          "url": "https://whc.unesco.org/fr/list/1401/"
+        }
+      },
+      {
+        "id": "tra-007",
+        "countryId": "504",
+        "theme": "traditions",
+        "difficulty": 2,
+        "question": "Quel pays abrite la place Jemaa el-Fna, célèbre pour ses conteurs et ses musiciens ?",
+        "hints": [
+          "Cherchez dans le nord-ouest de l’Afrique.",
+          "Ce pays fait face à l’Espagne, de l’autre côté du détroit de Gibraltar."
+        ],
+        "explanation": "La place Jemaa el-Fna se trouve à Marrakech, au Maroc. Son espace culturel réunit conteurs, musiciens, artistes et pratiques populaires.",
+        "location": [
+          -7.989,
+          31.6258
+        ],
+        "source": {
+          "label": "UNESCO — Espace culturel de la place Jemaa el-Fna",
+          "url": "https://ich.unesco.org/fr/RL/00014"
+        }
+      }
+    ],
+    "516": [
+      {
+        "id": "mon-016",
+        "countryId": "516",
+        "theme": "monuments",
+        "difficulty": 4,
+        "question": "Quel pays abrite les gravures rupestres de Twyfelfontein ?",
+        "hints": [
+          "Cherchez dans le sud-ouest de l’Afrique.",
+          "Ce pays côtier a Windhoek pour capitale."
+        ],
+        "explanation": "Twyfelfontein se situe en Namibie. Le site rassemble un ensemble majeur de gravures rupestres d’Afrique australe.",
+        "location": [
+          14.373,
+          -20.5957
+        ],
+        "source": {
+          "label": "UNESCO — Twyfelfontein ou /Ui-//aes",
+          "url": "https://whc.unesco.org/fr/list/1255/"
+        }
+      }
+    ],
+    "524": [
+      {
+        "id": "nat-002",
+        "countryId": "524",
+        "theme": "nature",
+        "difficulty": 1,
+        "question": "Quel pays, dont la capitale est Katmandou, abrite le versant sud de l’Everest ?",
+        "hints": [
+          "Cherchez dans l’Himalaya.",
+          "Ce pays se trouve entre l’Inde et la Chine."
+        ],
+        "explanation": "L’Everest se trouve sur la frontière entre le Népal et la Chine. Son versant sud et l’itinéraire du camp de base sud se trouvent au Népal.",
+        "location": [
+          86.85,
+          27.85
+        ],
+        "source": {
+          "label": "Britannica — Mount Everest",
+          "url": "https://www.britannica.com/place/Mount-Everest"
+        }
+      }
+    ],
+    "554": [
+      {
+        "id": "lan-009",
+        "countryId": "554",
+        "theme": "langues",
+        "difficulty": 2,
+        "question": "Dans quel pays le maori, aussi appelé te reo Māori, est-il une langue officielle ?",
+        "hints": [
+          "Cherchez en Océanie, au sud-est de l’Australie.",
+          "Wellington est la capitale de ce pays insulaire."
+        ],
+        "explanation": "Le maori, ou te reo Māori, est une langue officielle de Nouvelle-Zélande depuis 1987. La langue des signes néo-zélandaise est également officielle depuis 2006.",
+        "location": [
+          174.7633,
+          -36.8485
+        ],
+        "source": {
+          "label": "Britannica — Māori language",
+          "url": "https://www.britannica.com/topic/Maori-language"
+        }
+      }
+    ],
+    "566": [
+      {
+        "id": "cap-009",
+        "countryId": "566",
+        "theme": "capitales",
+        "difficulty": 2,
+        "question": "Quel pays a transféré sa capitale de Lagos à Abuja en 1991 ?",
+        "hints": [
+          "Cherchez en Afrique de l’Ouest.",
+          "Ce pays du golfe de Guinée est voisin du Bénin et du Cameroun."
+        ],
+        "explanation": "Abuja a été planifiée dans les années 1970 et est devenue officiellement capitale en décembre 1991, afin de rééquilibrer le pays.",
+        "location": [
+          7.3986,
+          9.0765
+        ],
+        "source": {
+          "label": "Britannica — Abuja",
+          "url": "https://www.britannica.com/place/Abuja"
+        }
+      }
+    ],
+    "586": [
+      {
+        "id": "mon-019",
+        "countryId": "586",
+        "theme": "monuments",
+        "difficulty": 4,
+        "question": "Dans quel pays se trouve le monastère bouddhique de Takht-i-Bahi ?",
+        "hints": [
+          "Cherchez en Asie du Sud.",
+          "Ce pays est voisin de l’Inde et a Islamabad pour capitale."
+        ],
+        "explanation": "Takht-i-Bahi est un monastère bouddhique du Gandhara situé dans l’actuel Pakistan.",
+        "location": [
+          71.945,
+          34.32
+        ],
+        "source": {
+          "label": "UNESCO — Ruines bouddhiques de Takht-i-Bahi",
+          "url": "https://whc.unesco.org/fr/list/140/"
+        }
+      },
+      {
+        "id": "his-017",
+        "countryId": "586",
+        "theme": "histoire",
+        "difficulty": 4,
+        "question": "Quel pays actuel abrite Mohenjo-daro, une grande cité de la civilisation de l’Indus ?",
+        "hints": [
+          "Cherchez en Asie du Sud.",
+          "Ce pays est voisin de l’Inde et a Islamabad pour capitale."
+        ],
+        "explanation": "Mohenjo-daro se trouve dans l’actuel Pakistan, dans la province du Sind. La cité appartient à la civilisation de l’Indus.",
+        "location": [
+          68.138,
+          27.329
+        ],
+        "source": {
+          "label": "UNESCO — Ruines archéologiques de Mohenjo-daro",
+          "url": "https://whc.unesco.org/fr/list/138/"
+        }
+      }
+    ],
+    "598": [
+      {
+        "id": "lan-011",
+        "countryId": "598",
+        "theme": "langues",
+        "difficulty": 3,
+        "question": "Quel pays du Pacifique, dont la capitale est Port Moresby, compte plus de 800 langues ?",
+        "hints": [
+          "Cherchez dans le Pacifique, au nord de l’Australie.",
+          "Ce pays a Port Moresby pour capitale."
+        ],
+        "explanation": "La Papouasie-Nouvelle-Guinée est l’un des pays les plus riches en diversité linguistique, avec plus de 800 langues. Le tok pisin y sert largement de langue véhiculaire.",
+        "location": [
+          147.15,
+          -9.4438
+        ],
+        "source": {
+          "label": "Britannica — Papua New Guinea",
+          "url": "https://www.britannica.com/place/Papua-New-Guinea"
+        }
+      },
+      {
+        "id": "tra-011",
+        "countryId": "598",
+        "theme": "traditions",
+        "difficulty": 3,
+        "question": "Quel pays accueille le festival de Goroka et ses rassemblements de danses appelés sing-sing ?",
+        "hints": [
+          "Cherchez dans le Pacifique, au nord de l’Australie.",
+          "Ce pays a Port Moresby pour capitale."
+        ],
+        "explanation": "Les sing-sing réunissent des dizaines de groupes ethniques venus montrer leurs chants, danses et parures. Le Goroka Show, créé en 1957, est le plus connu.",
+        "location": [
+          145.3833,
+          -6.0833
+        ],
+        "source": {
+          "label": "Britannica — Papua New Guinea",
+          "url": "https://www.britannica.com/place/Papua-New-Guinea"
+        }
+      }
+    ],
+    "604": [
+      {
+        "id": "mon-004",
+        "countryId": "604",
+        "theme": "monuments",
+        "difficulty": 1,
+        "question": "Quel pays abrite la cité inca du Machu Picchu ?",
+        "hints": [
+          "Cherchez sur la façade pacifique de l’Amérique du Sud.",
+          "Ce pays a Lima pour capitale."
+        ],
+        "explanation": "Machu Picchu a probablement été bâtie pour l'empereur Pachacutec vers 1450. L'archéologue américain Hiram Bingham la fait connaître en 1911.",
+        "location": [
+          -72.545,
+          -13.1631
+        ],
+        "source": {
+          "label": "UNESCO — Machu Picchu",
+          "url": "https://whc.unesco.org/fr/list/274/"
+        }
+      },
+      {
+        "id": "his-009",
+        "countryId": "604",
+        "theme": "histoire",
+        "difficulty": 2,
+        "question": "Quel pays actuel abrite Cuzco, l’ancienne capitale de l’Empire inca ?",
+        "hints": [
+          "Cherchez sur la façade pacifique de l’Amérique du Sud.",
+          "Ce pays a Lima pour capitale."
+        ],
+        "explanation": "L'Empire inca (Tahuantinsuyu, « les quatre quartiers ») s'étendait sur 4 000 km le long des Andes. Il s'effondre en 1533 avec la capture de l'empereur Atahualpa.",
+        "location": [
+          -71.9675,
+          -13.5319
+        ],
+        "source": {
+          "label": "Britannica — Inca",
+          "url": "https://www.britannica.com/topic/Inca"
+        }
+      },
+      {
+        "id": "his-018",
+        "countryId": "604",
+        "theme": "histoire",
+        "difficulty": 4,
+        "question": "Dans quel pays se trouve Caral-Supe, l’un des plus anciens centres urbains des Amériques ?",
+        "hints": [
+          "Cherchez sur la façade pacifique de l’Amérique du Sud.",
+          "Ce pays a Lima pour capitale."
+        ],
+        "explanation": "La cité de Caral-Supe se situe au Pérou. Elle témoigne d’une civilisation de la côte centrale vieille d’environ cinq millénaires.",
+        "location": [
+          -77.52,
+          -10.89
+        ],
+        "source": {
+          "label": "UNESCO — Ville sacrée de Caral-Supe",
+          "url": "https://whc.unesco.org/fr/list/1269/"
+        }
+      }
+    ],
+    "620": [
+      {
+        "id": "lan-013",
+        "countryId": "620",
+        "theme": "langues",
+        "difficulty": 2,
+        "question": "Quel pays européen a Lisbonne pour capitale et le portugais pour langue officielle ?",
+        "hints": [
+          "Cherchez dans la péninsule Ibérique.",
+          "Ce pays est à l’ouest de l’Espagne."
+        ],
+        "explanation": "Lisbonne est la capitale du Portugal. Le portugais est aussi parlé sur d’autres continents, notamment au Brésil.",
+        "location": [
+          -9.1393,
+          38.7223
+        ],
+        "source": {
+          "label": "Britannica — Portugal",
+          "url": "https://www.britannica.com/place/Portugal"
+        }
+      }
+    ],
+    "626": [
+      {
+        "id": "cap-020",
+        "countryId": "626",
+        "theme": "capitales",
+        "difficulty": 4,
+        "question": "Dili est la capitale de quel pays indépendant depuis 2002 ?",
+        "hints": [
+          "Cherchez en Asie du Sud-Est.",
+          "Ce pays occupe la partie orientale de l’île de Timor."
+        ],
+        "explanation": "Dili est la capitale du Timor-Leste, qui occupe la partie orientale de l’île de Timor.",
+        "location": [
+          125.5795,
+          -8.5569
+        ],
+        "source": {
+          "label": "Britannica — Dili",
+          "url": "https://www.britannica.com/place/Dili"
+        }
+      },
+      {
+        "id": "lan-018",
+        "countryId": "626",
+        "theme": "langues",
+        "difficulty": 4,
+        "question": "Quel pays d’Asie du Sud-Est a le tétoum et le portugais pour langues officielles ?",
+        "hints": [
+          "Cherchez en Asie du Sud-Est.",
+          "Ce pays occupe la partie orientale de l’île de Timor."
+        ],
+        "explanation": "Le tétoum et le portugais sont les langues officielles du Timor-Leste.",
+        "location": [
+          125.5795,
+          -8.5569
+        ],
+        "source": {
+          "label": "Britannica — East Timor",
+          "url": "https://www.britannica.com/place/East-Timor"
+        }
+      }
+    ],
+    "643": [
+      {
+        "id": "nat-005",
+        "countryId": "643",
+        "theme": "nature",
+        "difficulty": 1,
+        "question": "Dans quel pays se trouve le lac Baïkal, en Sibérie ?",
+        "hints": [
+          "Cherchez dans le nord de l’Eurasie.",
+          "Moscou est la capitale de ce très grand pays."
+        ],
+        "explanation": "Le lac Baïkal est le plus ancien (25 millions d'années) et le plus profond lac du monde. Il abrite le phoque d'eau douce du Baïkal, unique au monde.",
+        "location": [
+          107.6,
+          53.5
+        ],
+        "source": {
+          "label": "UNESCO — Lac Baïkal",
+          "url": "https://whc.unesco.org/fr/list/754/"
+        }
+      }
+    ],
+    "705": [
+      {
+        "id": "cap-014",
+        "countryId": "705",
+        "theme": "capitales",
+        "difficulty": 3,
+        "question": "Quel pays a Ljubljana pour capitale ?",
+        "hints": [
+          "Cherchez en Europe centrale.",
+          "Ce pays est voisin de l’Italie, de l’Autriche et de la Croatie."
+        ],
+        "explanation": "Ljubljana est la capitale de la Slovénie, pays situé entre l’Italie, l’Autriche, la Hongrie et la Croatie.",
+        "location": [
+          14.5058,
+          46.0569
+        ],
+        "source": {
+          "label": "Britannica — Ljubljana",
+          "url": "https://www.britannica.com/place/Ljubljana"
+        }
+      }
+    ],
+    "710": [
+      {
+        "id": "lan-008",
+        "countryId": "710",
+        "theme": "langues",
+        "difficulty": 2,
+        "question": "Quel pays, dont Johannesburg est une grande ville, reconnaît douze langues officielles depuis 2023 ?",
+        "hints": [
+          "Cherchez à la pointe sud de l’Afrique.",
+          "Ce pays entoure entièrement le Lesotho."
+        ],
+        "explanation": "L'Afrique du Sud compte 12 langues officielles depuis l'inscription de la langue des signes sud-africaine dans la Constitution en 2023. Le zoulou est la plus parlée.",
+        "location": [
+          28.0473,
+          -26.2041
+        ],
+        "source": {
+          "label": "Britannica — South Africa",
+          "url": "https://www.britannica.com/place/South-Africa"
+        }
+      }
+    ],
+    "716": [
+      {
+        "id": "mon-017",
+        "countryId": "716",
+        "theme": "monuments",
+        "difficulty": 4,
+        "question": "Près de Masvingo, quel pays abrite les ruines d’une cité médiévale aux grandes enceintes de pierre ?",
+        "hints": [
+          "Cherchez en Afrique australe.",
+          "Ce pays enclavé a Harare pour capitale."
+        ],
+        "explanation": "Les ruines du Grand Zimbabwe se trouvent dans le pays qui a repris le nom de cette cité historique lors de son indépendance.",
+        "location": [
+          30.9333,
+          -20.2667
+        ],
+        "source": {
+          "label": "UNESCO — Monument national du Grand Zimbabwe",
+          "url": "https://whc.unesco.org/fr/list/364/"
+        }
+      }
+    ],
+    "724": [
+      {
+        "id": "tra-006",
+        "countryId": "724",
+        "theme": "traditions",
+        "difficulty": 2,
+        "question": "Dans quel pays est né le flamenco, en Andalousie ?",
+        "hints": [
+          "Cherchez dans le sud-ouest de l’Europe.",
+          "Ce pays de la péninsule Ibérique a Madrid pour capitale."
+        ],
+        "explanation": "Le flamenco est né en Andalousie de la rencontre des cultures gitane, arabe, juive et andalouse. L'UNESCO l'inscrit au patrimoine immatériel en 2010.",
+        "location": [
+          -5.9845,
+          37.3891
+        ],
+        "source": {
+          "label": "UNESCO — Flamenco",
+          "url": "https://ich.unesco.org/fr/RL/00363"
+        }
+      },
+      {
+        "id": "mon-013",
+        "countryId": "724",
+        "theme": "monuments",
+        "difficulty": 2,
+        "question": "Dans quel pays se trouve l’Alhambra de Grenade ?",
+        "hints": [
+          "Cherchez dans le sud-ouest de l’Europe.",
+          "Ce pays de la péninsule Ibérique a Madrid pour capitale."
+        ],
+        "explanation": "L’Alhambra se trouve à Grenade, en Espagne. Elle témoigne notamment de l’architecture nasride.",
+        "location": [
+          -3.5881,
+          37.176
+        ],
+        "source": {
+          "label": "UNESCO — Alhambra, Generalife et Albaicin",
+          "url": "https://whc.unesco.org/fr/list/314/"
+        }
+      }
+    ],
+    "740": [
+      {
+        "id": "cap-018",
+        "countryId": "740",
+        "theme": "capitales",
+        "difficulty": 4,
+        "question": "Paramaribo est la capitale de quel pays d’Amérique du Sud ?",
+        "hints": [
+          "Cherchez dans le nord de l’Amérique du Sud.",
+          "Ce pays se trouve entre le Guyana et la Guyane française."
+        ],
+        "explanation": "Paramaribo est la capitale du Suriname, sur le fleuve du même nom.",
+        "location": [
+          -55.2038,
+          5.852
+        ],
+        "source": {
+          "label": "UNESCO — Centre-ville historique de Paramaribo",
+          "url": "https://whc.unesco.org/fr/list/940/"
+        }
+      },
+      {
+        "id": "lan-020",
+        "countryId": "740",
+        "theme": "langues",
+        "difficulty": 4,
+        "question": "Quel pays d’Amérique du Sud a le néerlandais pour langue officielle ?",
+        "hints": [
+          "Cherchez dans le nord de l’Amérique du Sud.",
+          "Ce pays se trouve entre le Guyana et la Guyane française."
+        ],
+        "explanation": "Le Suriname est le seul État souverain d’Amérique du Sud dont la langue officielle est le néerlandais.",
+        "location": [
+          -55.2038,
+          5.852
+        ],
+        "source": {
+          "label": "Britannica — Suriname",
+          "url": "https://www.britannica.com/place/Suriname"
+        }
+      }
+    ],
+    "756": [
+      {
+        "id": "lan-006",
+        "countryId": "756",
+        "theme": "langues",
+        "difficulty": 2,
+        "question": "Quel pays reconnaît l’allemand, le français, l’italien et le romanche comme langues nationales ?",
+        "hints": [
+          "Cherchez au centre de l’Europe.",
+          "Ce pays alpin est voisin de la France, de l’Allemagne et de l’Italie."
+        ],
+        "explanation": "La Suisse reconnaît quatre langues nationales : l’allemand, le français, l’italien et le romanche.",
+        "location": [
+          7.4474,
+          46.948
+        ],
+        "source": {
+          "label": "Britannica — Switzerland",
+          "url": "https://www.britannica.com/place/Switzerland"
+        }
+      }
+    ],
+    "788": [
+      {
+        "id": "his-013",
+        "countryId": "788",
+        "theme": "histoire",
+        "difficulty": 2,
+        "question": "Dans quel pays actuel se trouvent les ruines de Carthage ?",
+        "hints": [
+          "Cherchez en Afrique du Nord.",
+          "Ce pays méditerranéen est voisin de l’Algérie et de la Libye."
+        ],
+        "explanation": "Carthage se situe près de Tunis, en Tunisie. La cité punique a été l’une des grandes puissances de la Méditerranée antique.",
+        "location": [
+          10.3233,
+          36.8528
+        ],
+        "source": {
+          "label": "UNESCO — Site archéologique de Carthage",
+          "url": "https://whc.unesco.org/fr/list/37/"
+        }
+      }
+    ],
+    "792": [
+      {
+        "id": "mon-007",
+        "countryId": "792",
+        "theme": "monuments",
+        "difficulty": 2,
+        "question": "Quel pays abrite Sainte-Sophie, à Istanbul ?",
+        "hints": [
+          "Cherchez entre l’Europe et l’Asie.",
+          "Ankara est la capitale de ce pays."
+        ],
+        "explanation": "Sainte-Sophie (Ayasofya) fut la plus grande église du monde chrétien pendant près de mille ans, avant de devenir mosquée en 1453, puis musée en 1935 et de nouveau mosquée en 2020.",
+        "location": [
+          28.9802,
+          41.0086
+        ],
+        "source": {
+          "label": "Britannica — Hagia Sophia",
+          "url": "https://www.britannica.com/topic/Hagia-Sophia"
+        }
+      },
+      {
+        "id": "tra-008",
+        "countryId": "792",
+        "theme": "traditions",
+        "difficulty": 2,
+        "question": "Quel pays abrite Konya et la cérémonie des derviches tourneurs mevlevis ?",
+        "hints": [
+          "Cherchez entre l’Europe et l’Asie.",
+          "Ankara est la capitale de ce pays."
+        ],
+        "explanation": "La cérémonie sema des derviches mevlevis, fondée sur la pensée du poète Rûmî (XIIIe siècle), est inscrite à l'UNESCO en 2008. Elle est célébrée chaque décembre à Konya.",
+        "location": [
+          32.4846,
+          37.8746
+        ],
+        "source": {
+          "label": "UNESCO — Cérémonie Mevlevi Sema",
+          "url": "https://ich.unesco.org/fr/RL/00100"
+        }
+      },
+      {
+        "id": "mon-018",
+        "countryId": "792",
+        "theme": "monuments",
+        "difficulty": 4,
+        "question": "Quel pays actuel abrite Hattousa, l’ancienne capitale des Hittites ?",
+        "hints": [
+          "Cherchez entre l’Europe et l’Asie.",
+          "Ankara est la capitale de ce pays."
+        ],
+        "explanation": "Hattousa se trouve près de Boğazkale, en Turquie. C’était la capitale de l’Empire hittite.",
+        "location": [
+          34.615,
+          40.019
+        ],
+        "source": {
+          "label": "UNESCO — Hattousa",
+          "url": "https://whc.unesco.org/fr/list/377/"
+        }
+      }
+    ],
+    "818": [
+      {
+        "id": "cap-004",
+        "countryId": "818",
+        "theme": "capitales",
+        "difficulty": 1,
+        "question": "Le Caire est la capitale de quel pays ?",
+        "hints": [
+          "Cherchez en Afrique du Nord.",
+          "Le Nil y rejoint la mer Méditerranée."
+        ],
+        "explanation": "Le Caire a été fondée en 969 par la dynastie fatimide. C'est la capitale politique et culturelle du monde arabe.",
+        "location": [
+          31.2357,
+          30.0444
+        ],
+        "source": {
+          "label": "Britannica — Cairo",
+          "url": "https://www.britannica.com/place/Cairo"
+        }
+      },
+      {
+        "id": "mon-005",
+        "countryId": "818",
+        "theme": "monuments",
+        "difficulty": 1,
+        "question": "Dans quel pays se trouvent les pyramides de Gizeh ?",
+        "hints": [
+          "Cherchez en Afrique du Nord.",
+          "Le Nil y rejoint la mer Méditerranée."
+        ],
+        "explanation": "Le plateau de Gizeh réunit les pyramides de Khéops, Khéphren et Mykérinos, élevées vers 2560-2450 av. J.-C. Seule des sept merveilles antiques encore debout, la grande pyramide est classée à l'UNESCO.",
+        "location": [
+          31.1342,
+          29.9792
+        ],
+        "source": {
+          "label": "UNESCO — Memphis et sa nécropole",
+          "url": "https://whc.unesco.org/fr/list/86/"
+        }
+      },
+      {
+        "id": "lan-002",
+        "countryId": "818",
+        "theme": "langues",
+        "difficulty": 1,
+        "question": "Quel pays arabophone a Le Caire pour capitale ?",
+        "hints": [
+          "Cherchez en Afrique du Nord.",
+          "Le Nil y rejoint la mer Méditerranée."
+        ],
+        "explanation": "L'arabe est la langue officielle de l'Égypte. L'arabe égyptien, très différent de l'arabe classique, est compris dans tout le monde arabe grâce au cinéma et à la chanson.",
+        "location": [
+          31.2357,
+          30.0444
+        ],
+        "source": {
+          "label": "Britannica — Arabic language",
+          "url": "https://www.britannica.com/topic/Arabic-language"
+        }
+      },
+      {
+        "id": "nat-001",
+        "countryId": "818",
+        "theme": "nature",
+        "difficulty": 1,
+        "question": "Dans quel pays le Nil forme-t-il son grand delta avant de rejoindre la Méditerranée ?",
+        "hints": [
+          "Cherchez en Afrique du Nord.",
+          "Le Nil y rejoint la mer Méditerranée."
+        ],
+        "explanation": "Le Nil est l'un des plus longs fleuves du monde. Sans lui, l'Égypte serait un désert : 95 % de la population vit sur ses rives et son delta.",
+        "location": [
+          31.2357,
+          30.0444
+        ],
+        "source": {
+          "label": "Britannica — Nile River",
+          "url": "https://www.britannica.com/place/Nile-River"
+        }
+      }
+    ],
+    "826": [
+      {
+        "id": "his-003",
+        "countryId": "826",
+        "theme": "histoire",
+        "difficulty": 1,
+        "question": "Dans quel pays actuel peut-on visiter le mur d’Hadrien, au nord de l’Angleterre ?",
+        "hints": [
+          "Cherchez au nord-ouest de l’Europe.",
+          "Londres est la capitale de ce pays."
+        ],
+        "explanation": "Le mur d'Hadrien a été bâti sur ordre de l'empereur Hadrien à partir de 122 apr. J.-C. Il est inscrit à l'UNESCO depuis 1987.",
+        "location": [
+          -2.3,
+          55
+        ],
+        "source": {
+          "label": "UNESCO — Frontières de l'Empire romain",
+          "url": "https://whc.unesco.org/fr/list/430/"
+        }
+      }
+    ],
+    "834": [
+      {
+        "id": "cap-012",
+        "countryId": "834",
+        "theme": "capitales",
+        "difficulty": 3,
+        "question": "Quel pays a Dodoma pour capitale, tandis que Dar es Salam reste une grande métropole ?",
+        "hints": [
+          "Cherchez en Afrique de l’Est.",
+          "Ce pays abrite le Kilimandjaro et l’archipel de Zanzibar."
+        ],
+        "explanation": "Dodoma a remplacé Dar es Salam comme capitale en 1974 pour recentrer le pouvoir, mais l'administration n'a suivi que progressivement.",
+        "location": [
+          35.7395,
+          -6.163
+        ],
+        "source": {
+          "label": "Britannica — Dodoma",
+          "url": "https://www.britannica.com/place/Dodoma"
+        }
+      },
+      {
+        "id": "nat-006",
+        "countryId": "834",
+        "theme": "nature",
+        "difficulty": 2,
+        "question": "Quel pays abrite le Kilimandjaro, le plus haut sommet d’Afrique ?",
+        "hints": [
+          "Cherchez en Afrique de l’Est.",
+          "Ce pays abrite le Kilimandjaro et l’archipel de Zanzibar."
+        ],
+        "explanation": "Le Kilimandjaro, dans le nord de la Tanzanie, est un volcan stratifié couronné de neiges éternelles. Il est inscrit au patrimoine mondial depuis 1987.",
+        "location": [
+          37.3556,
+          -3.0674
+        ],
+        "source": {
+          "label": "UNESCO — Parc national du Kilimandjaro",
+          "url": "https://whc.unesco.org/fr/list/403/"
+        }
+      },
+      {
+        "id": "nat-014",
+        "countryId": "834",
+        "theme": "nature",
+        "difficulty": 3,
+        "question": "Dans quel pays se trouve le cratère du Ngorongoro ?",
+        "hints": [
+          "Cherchez en Afrique de l’Est.",
+          "Ce pays abrite le Kilimandjaro et l’archipel de Zanzibar."
+        ],
+        "explanation": "Le Ngorongoro est une grande caldeira située dans le nord de la Tanzanie.",
+        "location": [
+          35.587,
+          -3.18
+        ],
+        "source": {
+          "label": "UNESCO — Zone de conservation du Ngorongoro",
+          "url": "https://whc.unesco.org/fr/list/39/"
+        }
+      }
+    ],
+    "860": [
+      {
+        "id": "tra-019",
+        "countryId": "860",
+        "theme": "traditions",
+        "difficulty": 4,
+        "question": "Dans quel pays l’Askiya, un art du dialogue humoristique, est-il traditionnel ?",
+        "hints": [
+          "Cherchez en Asie centrale.",
+          "Ce pays a Tachkent pour capitale."
+        ],
+        "explanation": "L’Askiya est un art du dialogue humoristique en Ouzbékistan, fondé sur la répartie et les jeux de mots.",
+        "location": [
+          69.2401,
+          41.2995
+        ],
+        "source": {
+          "label": "UNESCO — L’Askiya",
+          "url": "https://ich.unesco.org/fr/RL/00971"
+        }
+      },
+      {
+        "id": "his-015",
+        "countryId": "860",
+        "theme": "histoire",
+        "difficulty": 3,
+        "question": "Dans quel pays actuel se trouve Samarcande, la capitale choisie par Tamerlan ?",
+        "hints": [
+          "Cherchez en Asie centrale.",
+          "Ce pays a Tachkent pour capitale."
+        ],
+        "explanation": "Samarcande se situe dans l’actuel Ouzbékistan. Tamerlan en a fait la capitale de son empire au XIVe siècle.",
+        "location": [
+          66.975,
+          39.654
+        ],
+        "source": {
+          "label": "UNESCO — Samarcande, carrefour de cultures",
+          "url": "https://whc.unesco.org/fr/list/603/"
+        }
+      }
+    ],
+    "862": [
+      {
+        "id": "nat-010",
+        "countryId": "862",
+        "theme": "nature",
+        "difficulty": 3,
+        "question": "Quel pays abrite le Salto Ángel, la plus haute chute d’eau du monde ?",
+        "hints": [
+          "Cherchez au nord de l’Amérique du Sud.",
+          "Ce pays a Caracas pour capitale."
+        ],
+        "explanation": "Le Salto Ángel (Kerepakupai Merú en pemón) tombe de 979 m. Il est alimenté par les pluies du plateau gréseux du tepuy Auyán-tepui, dans le Gran Sabana.",
+        "location": [
+          -62.5353,
+          5.9675
+        ],
+        "source": {
+          "label": "UNESCO — Parc national de Canaima",
+          "url": "https://whc.unesco.org/fr/list/701/"
+        }
+      }
+    ],
+    "887": [
+      {
+        "id": "nat-017",
+        "countryId": "887",
+        "theme": "nature",
+        "difficulty": 4,
+        "question": "À quel pays appartient Socotra, l’île connue pour ses dragonniers en forme de parasol ?",
+        "hints": [
+          "Cherchez au sud de la péninsule Arabique.",
+          "Ce pays est voisin de l’Arabie saoudite et d’Oman."
+        ],
+        "explanation": "L’archipel de Socotra appartient au Yémen et abrite de nombreuses espèces endémiques.",
+        "location": [
+          53.87,
+          12.5
+        ],
+        "source": {
+          "label": "UNESCO — Archipel de Socotra",
+          "url": "https://whc.unesco.org/fr/list/1263/"
+        }
+      }
+    ],
+    "076": [
+      {
+        "id": "cap-005",
+        "countryId": "076",
+        "theme": "capitales",
+        "difficulty": 1,
+        "question": "Quel pays a Brasilia pour capitale depuis 1960 ?",
+        "hints": [
+          "Cherchez en Amérique du Sud.",
+          "C’est le plus grand pays du continent et sa capitale est Brasilia."
+        ],
+        "explanation": "Brasilia a été inaugurée le 21 avril 1960 sous la présidence de Juscelino Kubitschek, pour désengorger le littoral au profit de l'intérieur du pays.",
+        "location": [
+          -47.9292,
+          -15.7801
+        ],
+        "source": {
+          "label": "UNESCO — Brasilia",
+          "url": "https://whc.unesco.org/fr/list/445/"
+        }
+      },
+      {
+        "id": "lan-001",
+        "countryId": "076",
+        "theme": "langues",
+        "difficulty": 1,
+        "question": "Quel grand pays d’Amérique du Sud a le portugais pour langue officielle ?",
+        "hints": [
+          "Cherchez en Amérique du Sud.",
+          "C’est le plus grand pays du continent et sa capitale est Brasilia."
+        ],
+        "explanation": "Le portugais est la langue officielle du Brésil depuis la colonisation portugaise au XVIe siècle. Le Brésil compte plus de 200 millions de lusophones.",
+        "location": [
+          -47.9292,
+          -15.7801
+        ],
+        "source": {
+          "label": "Britannica — Portuguese language",
+          "url": "https://www.britannica.com/topic/Portuguese-language"
+        }
+      },
+      {
+        "id": "nat-003",
+        "countryId": "076",
+        "theme": "nature",
+        "difficulty": 1,
+        "question": "Quel pays, dont la capitale est Brasilia, abrite la plus grande partie de la forêt amazonienne ?",
+        "hints": [
+          "Cherchez en Amérique du Sud.",
+          "C’est le plus grand pays du continent et sa capitale est Brasilia."
+        ],
+        "explanation": "La forêt amazonienne couvre environ 5,5 millions de km², dont 60 % au Brésil. Elle abrite une biodiversité exceptionnelle et joue un rôle majeur dans le climat mondial.",
+        "location": [
+          -62.2159,
+          -3.4653
+        ],
+        "source": {
+          "label": "Britannica — Amazon Rainforest",
+          "url": "https://www.britannica.com/place/Amazon-Rainforest"
+        }
+      }
+    ],
+    "036": [
+      {
+        "id": "cap-006",
+        "countryId": "036",
+        "theme": "capitales",
+        "difficulty": 2,
+        "question": "Canberra, et non Sydney, est la capitale de quel pays ?",
+        "hints": [
+          "Cherchez en Océanie.",
+          "Ce pays occupe un continent entre les océans Indien et Pacifique."
+        ],
+        "explanation": "Canberra a été dessinée par les architectes Walter Burley Griffin et Marion Mahony Griffin après un concours international en 1911. Le Parlement fédéral y siège depuis 1927.",
+        "location": [
+          149.13,
+          -35.2809
+        ],
+        "source": {
+          "label": "Britannica — Canberra",
+          "url": "https://www.britannica.com/place/Canberra"
+        }
+      },
+      {
+        "id": "nat-004",
+        "countryId": "036",
+        "theme": "nature",
+        "difficulty": 1,
+        "question": "Au large de quel pays se trouve la Grande Barrière de corail ?",
+        "hints": [
+          "Cherchez en Océanie.",
+          "Ce pays occupe un continent entre les océans Indien et Pacifique."
+        ],
+        "explanation": "La Grande Barrière de corail s'étend sur environ 2 300 km. Inscrite à l'UNESCO en 1981, elle est menacée par le réchauffement des océans.",
+        "location": [
+          147.6992,
+          -18.2871
+        ],
+        "source": {
+          "label": "UNESCO — Grande Barrière de corail",
+          "url": "https://whc.unesco.org/fr/list/154/"
+        }
+      }
+    ],
+    "068": [
+      {
+        "id": "lan-010",
+        "countryId": "068",
+        "theme": "langues",
+        "difficulty": 3,
+        "question": "Quel pays andin reconnaît l’espagnol et 36 langues autochtones dans sa Constitution de 2009 ?",
+        "hints": [
+          "Cherchez en Amérique du Sud.",
+          "Ce pays enclavé est voisin du Pérou et du Paraguay."
+        ],
+        "explanation": "La Constitution de la Bolivie de 2009 reconnaît l’espagnol et 36 langues autochtones, dont le quechua, l’aymara et le guarani.",
+        "location": [
+          -68.1193,
+          -16.4897
+        ],
+        "source": {
+          "label": "Britannica — Bolivia",
+          "url": "https://www.britannica.com/place/Bolivia"
+        }
+      },
+      {
+        "id": "tra-010",
+        "countryId": "068",
+        "theme": "traditions",
+        "difficulty": 3,
+        "question": "Dans quel pays la fête d’Alasita, à La Paz, célèbre-t-elle les souhaits avec des objets miniatures ?",
+        "hints": [
+          "Cherchez en Amérique du Sud.",
+          "Ce pays enclavé est voisin du Pérou et du Paraguay."
+        ],
+        "explanation": "La feria de Alasitas, à La Paz, remonte à la période préhispanique et se déroule autour du 24 janvier. On y achète miniatures et billets pour que le rêve devienne réalité.",
+        "location": [
+          -68.1193,
+          -16.4897
+        ],
+        "source": {
+          "label": "UNESCO — Parcours rituels dans la ville de La Paz pendant l’Alasita",
+          "url": "https://ich.unesco.org/fr/RL/01182"
+        }
+      },
+      {
+        "id": "nat-016",
+        "countryId": "068",
+        "theme": "nature",
+        "difficulty": 4,
+        "question": "Dans quel pays se trouve le salar d’Uyuni, immense désert de sel de l’Altiplano ?",
+        "hints": [
+          "Cherchez en Amérique du Sud.",
+          "Ce pays enclavé est voisin du Pérou et du Paraguay."
+        ],
+        "explanation": "Le salar d’Uyuni se situe en Bolivie. Il constitue la plus vaste étendue de sel du monde.",
+        "location": [
+          -67.49,
+          -20.13
+        ],
+        "source": {
+          "label": "Britannica — Uyuni Salt Flat",
+          "url": "https://www.britannica.com/place/Uyuni-Salt-Flat"
+        }
+      }
+    ],
+    "032": [
+      {
+        "id": "nat-009",
+        "countryId": "032",
+        "theme": "nature",
+        "difficulty": 2,
+        "question": "Quel pays abrite le parc national d’Iguazú situé dans la province de Misiones ?",
+        "hints": [
+          "Cherchez dans le sud de l’Amérique du Sud.",
+          "Ce pays a Buenos Aires pour capitale."
+        ],
+        "explanation": "Le parc national d’Iguazú se trouve en Argentine, dans la province de Misiones. Le parc voisin d’Iguaçu se trouve au Brésil.",
+        "location": [
+          -54.444,
+          -25.7
+        ],
+        "source": {
+          "label": "UNESCO — Parc national de l’Iguazú",
+          "url": "https://whc.unesco.org/fr/list/303/"
+        }
+      },
+      {
+        "id": "tra-009",
+        "countryId": "032",
+        "theme": "traditions",
+        "difficulty": 2,
+        "question": "Dans quel pays se trouve Buenos Aires, l’un des berceaux du tango ?",
+        "hints": [
+          "Cherchez dans le sud de l’Amérique du Sud.",
+          "Ce pays a Buenos Aires pour capitale."
+        ],
+        "explanation": "Buenos Aires se trouve en Argentine. Le tango s’est développé dans la région du Río de la Plata, à la fois en Argentine et en Uruguay ; la question vise la ville de Buenos Aires.",
+        "location": [
+          -58.3816,
+          -34.6037
+        ],
+        "source": {
+          "label": "UNESCO — Tango",
+          "url": "https://ich.unesco.org/fr/RL/00258"
+        }
+      }
+    ],
+    "012": [
+      {
+        "id": "cap-013",
+        "countryId": "012",
+        "theme": "capitales",
+        "difficulty": 2,
+        "question": "Alger est la capitale de quel pays ?",
+        "hints": [
+          "Cherchez en Afrique du Nord.",
+          "C’est le plus grand pays d’Afrique par sa superficie."
+        ],
+        "explanation": "Alger est la capitale de l’Algérie, sur la côte méditerranéenne.",
+        "location": [
+          3.0588,
+          36.7538
+        ],
+        "source": {
+          "label": "Britannica — Algiers",
+          "url": "https://www.britannica.com/place/Algiers"
+        }
+      }
+    ],
+    "064": [
+      {
+        "id": "cap-016",
+        "countryId": "064",
+        "theme": "capitales",
+        "difficulty": 4,
+        "question": "Quel pays de l’Himalaya a Thimphou pour capitale ?",
+        "hints": [
+          "Cherchez dans l’Himalaya.",
+          "Ce royaume est situé entre l’Inde et la Chine, à l’est du Népal."
+        ],
+        "explanation": "Thimphou est la capitale du Bhoutan, royaume situé entre l’Inde et la Chine.",
+        "location": [
+          89.639,
+          27.4728
+        ],
+        "source": {
+          "label": "Britannica — Thimphu",
+          "url": "https://www.britannica.com/place/Thimphu"
+        }
+      },
+      {
+        "id": "lan-017",
+        "countryId": "064",
+        "theme": "langues",
+        "difficulty": 4,
+        "question": "Dans quel pays le dzongkha est-il la langue nationale officielle ?",
+        "hints": [
+          "Cherchez dans l’Himalaya.",
+          "Ce royaume est situé entre l’Inde et la Chine, à l’est du Népal."
+        ],
+        "explanation": "Le dzongkha est la langue nationale officielle du Bhoutan. Il s’écrit avec l’écriture tibétaine.",
+        "location": [
+          89.639,
+          27.4728
+        ],
+        "source": {
+          "label": "Britannica — Bhutan",
+          "url": "https://www.britannica.com/place/Bhutan"
+        }
+      }
+    ],
+    "072": [
+      {
+        "id": "cap-017",
+        "countryId": "072",
+        "theme": "capitales",
+        "difficulty": 4,
+        "question": "Quel pays a Gaborone pour capitale ?",
+        "hints": [
+          "Cherchez en Afrique australe.",
+          "Ce pays enclavé est voisin de la Namibie, du Zimbabwe et de l’Afrique du Sud."
+        ],
+        "explanation": "Gaborone est la capitale du Botswana depuis l’indépendance du pays en 1966.",
+        "location": [
+          25.9231,
+          -24.6282
+        ],
+        "source": {
+          "label": "Britannica — Gaborone",
+          "url": "https://www.britannica.com/place/Gaborone"
+        }
+      },
+      {
+        "id": "nat-018",
+        "countryId": "072",
+        "theme": "nature",
+        "difficulty": 4,
+        "question": "Dans quel pays se trouve le delta intérieur de l’Okavango ?",
+        "hints": [
+          "Cherchez en Afrique australe.",
+          "Ce pays enclavé est voisin de la Namibie, du Zimbabwe et de l’Afrique du Sud."
+        ],
+        "explanation": "L’Okavango forme un delta intérieur dans le nord du Botswana, au lieu de rejoindre la mer.",
+        "location": [
+          23,
+          -19.3
+        ],
+        "source": {
+          "label": "UNESCO — Delta de l’Okavango",
+          "url": "https://whc.unesco.org/fr/list/1432/"
+        }
+      }
+    ],
+    "051": [
+      {
+        "id": "lan-019",
+        "countryId": "051",
+        "theme": "langues",
+        "difficulty": 4,
+        "question": "Dans quel pays l’alphabet national a-t-il été créé par Mesrop Machtots au début du Ve siècle ?",
+        "hints": [
+          "Cherchez dans le Caucase du Sud.",
+          "Ce pays a Erevan pour capitale."
+        ],
+        "explanation": "Mesrop Machtots a créé l’alphabet arménien vers 405. Cet alphabet est toujours utilisé en Arménie.",
+        "location": [
+          44.509,
+          40.181
+        ],
+        "source": {
+          "label": "Britannica — Armenian alphabet",
+          "url": "https://www.britannica.com/topic/Armenian-alphabet"
+        }
+      }
+    ],
+    "050": [
+      {
+        "id": "his-020",
+        "countryId": "050",
+        "theme": "histoire",
+        "difficulty": 4,
+        "question": "Quel pays actuel abrite Paharpur et les ruines du monastère de Somapura Mahavihara ?",
+        "hints": [
+          "Cherchez en Asie du Sud.",
+          "Ce pays a Dacca pour capitale et se situe à l’est de l’Inde."
+        ],
+        "explanation": "Les ruines du grand monastère bouddhique de Paharpur se trouvent dans l’actuel Bangladesh.",
+        "location": [
+          88.977,
+          25.031
+        ],
+        "source": {
+          "label": "UNESCO — Ruines du Vihara bouddhique de Paharpur",
+          "url": "https://whc.unesco.org/fr/list/322/"
+        }
+      }
+    ]
+  }
 }

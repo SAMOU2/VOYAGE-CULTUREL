@@ -2,30 +2,41 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Serveur local (Next.js + Socket.IO)",
+      "name": "Backend Express (TypeScript)",
       "type": "node",
       "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "program": "${workspaceFolder}/server/index.mjs",
-      "env": {
-        "NODE_ENV": "development",
-        "PORT": "3000"
-      },
+      "cwd": "${workspaceFolder}/backend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--import", "tsx"],
+      "program": "${workspaceFolder}/backend/src/index.ts",
+      "env": { "BACKEND_PORT": "4000" },
       "console": "integratedTerminal",
-      "restart": true,
-      "skipFiles": ["<node_internals>/**"],
-      "serverReadyAction": {
-        "pattern": "http://localhost:(\\d+)",
-        "uriFormat": "http://localhost:%s",
-        "action": "debugWithChrome"
-      }
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
     },
     {
-      "name": "Navigateur sur le serveur local",
+      "name": "Frontend Next.js",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/frontend",
+      "program": "${workspaceFolder}/node_modules/next/dist/bin/next",
+      "args": ["dev", "--hostname", "0.0.0.0", "--port", "3000"],
+      "env": { "BACKEND_PORT": "4000" },
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "Navigateur : écran joueur",
       "type": "chrome",
       "request": "launch",
-      "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}"
+      "url": "http://localhost:3000/jouer",
+      "webRoot": "${workspaceFolder}/frontend"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Stand : Express + Next.js",
+      "configurations": ["Backend Express (TypeScript)", "Frontend Next.js"],
+      "stopAll": true
     }
   ]
 }

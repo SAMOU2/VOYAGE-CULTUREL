@@ -10,18 +10,9 @@
       "group": { "kind": "build", "isDefault": true },
       "presentation": { "reveal": "always", "panel": "dedicated" }
     },
-    {
-      "label": "npm: typecheck",
-      "type": "npm",
-      "script": "typecheck",
-      "problemMatcher": ["$tsc"]
-    },
-    {
-      "label": "npm: smoke (serveur démarré requis)",
-      "type": "npm",
-      "script": "smoke",
-      "problemMatcher": []
-    },
+    { "label": "npm: typecheck", "type": "npm", "script": "typecheck", "problemMatcher": ["$tsc"] },
+    { "label": "npm: tests du stand", "type": "npm", "script": "test", "problemMatcher": [] },
+    { "label": "npm: smoke isolé", "type": "npm", "script": "smoke", "problemMatcher": [] },
     {
       "label": "npm: build production",
       "type": "npm",
