@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import SiteHeader from '@/components/SiteHeader'
 import WorldMap from '@/components/WorldMap'
 import RoomSettings, { type RoomConfig } from '@/components/RoomSettings'
@@ -58,16 +58,12 @@ export default function HostPage() {
   const [connected, setConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
-  const [showLink, setShowLink] = useState(false)
-  const [origin, setOrigin] = useState('')
   const [config, setConfig] = useState<RoomConfig>({
     theme: 'tous',
     difficulty: 'mixte',
     count: 8,
     allowRetry: true,
   })
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const resume = useCallback(async () => {
     const session = hostSession.read()
@@ -80,7 +76,6 @@ export default function HostPage() {
   }, [])
 
   useEffect(() => {
-    setOrigin(window.location.origin)
     const socket = getSocket()
     const onConnect = () => {
       setConnected(true)
@@ -99,17 +94,22 @@ export default function HostPage() {
     }
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
+    const onClosed = (payload: { roomId: string }) => {
+      if (hostSession.read()?.code !== payload.roomId) return
+      hostSession.clear()
+      setState(null)
+      setError(null)
+    }
+    socket.on('room:closed', onClosed)
     socket.on('state', onState)
     if (socket.connected) onConnect()
     return () => {
       socket.off('connect', onConnect)
       socket.off('disconnect', onDisconnect)
       socket.off('state', onState)
-      if (toastTimer.current) clearTimeout(toastTimer.current)
+      socket.off('room:closed', onClosed)
     }
   }, [resume])
-
-  const joinUrl = state && origin ? `${origin}/jouer?code=${state.roomCode}` : ''
 
   const createRoom = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -142,23 +142,15 @@ export default function HostPage() {
     })
   }
 
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(joinUrl)
-      setToast('Lien copié')
-    } catch {
-      setShowLink(true)
-      setToast('Sélectionnez le lien pour le copier')
-    }
-    if (toastTimer.current) clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast(null), 2500)
-  }
-
-  const resetRoom = () => {
+  const resetRoom = async () => {
+    if (busy || !connected) return
+    setBusy(true)
+    const response = await emitAck('host:close', {})
+    setBusy(false)
+    if (!response?.ok) return setError(response?.error ?? 'Fermeture impossible.')
     hostSession.clear()
     setState(null)
     setError(null)
-    setShowLink(false)
   }
 
   if (!state) {
@@ -203,15 +195,14 @@ export default function HostPage() {
   return (
     <div className="app">
       <SiteHeader>
-        {state.status === 'lobby' ? (
-          <span className="session-room">Présentateur</span>
-        ) : (
-          <span className="session-room">
-            Salle <strong>{state.roomCode}</strong>
-          </span>
-        )}
+        <span className="session-room">{state.roomName}</span>
         {state.status === 'lobby' && (
-          <button className="btn btn-ghost btn-sm" type="button" onClick={resetRoom}>
+          <button
+            className="btn btn-ghost btn-sm"
+            type="button"
+            disabled={disabled}
+            onClick={() => void resetRoom()}
+          >
             Fermer
           </button>
         )}
@@ -231,45 +222,17 @@ export default function HostPage() {
         {state.status === 'lobby' && (
           <section className="lobby-page">
             <div className="panel invite-card">
-              <h1>Inviter le joueur</h1>
-              <p className="page-intro">Partagez ce code ou faites scanner le QR code.</p>
-              <div className="invite-grid">
-                <div>
-                  <p className="field-label">Code de la salle</p>
-                  <p className="room-code" aria-label={`Code de la salle : ${state.roomCode}`}>
-                    {state.roomCode}
-                  </p>
-                  <div className="share-actions">
-                    <button className="btn btn-sm" type="button" onClick={() => void copyLink()}>
-                      Copier le lien
-                    </button>
-                    <Link className="text-link" href={joinUrl || '/jouer'} target="_blank" rel="noreferrer">
-                      Ouvrir le joueur
-                    </Link>
-                  </div>
-                </div>
-                {joinUrl && (
-                  <div className="qr">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`/api/qr?data=${encodeURIComponent(joinUrl)}`}
-                      alt="QR code pour rejoindre la partie"
-                      width={156}
-                      height={156}
-                    />
-                  </div>
-                )}
-              </div>
-              {showLink && (
-                <input
-                  className="share-link"
-                  value={joinUrl}
-                  readOnly
-                  aria-label="Lien pour rejoindre"
-                  onFocus={(event) => event.target.select()}
-                />
-              )}
-              <p className="network-note">Les deux appareils doivent être sur le même Wi-Fi.</p>
+              <h1>Salle prête</h1>
+              <p className="page-intro">
+                Le joueur ouvre ce site et choisit « Joueur ». Il sera connecté automatiquement, sans compte
+                ni code.
+              </p>
+              <Link className="text-link open-player" href="/jouer" target="_blank" rel="noreferrer">
+                Ouvrir le joueur
+              </Link>
+              <p className="network-note">
+                Les deux appareils doivent ouvrir le même serveur sur le même Wi-Fi.
+              </p>
               <div className="lobby-start">
                 <p className="player-status" role="status">
                   <span className={`status-dot ${player?.connected ? 'online' : ''}`} aria-hidden="true" />
@@ -450,7 +413,7 @@ export default function HostPage() {
                 >
                   Rejouer
                 </button>
-                <button className="btn" type="button" onClick={resetRoom}>
+                <button className="btn" type="button" disabled={disabled} onClick={() => void resetRoom()}>
                   Nouvelle salle
                 </button>
               </div>
@@ -459,11 +422,6 @@ export default function HostPage() {
           </section>
         )}
       </main>
-      {toast && (
-        <div className="toast" role="status">
-          {toast}
-        </div>
-      )}
     </div>
   )
 }

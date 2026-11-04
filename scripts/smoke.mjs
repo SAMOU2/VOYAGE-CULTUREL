@@ -43,6 +43,8 @@ const player = io(URL, { transports: ['websocket'] })
 
 let hostState = null
 let playerState = null
+let available = null
+player.on('lobby:update', (list) => { available = list })
 host.on('state', (s) => {
   hostState = s
 })
@@ -67,13 +69,17 @@ const created = await emitAck(host, 'host:create', {
   count: 3,
   allowRetry: true,
 })
-check(created?.ok && created.code?.length === 5, `salle créée (${created?.code})`)
+check(created?.ok && Boolean(created.code), 'salle créée automatiquement')
+await emitAck(player, 'lobby:subscribe', {})
+check(available?.length === 1, 'partie disponible détectée sans code à partager')
+check(available?.[0]?.id === created.code, 'la découverte désigne la bonne partie')
+check(available?.every((room) => Object.keys(room).every((key) => ['id', 'name', 'themeLabel', 'difficultyLabel', 'count'].includes(key))), 'découverte limitée aux métadonnées publiques')
 
-const badJoin = await emitAck(player, 'player:join', { code: 'ZZZZZ', pseudo: 'Test' })
-check(!badJoin?.ok, 'mauvais code refusé')
+const badJoin = await emitAck(player, 'player:join', { roomId: 'ZZZZZ', pseudo: 'Test' })
+check(!badJoin?.ok, 'partie supprimée ou inconnue refusée')
 
-const joined = await emitAck(player, 'player:join', { code: created.code, pseudo: 'Amina' })
-check(joined?.ok, 'joueur admis dans la salle')
+const joined = await emitAck(player, 'player:join', { pseudo: 'Amina' })
+check(joined?.ok, 'joueur admis automatiquement, sans compte ni code fourni')
 
 const lobby = await waitHost((s) => s.player?.pseudo === 'Amina')
 check(lobby.status === 'lobby', 'le présentateur voit le joueur')
@@ -194,12 +200,17 @@ check(!stolenSubmit?.ok, 'soumission refusée à un socket étranger')
 
 const stolen = await emitAck(intruder, 'host:rejoin', { code: created.code, token: 'mauvais-jeton' })
 check(!stolen?.ok, 'jeton présentateur invalide rejeté')
+const missingToken = await emitAck(intruder, 'host:rejoin', { code: created.code })
+check(!missingToken?.ok, 'un visiteur sans jeton ne peut pas devenir présentateur')
 const wrongHost = await emitAck(intruder, 'host:command', { code: created.code, type: 'next' })
 check(!wrongHost?.ok, 'commande refusée à un socket non présentateur')
 intruder.close()
 
 const rejoin = await emitAck(player, 'player:rejoin', { code: created.code, playerId: joined.playerId })
 check(rejoin?.ok, 'reconnexion du joueur')
+
+const closed = await emitAck(host, 'host:close', {})
+check(closed?.ok, 'fermeture réelle de la salle, sans annonce fantôme')
 
 host.close()
 player.close()

@@ -12,9 +12,10 @@
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",
     "preview:map": "node scripts/preview-map.mjs",
-    "test": "node --test scripts/test-map.mjs scripts/test-questions.mjs",
+    "test": "node --test scripts/test-map.mjs scripts/test-questions.mjs scripts/test-connections.mjs",
     "test:map": "node --test scripts/test-map.mjs",
     "test:questions": "node --test scripts/test-questions.mjs",
+    "test:connections": "node --test scripts/test-connections.mjs",
     "test:ui": "playwright test"
   },
   "dependencies": {
@@ -23,7 +24,6 @@
     "d3-geo": "^3.1.1",
     "express": "^4.21.2",
     "next": "15.5.29",
-    "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "socket.io": "^4.8.4",
@@ -37,7 +37,6 @@
     "@types/d3-geo": "^3.1.0",
     "@types/express": "^4.17.21",
     "@types/node": "^22.10.0",
-    "@types/qrcode": "^1.5.5",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@types/topojson-client": "^3.1.5",
