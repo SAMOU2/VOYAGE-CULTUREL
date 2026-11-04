@@ -47,6 +47,7 @@ export interface PlayerFeedback {
 export interface PlayerState {
   role: 'player'
   roomCode: string
+  roomName: string
   status: RoomStatus
   pseudo: string | null
   score: number
@@ -101,6 +102,7 @@ export interface HostCurrent {
 export interface HostState {
   role: 'host'
   roomCode: string
+  roomName: string
   status: RoomStatus
   config: {
     theme: string
@@ -141,3 +143,12 @@ export interface HostState {
 }
 
 export type AnyState = PlayerState | HostState
+
+/** Liste publique de parties : aucune question, identité de joueur ou donnée privée. */
+export interface AvailableRoom {
+  id: string
+  name: string
+  themeLabel: string
+  difficultyLabel: string
+  count: number
+}

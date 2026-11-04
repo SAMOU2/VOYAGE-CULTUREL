@@ -1,11 +1,32 @@
 import { test, expect, type Page } from '@playwright/test'
 import { geoNaturalEarth1 } from 'd3-geo'
+import { io } from 'socket.io-client'
 import { QUESTIONS, distanceKm } from '../../server/questions.mjs'
 import { countryAt } from '../../server/geo.mjs'
 
 async function noHorizontalOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 }
+
+const cleanupSessions: Array<{ code: string; hostToken: string; baseURL: string }> = []
+
+test.afterEach(async () => {
+  for (const session of cleanupSessions.splice(0)) {
+    const socket = io(session.baseURL, { forceNew: true, transports: ['websocket'], reconnection: false })
+    try {
+      await new Promise<void>((resolve, reject) => {
+        socket.once('connect', resolve)
+        socket.once('connect_error', reject)
+      })
+      const result = await socket
+        .timeout(5000)
+        .emitWithAck('host:rejoin', { code: session.code, token: session.hostToken })
+      if (result.ok) await socket.timeout(5000).emitWithAck('host:close', {})
+    } finally {
+      socket.close()
+    }
+  }
+})
 
 async function createRoom(page: Page, difficulty = '1') {
   await page.goto('/presentateur')
@@ -14,8 +35,12 @@ async function createRoom(page: Page, difficulty = '1') {
   await page.getByLabel('Difficulté', { exact: true }).selectOption(difficulty)
   await page.getByLabel('Questions', { exact: true }).selectOption('5')
   await page.getByRole('button', { name: 'Créer la salle', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'Inviter le joueur' })).toBeVisible()
-  return (await page.locator('.room-code').innerText()).trim()
+  await expect(page.getByRole('heading', { name: 'Salle prête' })).toBeVisible()
+  const session = await page.evaluate(() => JSON.parse(localStorage.getItem('voyage-culturel:host')!))
+  cleanupSessions.push({ ...session, baseURL: new URL(page.url()).origin })
+  await expect(page.locator('.room-code')).toHaveCount(0)
+  await expect(page.getByRole('img', { name: /QR/ })).toHaveCount(0)
+  return { ...session, name: (await page.locator('.session-room').innerText()).trim() }
 }
 
 async function pickOnMap(page: Page, coords: [number, number]) {
@@ -53,8 +78,9 @@ test('création : trois critères et des options repliées, difficulté conserv�
   await expect(page.getByLabel('Seconde chance à demi-points')).toBeHidden()
   await page.getByText('Options', { exact: true }).click()
   await expect(page.getByLabel('Seconde chance à demi-points')).toBeChecked()
-  const code = await createRoom(page)
-  expect(code).toMatch(/^[A-Z2-9]{5}$/)
+  const session = await createRoom(page)
+  await expect(page.getByRole('main')).not.toContainText(session.code)
+  await expect(page.getByRole('link', { name: 'Ouvrir le joueur' })).toHaveAttribute('href', '/jouer')
   await expect(page.getByRole('button', { name: 'Démarrer', exact: true })).toBeDisabled()
   await expect(page.getByRole('combobox')).toHaveCount(0)
   await page.getByText('Modifier les réglages', { exact: true }).click()
@@ -72,7 +98,7 @@ test('création : trois critères et des options repliées, difficulté conserv�
   await page.getByLabel('Difficulté', { exact: true }).selectOption('4')
   await expect(page.getByLabel('Difficulté', { exact: true })).toBeEnabled()
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Inviter le joueur' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Salle prête' })).toBeVisible()
   await page.getByText('Modifier les réglages', { exact: true }).click()
   await expect(page.getByLabel('Difficulté', { exact: true })).toHaveValue('4')
   await noHorizontalOverflow(page)
@@ -80,12 +106,10 @@ test('création : trois critères et des options repliées, difficulté conserv�
 
 test('mode progressif : facile → moyen → difficile → expert sur les deux écrans', async ({ page }) => {
   test.setTimeout(120_000)
-  const code = await createRoom(page, 'mixte')
+  await createRoom(page, 'mixte')
   const player = await page.context().newPage()
   try {
-    await player.goto(`/jouer?code=${code}`)
-    await player.getByLabel('Pseudo', { exact: true }).fill('Amina')
-    await player.getByRole('button', { name: 'Rejoindre', exact: true }).click()
+    await player.goto('/jouer')
     await expect(player.getByRole('heading', { name: 'En attente du présentateur' })).toBeVisible()
     await page.getByRole('button', { name: 'Démarrer', exact: true }).click()
     for (const [index, level] of ['Facile', 'Facile', 'Moyen', 'Difficile', 'Expert'].entries()) {
@@ -107,14 +131,68 @@ test('mode progressif : facile → moyen → difficile → expert sur les deux �
   }
 })
 
-test('code erroné : une erreur claire, le formulaire reste utilisable', async ({ page }) => {
+test('attente puis connexion automatique : aucun compte, code ou pseudo obligatoire', async ({ page }) => {
   await page.goto('/jouer')
-  await page.getByLabel('Code de la salle', { exact: true }).fill('00000')
+  await expect(page.getByText('En attente d’une partie…', { exact: true })).toBeVisible()
+  await expect(page.getByLabel('Code de la salle', { exact: true })).toHaveCount(0)
+  await expect(page.locator('input[type="password"], input[type="email"]')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Rejoindre', exact: true })).toHaveCount(0)
+  await expect(page.getByLabel('Pseudo', { exact: true })).toBeHidden()
+  const host = await page.context().newPage()
+  const session = await createRoom(host)
+  await expect(page.getByRole('heading', { name: 'En attente du présentateur' })).toBeVisible()
+  await expect(host.getByRole('button', { name: 'Démarrer', exact: true })).toBeEnabled()
+  await expect(page.getByRole('main')).not.toContainText(session.code)
+  await page.getByText('Pseudo (facultatif)', { exact: true }).click()
   await page.getByLabel('Pseudo', { exact: true }).fill('Amina')
-  await page.getByRole('button', { name: 'Rejoindre', exact: true }).click()
-  await expect(page.getByRole('main').getByRole('alert')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Rejoindre', exact: true })).toBeEnabled()
+  await page.getByRole('button', { name: 'Enregistrer', exact: true }).click()
+  await expect(host.getByText('Amina est connecté', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Quitter', exact: true }).click()
+  await expect(page).toHaveURL(new URL('/', page.url()).href)
+  await expect(host.getByRole('button', { name: 'Démarrer', exact: true })).toBeDisabled()
+  await page.goto('/jouer')
+  await expect(page.getByRole('heading', { name: 'En attente du présentateur' })).toBeVisible()
+  await expect(host.getByText('Amina est connecté', { exact: true })).toBeVisible()
+  await host.getByRole('button', { name: 'Fermer', exact: true }).click()
+  await expect(page.getByText('En attente d’une partie…', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Rejoindre une partie' })).toBeVisible()
   await noHorizontalOverflow(page)
+  await noHorizontalOverflow(host)
+})
+
+test('plusieurs parties : choix en un clic, puis bascule automatique si la salle ferme', async ({
+  page,
+  browser,
+}, testInfo) => {
+  const first = await createRoom(page)
+  const otherContext = await browser.newContext({
+    baseURL: String(testInfo.project.use.baseURL),
+    viewport: page.viewportSize() ?? undefined,
+    isMobile: testInfo.project.name === 'mobile',
+    hasTouch: testInfo.project.name === 'mobile',
+  })
+  const otherHost = await otherContext.newPage()
+  const second = await createRoom(otherHost)
+  const player = await page.context().newPage()
+  try {
+    await player.goto('/jouer')
+    await expect(player.getByRole('list', { name: 'Parties disponibles' }).getByRole('listitem')).toHaveCount(
+      2,
+    )
+    await expect(page.getByRole('button', { name: 'Démarrer', exact: true })).toBeDisabled()
+    await noHorizontalOverflow(player)
+    await player.getByRole('button', { name: `Rejoindre ${second.name}`, exact: true }).click()
+    await expect(player.locator('.session-room')).toHaveText(second.name)
+    await expect(otherHost.getByRole('button', { name: 'Démarrer', exact: true })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Démarrer', exact: true })).toBeDisabled()
+    await otherHost.getByRole('button', { name: 'Fermer', exact: true }).click()
+    await expect(player.locator('.session-room')).toHaveText(first.name)
+    await expect(page.getByRole('button', { name: 'Démarrer', exact: true })).toBeEnabled()
+    await noHorizontalOverflow(player)
+  } finally {
+    await player.close()
+    await otherContext.close()
+  }
 })
 
 test('partie complète : clic, seconde chance, indice, correction, bilan et reprise', async ({
@@ -124,7 +202,7 @@ test('partie complète : clic, seconde chance, indice, correction, bilan et repr
   test.setTimeout(120_000)
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
-  const code = await createRoom(page)
+  const session = await createRoom(page)
   const playerContext = await browser.newContext({
     baseURL: String(testInfo.project.use.baseURL),
     viewport: page.viewportSize() ?? undefined,
@@ -134,15 +212,13 @@ test('partie complète : clic, seconde chance, indice, correction, bilan et repr
   const player = await playerContext.newPage()
   player.on('pageerror', (error) => errors.push(error.message))
   try {
-    await player.goto(`/jouer?code=${code}`)
-    await expect(player.getByLabel('Code de la salle', { exact: true })).toHaveValue(code)
-    await player.getByLabel('Pseudo', { exact: true }).fill('Amina')
-    await player.getByRole('button', { name: 'Rejoindre', exact: true }).click()
+    await player.goto('/jouer')
     await expect(player.getByRole('heading', { name: 'En attente du présentateur' })).toBeVisible()
     await page.getByRole('button', { name: 'Démarrer', exact: true }).click()
     await expect(player.locator('.round-counter')).toHaveText('Question 1 / 5')
     await expect(player.getByRole('textbox')).toHaveCount(0)
     await expect(player.locator('aside')).toHaveCount(0)
+    await expect(player.locator('body')).not.toContainText(session.code)
     await expect(player.getByRole('button', { name: 'Valider', exact: true })).toBeDisabled()
 
     const questionText = await page.getByRole('heading', { level: 1 }).innerText()

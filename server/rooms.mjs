@@ -18,6 +18,7 @@ export const rooms = new Map()
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 const MAX_ROOMS = 500
 const ROOM_TTL_MS = 6 * 60 * 60 * 1000
+let roomSequence = 0
 const HINT_PENALTY = 5
 const MIN_POINTS = 5
 /** Part des points selon la précision du clic sur la carte. */
@@ -56,6 +57,7 @@ export function createRoom(config = {}) {
 
   const room = {
     code: randomCode(),
+    name: `Partie ${++roomSequence}`,
     hostToken: crypto.randomBytes(18).toString('hex'),
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -109,24 +111,13 @@ export function joinPlayer(room, pseudo, socketId) {
   const existing = room.player
 
   // Une seule place par salle : on refuse un second joueur tant que le siège est occupé.
-  if (existing && existing.connected) {
-    return { error: 'Cette salle a déjà un joueur. Demandez un nouveau code au présentateur.' }
-  }
-
+  if (room.status !== 'lobby') return { error: 'Cette partie a déjà commencé ou est terminée.' }
   if (existing) {
-    // Reprise du siège laissé libre (déconnexion ou départ).
-    existing.pseudo = name
-    existing.socketId = socketId
-    existing.connected = true
-    existing.text = ''
-    existing.pin = null
-    if (room.status !== 'playing') {
-      existing.score = 0
-      existing.correct = 0
-      existing.found = []
+    return {
+      error: existing.connected
+        ? 'Cette partie a déjà un joueur.'
+        : 'Cette place est réservée au joueur en cours de reconnexion.',
     }
-    touch(room)
-    return { playerId: existing.id }
   }
 
   room.player = {
@@ -146,6 +137,31 @@ export function joinPlayer(room, pseudo, socketId) {
   room.status = 'lobby'
   touch(room)
   return { playerId: room.player.id }
+}
+
+/** Métadonnées publiques seulement : jamais de question, corrigé, identité ou jeton. */
+export function availableRooms() {
+  return [...rooms.values()]
+    .filter((room) => room.status === 'lobby' && room.hostSocketId && !room.player)
+    .map((room) => ({
+      id: room.code,
+      name: room.name,
+      themeLabel: themeLabel(room.config.theme),
+      difficultyLabel: room.config.difficulty === 'mixte' ? 'Progressive' : difficultyLabel(room.config.difficulty),
+      count: room.config.count,
+    }))
+}
+
+/** Déconnexion : réserver la place. Départ volontaire du lobby : la libérer. */
+export function leavePlayer(room, socketId, voluntary = false) {
+  if (!room.player || room.player.socketId !== socketId) return false
+  if (voluntary && room.status === 'lobby') room.player = null
+  else {
+    room.player.connected = false
+    room.player.socketId = null
+  }
+  touch(room)
+  return true
 }
 
 export function startGame(room) {
@@ -445,6 +461,7 @@ export function hostView(room) {
   return {
     role: 'host',
     roomCode: room.code,
+    roomName: room.name,
     status: room.status,
     config: { ...room.config, themeLabel: themeLabel(room.config.theme), difficultyLabel: difficultyLabel(room.config.difficulty) },
     player: player
@@ -505,6 +522,7 @@ export function playerView(room) {
   return {
     role: 'player',
     roomCode: room.code,
+    roomName: room.name,
     status: room.status,
     pseudo: player?.pseudo ?? null,
     score: player?.score ?? 0,

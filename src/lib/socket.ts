@@ -38,6 +38,7 @@ export function emitAck<T = { ok: boolean; error?: string }>(event: string, payl
 
 const HOST_KEY = 'voyage-culturel:host'
 const PLAYER_KEY = 'voyage-culturel:player'
+const NICKNAME_KEY = 'voyage-culturel:nickname'
 
 export interface HostSession {
   code: string
@@ -79,4 +80,6 @@ export const playerSession = {
   read: () => read<PlayerSession>(PLAYER_KEY),
   save: (s: PlayerSession) => write(PLAYER_KEY, s),
   clear: () => write(PLAYER_KEY, null),
+  readName: () => read<string>(NICKNAME_KEY),
+  saveName: (name: string) => write(NICKNAME_KEY, name),
 }

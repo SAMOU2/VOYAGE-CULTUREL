@@ -101,7 +101,8 @@ Le terminal affiche :
 - **Joueur** : `http://localhost:3000/jouer` (sur un second onglet, ou sur un téléphone via l'adresse `192.168.x.x`)
 
 > Sur téléphone, n'utilisez **jamais** `localhost` : cela désigne le téléphone lui-même.
-> Le QR code de la salle encode automatiquement la bonne adresse.
+> Ouvrez l’adresse du serveur sur le téléphone, puis **Joueur** : la salle est rejointe automatiquement.
+> Aucun compte, mot de passe, code de salle ou QR code n’est nécessaire. Plusieurs salles ? Choisissez-en une.
 
 Autres commandes : `npm run typecheck`, `npm run build`, `npm start`, `npm run smoke`
 (voir §8). Utilisez `Ctrl+C` pour arrêter le serveur.
@@ -197,10 +198,12 @@ Puis une Pull Request vers `main`. Une branche = une intention ; un commit = une
 
 ```bash
 npm run typecheck    # TypeScript strict, aucun fichier émis
-npm run smoke        # 30 contrôles du moteur — le serveur doit tourner
+npm test             # 62 tests autonomes : carte, questions, connexion automatique
+npm run smoke        # 48 contrôles du moteur — le serveur doit tourner
 ```
 
-`npm run smoke` dialogue avec le serveur comme un vrai client : création de salle, arrivée du joueur,
+`npm run smoke` dialogue avec le serveur comme un vrai client : création et découverte de salle,
+connexion automatique du joueur sans code,
 vérification que la réponse n'est pas exposée, indices, seconde chance, fin de partie, reconnexion.
 Il accepte une autre adresse : `npm run smoke -- http://localhost:3100`.
 

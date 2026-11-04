@@ -324,13 +324,6 @@ select:focus-visible {
 select {
   cursor: pointer;
 }
-.code-input {
-  font-family: var(--font-display);
-  font-size: 28px !important;
-  text-align: center;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-}
 .checkbox-label {
   display: flex;
   align-items: center;
@@ -731,7 +724,80 @@ select {
   box-shadow: 0 0 0 7px #72dfc50e;
 }
 
-/* Présentateur : invitation, puis commandes contextuelles */
+/* Connexion sans compte ni code ; choix uniquement si plusieurs parties sont libres. */
+.discovery-panel {
+  display: grid;
+  gap: 22px;
+}
+.discovery-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 15px;
+  font-weight: 550;
+}
+.discovery-panel > .muted {
+  font-size: 14px;
+}
+.discovery-panel > .text-link {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.discovery-panel > .text-link:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.available-rooms {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.available-room {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.available-room > div {
+  flex: 1;
+  min-width: 160px;
+}
+.available-room h2 {
+  font-size: 18px;
+}
+.available-room p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.nickname-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.nickname-form .field {
+  flex: 1;
+}
+.nickname-form .btn {
+  flex: none;
+  min-height: 46px;
+}
+.waiting-state .nickname-options {
+  margin-top: 28px;
+  text-align: left;
+}
+.open-player {
+  display: inline-block;
+}
+
+/* Présentateur : salle prête, puis commandes contextuelles */
 .lobby-page {
   max-width: 680px;
   margin: 28px auto 0;
@@ -739,44 +805,10 @@ select {
 .invite-card h1 {
   font-size: 28px;
 }
-.invite-grid {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 28px;
-}
-.room-code {
-  font: 500 clamp(38px, 5vw, 54px) / 1.35 var(--font-display);
-  letter-spacing: 0.14em;
-  color: var(--teal);
-  user-select: all;
-  margin-block: 6px 16px;
-}
-.share-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
-}
-.qr {
-  flex: none;
-  background: #fff;
-  padding: 7px;
-  border-radius: 11px;
-  line-height: 0;
-}
-.qr img {
-  display: block;
-  max-width: 100%;
-}
 .network-note {
   color: var(--muted);
   font-size: 12px;
   margin-top: 20px;
-}
-.share-link {
-  margin-top: 20px;
-  font-size: 13px !important;
 }
 .lobby-start {
   display: flex;
@@ -975,21 +1007,6 @@ select {
   gap: 12px;
   margin-top: 30px;
 }
-.toast {
-  position: fixed;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 50;
-  padding: 11px 18px;
-  max-width: calc(100% - 32px);
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  background: #17273a;
-  color: var(--ink);
-  font-size: 13px;
-  text-align: center;
-}
 
 @media (max-width: 820px) {
   .welcome {
@@ -1159,14 +1176,6 @@ select {
   }
   .invite-card h1 {
     font-size: 26px;
-  }
-  .invite-grid {
-    flex-direction: column;
-    gap: 24px;
-    text-align: center;
-  }
-  .share-actions {
-    justify-content: center;
   }
   .network-note {
     text-align: center;
