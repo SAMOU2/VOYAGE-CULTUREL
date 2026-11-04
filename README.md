@@ -30,6 +30,10 @@ npm run dev          # http://localhost:3000 (écoute aussi sur le réseau local
 
 Le port se change avec `PORT=4000 npm run dev`.
 
+> **Vous travaillez dans VS Code ?** Guide pas à pas (clonage, extensions, `F5`, Git, Pull
+> Requests, dépannage) : [`docs/VSCODE.md`](docs/VSCODE.md). Configurations prêtes à l'emploi dans
+> `.vscode/` : `Ctrl+Shift+B` lance le serveur, `F5` le débogue.
+
 ### Utilisation en classe ou en famille
 
 1. Lancer le serveur sur l'ordinateur du présentateur.
