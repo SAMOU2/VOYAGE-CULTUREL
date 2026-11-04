@@ -11,6 +11,18 @@ import type { HostState } from '@/lib/types'
 const DIFFICULTY_LABEL: Record<number, string> = { 1: 'Facile', 2: 'Moyen', 3: 'Expert' }
 const DIFFICULTY_CLASS: Record<number, string> = { 1: 'pill-green', 2: 'pill-gold', 3: 'pill-rose' }
 
+const PRECISION_LABEL: Record<string, string> = {
+  exact: 'Emplacement exact',
+  country: 'Bon pays',
+  near: 'Tout près',
+  miss: 'Raté',
+  skip: 'Passée',
+  refus: 'Refusée',
+  manual: 'Validée à la main',
+  force: 'Accordée par vous',
+  annule: 'Annulée par vous',
+}
+
 interface Config {
   theme: string
   difficulty: string
@@ -490,43 +502,41 @@ export default function HostPage() {
 
                 <div className="submission">
                   <div className="spread">
-                    <span className="label">Proposition du joueur</span>
-                    {player?.hasAnswered ? (
-                      current.autoMatch ? (
-                        <span className="pill pill-green">Saisie reconnue</span>
-                      ) : (
-                        <span className="pill pill-gold">À vous de juger</span>
-                      )
+                    <span className="label">Choix du joueur sur la carte</span>
+                    {current.resolved ? (
+                      <span
+                        className={`pill ${
+                          current.resolved.outcome === 'correct' ? 'pill-green' : 'pill-rose'
+                        }`}
+                      >
+                        {PRECISION_LABEL[current.resolved.precision] ?? 'Verdict automatique'}
+                      </span>
+                    ) : player?.hasAnswered ? (
+                      <span className="pill pill-gold">En attente</span>
                     ) : (
-                      <span className="pill">En attente</span>
+                      <span className="pill">Le joueur explore la carte…</span>
                     )}
                   </div>
 
-                  {player?.hasAnswered ? (
+                  {player?.clickedCountry ? (
                     <div style={{ marginTop: 8 }}>
-                      <p style={{ margin: '0 0 6px', fontSize: 18 }}>
-                        {player.text ? `« ${player.text} »` : '(réponse donnée sur la carte)'}
+                      <p style={{ margin: '0 0 6px', fontSize: 20 }}>
+                        <strong>{player.clickedCountry.name}</strong>
                       </p>
                       <div className="row small">
-                        {player.pin ? (
-                          <span className="pill">
-                            Repère : {player.pin[1].toFixed(1)}° {player.pin[1] >= 0 ? 'N' : 'S'}, {player.pin[0].toFixed(1)}°{' '}
-                            {player.pin[0] >= 0 ? 'E' : 'O'}
-                          </span>
-                        ) : (
-                          <span className="pill">Pas de repère placé</span>
-                        )}
+                        <span className="pill">Lieu attendu : {current.country}</span>
                         {current.distanceKm != null && (
                           <span className={`pill ${current.nearTarget ? 'pill-green' : 'pill-rose'}`}>
-                            à {current.distanceKm.toLocaleString('fr-FR')} km du lieu attendu
-                            {current.nearTarget ? ' — proche' : ''}
+                            à {current.distanceKm.toLocaleString('fr-FR')} km de la cible
                           </span>
                         )}
                       </div>
                     </div>
                   ) : (
                     <p className="small muted" style={{ margin: '8px 0 0' }}>
-                      Le joueur explore la carte. Vous pouvez déjà donner un indice.
+                      {player?.hasAnswered
+                        ? 'Aucun pays sélectionné.'
+                        : 'Le joueur doit cliquer sur la carte, puis valider. Vous pouvez déjà donner un indice.'}
                     </p>
                   )}
                 </div>
@@ -549,12 +559,13 @@ export default function HostPage() {
                     <div className="spread">
                       <strong>
                         {resolved.outcome === 'correct'
-                          ? '✅ Validée'
+                          ? `✅ ${PRECISION_LABEL[resolved.precision] ?? 'Validée'}`
                           : resolved.outcome === 'skipped'
                           ? '⏭️ Passée'
                           : resolved.outcome === 'ended'
                           ? 'Partie terminée'
-                          : '❌ Refusée'}
+                          : `❌ ${PRECISION_LABEL[resolved.precision] ?? 'Refusée'}`}
+                        {resolved.automatic === false ? ' · correction' : ' · vérification automatique'}
                       </strong>
                       <span className="pill">{resolved.points > 0 ? `+${resolved.points} points` : '0 point'}</span>
                     </div>
@@ -575,18 +586,18 @@ export default function HostPage() {
                     <button
                       className="btn btn-primary"
                       type="button"
-                      disabled={!player?.hasAnswered || current.status === 'feedback'}
+                      disabled={current.resolved?.outcome === 'correct' || (!current.resolved && !player?.hasAnswered)}
                       onClick={() => void command('correct')}
                     >
-                      ✅ Bonne réponse
+                      ✅ Accorder les points
                     </button>
                     <button
                       className="btn btn-danger"
                       type="button"
-                      disabled={!player?.hasAnswered || current.status === 'feedback'}
+                      disabled={current.resolved?.outcome !== 'correct'}
                       onClick={() => void command('incorrect')}
                     >
-                      ❌ Incorrecte
+                      ❌ Retirer les points
                     </button>
                     <button
                       className="btn"
@@ -609,9 +620,8 @@ export default function HostPage() {
                     </button>
                   </div>
                   <p className="tiny muted" style={{ margin: '10px 0 0' }}>
-                    {state.config.allowRetry
-                      ? 'Une erreur peut donner lieu à une seconde chance (moitié des points).'
-                      : 'Une erreur clôt la question : aucune seconde chance dans cette partie.'}
+                    Le verdict est calculé automatiquement dès que le joueur valide : emplacement exact (100 %),
+                    bon pays (60 %), à quelques kilomètres (40 %). Vous pouvez toujours accorder ou retirer les points.
                   </p>
                 </div>
               </div>
@@ -649,6 +659,7 @@ export default function HostPage() {
                     mode="flat"
                     className=""
                     pin={player?.pin ?? null}
+                    selectedIso={player?.clickedCountry?.id ?? null}
                     target={current.coords}
                     targetIso={resolved ? current.isoN : null}
                     labels
@@ -672,7 +683,7 @@ export default function HostPage() {
                         <div className="history-row" key={`${entry.questionId}-${index}`}>
                           <span>
                             {entry.outcome === 'correct' ? '✅' : entry.outcome === 'skipped' ? '⏭️' : '❌'}{' '}
-                            {entry.text || 'réponse cartographique'}
+                            {entry.clickedCountry?.name ?? 'réponse cartographique'}
                           </span>
                           <span className="muted">{entry.points > 0 ? `+${entry.points}` : '0'}</span>
                         </div>
@@ -751,7 +762,7 @@ export default function HostPage() {
                       <div className="history-row" key={`${entry.questionId}-${index}`}>
                         <span>
                           {entry.outcome === 'skipped' ? '⏭️' : entry.outcome === 'correct' ? '✅' : '❌'} Question{' '}
-                          {index + 1} · {entry.text || 'réponse cartographique'}
+                          {index + 1} · {entry.clickedCountry?.name ?? 'réponse cartographique'}
                         </span>
                         <span className="muted">
                           {entry.points > 0 ? `+${entry.points} pts` : '0 pt'}

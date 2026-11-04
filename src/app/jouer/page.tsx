@@ -3,14 +3,24 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import SiteHeader from '@/components/SiteHeader'
-import WorldMap from '@/components/WorldMap'
+import WorldMap, { type LonLat, type PickedCountry } from '@/components/WorldMap'
 import { emitAck, getSocket, playerSession } from '@/lib/socket'
 import type { PlayerState } from '@/lib/types'
 
-type LonLat = [number, number]
-
 const DIFFICULTY_LABEL: Record<number, string> = { 1: 'Facile', 2: 'Moyen', 3: 'Expert' }
 const DIFFICULTY_CLASS: Record<number, string> = { 1: 'pill-green', 2: 'pill-gold', 3: 'pill-rose' }
+
+const PRECISION_TEXT: Record<string, string> = {
+  exact: '🎯 Emplacement exact',
+  country: '✅ Bon pays',
+  near: '🟡 Tout près',
+  miss: '❌ Raté',
+  skip: '⏭️ Question passée',
+  refus: '❌ Refusée par le présentateur',
+  manual: '✅ Validée par le présentateur',
+  force: '✅ Accordée par le présentateur',
+  annule: '❌ Annulée par le présentateur',
+}
 
 function speak(text: string, onEnd?: () => void) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return false
@@ -38,16 +48,13 @@ export default function PlayerPage() {
   const [busy, setBusy] = useState(false)
   const [joined, setJoined] = useState(false)
 
-  const [text, setText] = useState('')
   const [pin, setPin] = useState<LonLat | null>(null)
+  const [selected, setSelected] = useState<PickedCountry | null>(null)
   const [mapMode, setMapMode] = useState<'globe' | 'flat'>('globe')
-  const [listening, setListening] = useState(false)
   const [speaking, setSpeaking] = useState(false)
-  const [speechSupported, setSpeechSupported] = useState(false)
 
-  const recognitionRef = useRef<any>(null)
   const autoRejoinedRef = useRef(false)
-  const attemptRef = useRef<{ id?: string; attempts?: number; status?: string }>({})
+  const attemptRef = useRef<{ id?: string; attempts?: number }>({})
 
   /* ------------------------------ connexion ------------------------------ */
 
@@ -75,7 +82,6 @@ export default function PlayerPage() {
       if (urlCode) setCode(urlCode.toUpperCase())
       const saved = playerSession.read()
       if (saved?.pseudo) setPseudo((p) => p || saved.pseudo)
-      setSpeechSupported(Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition))
     }
 
     const socket = getSocket()
@@ -105,26 +111,17 @@ export default function PlayerPage() {
     }
   }, [rejoin])
 
-  // Réinitialise la saisie quand la question change (ou après une seconde chance)
+  // Nouvelle question (ou seconde chance) : on efface le choix précédent.
   useEffect(() => {
     const q = state?.question
-    const key = { id: q?.id, attempts: q?.attempts, status: q?.status }
+    const key = { id: q?.id, attempts: q?.attempts }
     const prev = attemptRef.current
     if (prev.id !== key.id || prev.attempts !== key.attempts) {
-      setText('')
       setPin(null)
+      setSelected(null)
+      attemptRef.current = key
     }
-    attemptRef.current = key
-  }, [state?.question?.id, state?.question?.attempts, state?.question?.status])
-
-  // Énoncé lu automatiquement à l'apparition d'une nouvelle question
-  const lastSpokenRef = useRef<string | null>(null)
-  useEffect(() => {
-    const q = state?.question
-    if (!q || q.status === 'feedback') return
-    if (lastSpokenRef.current === q.id) return
-    lastSpokenRef.current = q.id
-  }, [state?.question])
+  }, [state?.question?.id, state?.question?.attempts])
 
   const join = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -150,18 +147,20 @@ export default function PlayerPage() {
     setError(null)
   }
 
+  const pick = (coords: LonLat, country: PickedCountry | null) => {
+    setPin(coords)
+    setSelected(country)
+    setError(country ? null : 'Cet endroit est en pleine mer : cliquez sur un pays.')
+  }
+
   const submit = async () => {
     if (!state?.question || state.question.status !== 'open') return
-    if (!text.trim() && !pin) {
-      setError('Écrivez une réponse ou placez un repère sur la carte.')
+    if (!pin) {
+      setError('Cliquez d’abord sur le pays qui répond à la question.')
       return
     }
     setError(null)
-    const res: any = await emitAck('player:submit', {
-      code: state.roomCode,
-      text: text.trim(),
-      pin,
-    })
+    const res: any = await emitAck('player:submit', { code: state.roomCode, pin })
     if (!res?.ok) setError(res?.error ?? 'Envoi impossible.')
   }
 
@@ -170,53 +169,19 @@ export default function PlayerPage() {
     playerSession.clear()
     setState(null)
     setJoined(false)
-    setText('')
     setPin(null)
-    lastSpokenRef.current = null
+    setSelected(null)
   }
 
   const toggleListen = () => {
-    const q = state?.question ?? (state?.feedback ? { question: state.feedback.question } : null)
-    const content = q?.question
+    const content = state?.question?.question ?? state?.feedback?.question
     if (!content) return
     if (speaking) {
       window.speechSynthesis?.cancel()
       setSpeaking(false)
       return
     }
-    const ok = speak(content, () => setSpeaking(false))
-    setSpeaking(ok)
-  }
-
-  const toggleMic = () => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SR) {
-      setError("La reconnaissance vocale n'est pas disponible sur ce navigateur : utilisez le clavier.")
-      return
-    }
-    if (listening) {
-      recognitionRef.current?.stop()
-      setListening(false)
-      return
-    }
-    const rec = new SR()
-    recognitionRef.current = rec
-    rec.lang = 'fr-FR'
-    rec.interimResults = true
-    rec.continuous = false
-    rec.onresult = (event: any) => {
-      let transcript = ''
-      for (let i = 0; i < event.results.length; i += 1) transcript += event.results[i][0].transcript
-      setText(transcript.trim())
-    }
-    rec.onerror = () => {
-      setListening(false)
-      setError("La dictée n'a pas fonctionné. Vous pouvez écrire la réponse.")
-    }
-    rec.onend = () => setListening(false)
-    rec.start()
-    setListening(true)
-    setError(null)
+    setSpeaking(speak(content, () => setSpeaking(false)))
   }
 
   /* -------------------------------- rendu -------------------------------- */
@@ -274,7 +239,11 @@ export default function PlayerPage() {
                 />
               </div>
 
-              {error && <p className="small rose" style={{ margin: 0 }}>{error}</p>}
+              {error && (
+                <p className="small rose" style={{ margin: 0 }}>
+                  {error}
+                </p>
+              )}
 
               <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={busy}>
                 {busy ? 'Connexion…' : 'Entrer dans la salle'}
@@ -292,7 +261,11 @@ export default function PlayerPage() {
             </form>
 
             <p className="small muted" style={{ marginTop: 18 }}>
-              Vous êtes présentateur ? <Link href="/presentateur" className="teal">Ouvrez une salle</Link>.
+              Vous êtes présentateur ?{' '}
+              <Link href="/presentateur" className="teal">
+                Ouvrez une salle
+              </Link>
+              .
             </p>
           </div>
         </main>
@@ -364,14 +337,19 @@ export default function PlayerPage() {
                     {question?.question ?? 'Préparation de la question…'}
                   </p>
 
+                  {question && question.attempts > 0 && question.status === 'open' && !feedback && (
+                    <p className="small" style={{ margin: '14px 0 0', color: '#ffe0a5' }}>
+                      Ce n&apos;est pas le bon pays. Cliquez ailleurs : les points de cette question sont réduits.
+                    </p>
+                  )}
+
                   <div className="row" style={{ marginTop: 16 }}>
                     <button className="btn btn-sm" type="button" onClick={toggleListen}>
                       {speaking ? '⏹ Arrêter la lecture' : '🔊 Écouter la question'}
                     </button>
-                    {question && question.hintsRemaining > 0 && (
-                      <span className="pill pill-gold">
-                        {question.hintsRemaining} indice{question.hintsRemaining > 1 ? 's' : ''} disponible
-                        {question.hintsRemaining > 1 ? 's' : ''}
+                    {question && (
+                      <span className="pill">
+                        Cliquez sur le pays où se trouve la réponse
                       </span>
                     )}
                   </div>
@@ -390,7 +368,7 @@ export default function PlayerPage() {
 
                 <div>
                   <div className="spread" style={{ marginBottom: 8 }}>
-                    <span className="label">Explorez la carte</span>
+                    <span className="label">Choisissez sur la carte</span>
                     <div className="map-toggle" role="group" aria-label="Type de carte">
                       <button type="button" data-active={mapMode === 'globe'} onClick={() => setMapMode('globe')}>
                         Globe
@@ -404,22 +382,30 @@ export default function PlayerPage() {
                     mode={mapMode}
                     className="full"
                     pin={pin ?? feedback?.playerPin ?? null}
+                    selectedIso={!feedback ? selected?.id ?? null : null}
                     target={feedback?.coords ?? null}
                     targetIso={feedback?.isoN ?? null}
-                    onPick={(coords) => setPin(coords)}
-                    labels={Boolean(feedback)}
+                    onPick={pick}
+                    labels
                   />
                   <div className="row small muted" style={{ marginTop: 8, justifyContent: 'space-between' }}>
                     <span>
-                      {pin
-                        ? `Repère placé : ${pin[1].toFixed(1)}° ${pin[1] >= 0 ? 'N' : 'S'}, ${pin[0].toFixed(1)}° ${
-                            pin[0] >= 0 ? 'E' : 'O'
-                          }`
-                        : 'Cliquez sur la carte pour placer votre repère.'}
+                      {selected
+                        ? `Votre choix : ${selected.name}`
+                        : pin
+                        ? 'Pleine mer — cliquez sur un pays.'
+                        : 'Faites glisser pour tourner, molette pour zoomer, puis cliquez sur un pays.'}
                     </span>
                     {pin && !feedback && question?.status === 'open' && (
-                      <button className="btn btn-sm btn-ghost" type="button" onClick={() => setPin(null)}>
-                        Effacer le repère
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        type="button"
+                        onClick={() => {
+                          setPin(null)
+                          setSelected(null)
+                        }}
+                      >
+                        Effacer
                       </button>
                     )}
                   </div>
@@ -427,41 +413,30 @@ export default function PlayerPage() {
 
                 {!feedback && question?.status !== 'answered' && (
                   <div className="card card-tight">
-                    <label className="label" htmlFor="answer">
-                      Votre réponse
-                    </label>
-                    <div className="answer-bar" style={{ marginTop: 8 }}>
-                      <input
-                        id="answer"
-                        className="input"
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        placeholder="Écrivez votre réponse…"
-                        maxLength={140}
-                        autoComplete="off"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') void submit()
-                        }}
-                      />
-                      {speechSupported && (
-                        <button
-                          type="button"
-                          className={`btn ${listening ? 'btn-danger' : ''}`}
-                          onClick={toggleMic}
-                          aria-pressed={listening}
-                          title="Répondre à la voix"
-                        >
-                          {listening ? '⏹' : '🎙️'}
-                          <span className="sr-only">Répondre à la voix</span>
-                        </button>
-                      )}
-                      <button type="button" className="btn btn-primary" onClick={() => void submit()}>
-                        Valider
+                    <div className="spread" style={{ gap: 14 }}>
+                      <div>
+                        <div className="stat-label">Votre réponse</div>
+                        <div style={{ fontSize: 20, fontWeight: 600, marginTop: 2 }}>
+                          {selected ? selected.name : <span className="muted">Aucun pays sélectionné</span>}
+                        </div>
+                        <p className="tiny muted" style={{ margin: '4px 0 0' }}>
+                          Emplacement exact : tous les points · bon pays : 60 % · à quelques kilomètres : 40 %.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-lg"
+                        onClick={() => void submit()}
+                        disabled={!selected}
+                      >
+                        Valider ma réponse
                       </button>
                     </div>
-                    <p className="tiny muted" style={{ margin: '8px 0 0' }}>
-                      Le présentateur voit votre réponse et votre repère ; il valide ou accorde une seconde chance.
-                    </p>
+                    {error && (
+                      <p className="small rose" style={{ margin: '10px 0 0' }}>
+                        {error}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -471,12 +446,10 @@ export default function PlayerPage() {
                       <span className="dot" /> Réponse envoyée
                     </span>
                     <p className="muted small" style={{ margin: '10px 0 0' }}>
-                      En attente de la validation du présentateur…
+                      Vérification en cours…
                     </p>
                   </div>
                 )}
-
-                {error && <p className="small rose">{error}</p>}
 
                 {feedback && (
                   <div
@@ -486,11 +459,7 @@ export default function PlayerPage() {
                   >
                     <div className="spread">
                       <h3 style={{ margin: 0, fontSize: 20 }}>
-                        {feedback.outcome === 'correct'
-                          ? '✅ Bonne réponse !'
-                          : feedback.outcome === 'skipped'
-                          ? '⏭️ Question passée'
-                          : '❌ Réponse refusée'}
+                        {PRECISION_TEXT[feedback.precision] ?? (feedback.outcome === 'correct' ? '✅ Correct' : '❌ Raté')}
                       </h3>
                       <span className={`pill ${feedback.outcome === 'correct' ? 'pill-green' : 'pill-gold'}`}>
                         {feedback.points > 0 ? `+${feedback.points} points` : '0 point'}
@@ -498,11 +467,11 @@ export default function PlayerPage() {
                     </div>
 
                     <p style={{ margin: '12px 0 6px' }}>
-                      Réponse attendue : <strong className="gold">{feedback.answer}</strong>
+                      Réponse attendue : <strong className="gold">{feedback.answer}</strong> — {feedback.country}
                     </p>
-                    {feedback.playerText && (
+                    {feedback.clickedCountry && (
                       <p className="small muted" style={{ margin: '0 0 6px' }}>
-                        Votre proposition : « {feedback.playerText} »{feedback.submittedAnswer ? ' — reconnue' : ''}
+                        Vous avez cliqué : {feedback.clickedCountry.name}
                       </p>
                     )}
                     <p className="small" style={{ marginTop: 10, color: 'var(--ink-soft)' }}>
@@ -561,7 +530,9 @@ export default function PlayerPage() {
                       <div className="stat-label">Questions</div>
                       <div className="stat-value">
                         {state.progress.index}
-                        <span className="muted" style={{ fontSize: 14 }}>/{state.progress.total}</span>
+                        <span className="muted" style={{ fontSize: 14 }}>
+                          /{state.progress.total}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -585,11 +556,11 @@ export default function PlayerPage() {
                 </div>
 
                 <div className="card card-tight">
-                  <div className="card-head">Rappel des règles</div>
+                  <div className="card-head">Comment répondre</div>
                   <ul className="small muted" style={{ margin: 0, paddingLeft: 16, lineHeight: 1.8 }}>
-                    <li>Un indice coûte 5 points.</li>
-                    <li>Seconde chance : moitié des points restants.</li>
-                    <li>La réponse n&apos;est révélée qu&apos;après validation.</li>
+                    <li>Cliquez sur le pays (ou la région) qui répond à la question.</li>
+                    <li>Emplacement exact : tous les points ; bon pays : 60 % ; à côté : 40 %.</li>
+                    <li>Un indice coûte 5 points, et le présentateur voit tout.</li>
                   </ul>
                 </div>
               </aside>

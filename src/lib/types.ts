@@ -23,9 +23,14 @@ export interface PlayerQuestion {
   answered: boolean
 }
 
+export type Precision = 'exact' | 'country' | 'near' | 'miss' | 'skip' | 'refus' | 'manual' | 'force' | 'annule'
+
 export interface PlayerFeedback {
   outcome: Outcome
   points: number
+  precision: Precision
+  clickedCountry: { id: string; name: string } | null
+  automatic: boolean
   question: string
   answer: string
   explanation: string
@@ -81,7 +86,13 @@ export interface HostCurrent {
   source: { label: string; url: string }
   status: QuestionStatus
   attempts: number
-  resolved: { outcome: Outcome; points: number } | null
+  resolved: {
+    outcome: Outcome
+    points: number
+    precision: Precision
+    clickedCountry: { id: string; name: string } | null
+    automatic?: boolean
+  } | null
   distanceKm: number | null
   nearTarget: boolean | null
   autoMatch: boolean | null
@@ -107,8 +118,8 @@ export interface HostState {
     correct: number
     found: string[]
     hasAnswered: boolean
-    text: string
     pin: [number, number] | null
+    clickedCountry: { id: string; name: string } | null
   }
   progress: { index: number; total: number }
   current: HostCurrent | null
@@ -116,7 +127,8 @@ export interface HostState {
     questionId: string
     outcome: Outcome
     points: number
-    text: string
+    precision: Precision
+    clickedCountry: { id: string; name: string } | null
     pin: [number, number] | null
     hintsUsed: number
     distanceKm: number | null
