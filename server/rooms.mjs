@@ -192,15 +192,16 @@ export function submitAnswer(room, payload = {}) {
   const player = room.player
   if (!player) return { error: 'Aucun joueur.' }
 
-  const pin =
-    Array.isArray(payload.pin) && payload.pin.length === 2
-      ? [Number(payload.pin[0]), Number(payload.pin[1])]
-      : null
+  const pin = payload.pin
   const validPin =
-    pin && Number.isFinite(pin[0]) && Number.isFinite(pin[1]) && Math.abs(pin[1]) <= 90 ? pin : null
+    Array.isArray(pin) && pin.length === 2 && pin.every((n) => typeof n === 'number' && Number.isFinite(n)) &&
+    Math.abs(pin[0]) <= 180 && Math.abs(pin[1]) <= 90 ? [pin[0], pin[1]] : null
 
   if (!validPin) {
     return { error: 'Cliquez sur la carte pour désigner un lieu.' }
+  }
+  if (!countryAt(validPin[0], validPin[1])) {
+    return { error: 'Cet endroit est en pleine mer : cliquez sur un pays.' }
   }
 
   player.pin = validPin
@@ -218,7 +219,9 @@ export function submitAnswer(room, payload = {}) {
     room.question.status = 'open'
     player.pin = null
     touch(room)
-    return { ok: true, retry: true, ...verdict }
+    // Même l'accusé de réception reste filtré : ni pays attendu ni distance au
+    // corrigé pendant la seconde chance (et pas seulement l'événement « state »).
+    return { ok: true, retry: true, outcome: verdict.outcome, precision: verdict.precision }
   }
 
   resolveQuestion(room, verdict)
@@ -241,7 +244,7 @@ export function evaluatePin(room, question, pin) {
   let precision = 'miss'
   if (sameCountry && distance != null && distance <= 400) precision = 'exact'
   else if (sameCountry) precision = 'country'
-  else if (distance != null && distance <= 200) precision = 'near'
+  else if (clicked && distance != null && distance <= 200) precision = 'near'
 
   const base = computePoints(room, question)
   const outcome = precision === 'miss' ? 'incorrect' : 'correct'
@@ -253,7 +256,6 @@ export function evaluatePin(room, question, pin) {
     precision,
     distanceKm: distance,
     clickedCountry: clicked,
-    targetCountry: target,
   }
 }
 

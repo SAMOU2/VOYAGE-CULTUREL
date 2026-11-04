@@ -154,13 +154,15 @@ export default function PlayerPage() {
   }
 
   const submit = async () => {
-    if (!state?.question || state.question.status !== 'open') return
+    if (busy || !state?.question || state.question.status !== 'open') return
     if (!pin) {
       setError('Cliquez d’abord sur le pays qui répond à la question.')
       return
     }
     setError(null)
+    setBusy(true)
     const res: any = await emitAck('player:submit', { code: state.roomCode, pin })
+    setBusy(false)
     if (!res?.ok) setError(res?.error ?? 'Envoi impossible.')
   }
 
@@ -385,7 +387,7 @@ export default function PlayerPage() {
                     selectedIso={!feedback ? selected?.id ?? null : null}
                     target={feedback?.coords ?? null}
                     targetIso={feedback?.isoN ?? null}
-                    onPick={pick}
+                    onPick={!busy && question?.status === 'open' && !feedback ? pick : undefined}
                     labels
                   />
                   <div className="row small muted" style={{ marginTop: 8, justifyContent: 'space-between' }}>
@@ -427,9 +429,9 @@ export default function PlayerPage() {
                         type="button"
                         className="btn btn-primary btn-lg"
                         onClick={() => void submit()}
-                        disabled={!selected}
+                        disabled={busy || !selected || question?.status !== 'open'}
                       >
-                        Valider ma réponse
+                        {busy ? 'Vérification…' : 'Valider ma réponse'}
                       </button>
                     </div>
                     {error && (

@@ -8,11 +8,12 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { createCanvas } from '@napi-rs/canvas'
-import { geoGraticule10, geoNaturalEarth1, geoOrthographic, geoPath } from 'd3-geo'
+import { geoDistance, geoGraticule10, geoNaturalEarth1, geoOrthographic, geoPath } from 'd3-geo'
 import { feature } from 'topojson-client'
 
-const root = path.join(path.dirname(new URL(import.meta.url).pathname), '..')
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 const read = (f) => JSON.parse(fs.readFileSync(path.join(root, 'public', 'geo', f), 'utf8'))
 const toFeatures = (topology, name) => {
   const result = feature(topology, topology.objects[name])
@@ -159,7 +160,19 @@ function draw({ width, height, mode, rotation, zoom, selectedIso, targetIso, tar
   if (selectedIso) paint(selectedIso, 'rgba(94, 234, 212, 0.42)', '#5eead4')
   if (targetIso) paint(targetIso, 'rgba(247, 198, 91, 0.45)', '#f7c65b')
 
-  const project = (coords) => projection(coords)
+  const project = (coords) => {
+    if (mode === 'globe' && geoDistance(coords, [-rotation[0], -rotation[1]]) > Math.PI / 2) return null
+    return projection(coords)
+  }
+  if (pin && target) {
+    ctx.beginPath()
+    p({ type: 'LineString', coordinates: [pin, target] })
+    ctx.setLineDash([6, 7])
+    ctx.strokeStyle = 'rgba(94, 234, 212, 0.85)'
+    ctx.lineWidth = 1.8
+    ctx.stroke()
+    ctx.setLineDash([])
+  }
   const marker = (coords, color, rgb, halo) => {
     const pt = project(coords)
     if (!pt) return
@@ -199,10 +212,11 @@ draw({
   mode: 'flat',
   rotation: [0, 0],
   zoom: 4,
-  selectedIso: '818',
+  center: [10, 43],
+  selectedIso: '724',
   targetIso: '250',
   target: [2.35, 48.85],
-  pin: [5.4, 43.3],
+  pin: [-3.7, 40.4],
   file: path.join(out, 'carte-zoom.png'),
 })
 

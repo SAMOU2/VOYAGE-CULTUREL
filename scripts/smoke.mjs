@@ -6,6 +6,8 @@
  * et la distance au lieu attendu, puis applique le barème.
  */
 import { io } from 'socket.io-client'
+import { countryAt } from '../server/geo.mjs'
+import { distanceKm } from '../server/questions.mjs'
 
 const URL = process.argv[2] || 'http://localhost:3000'
 const log = (...args) => console.log('·', ...args)
@@ -51,7 +53,11 @@ player.on('state', (s) => {
 const waitHost = (predicate, timeout) => waitFor(() => hostState, predicate, timeout)
 const waitPlayer = (predicate, timeout) => waitFor(() => playerState, predicate, timeout)
 
-await Promise.all([waitHost(), waitPlayer()]).catch(() => {})
+await Promise.all([host, player].map((socket) => new Promise((resolve, reject) => {
+  if (socket.connected) return resolve()
+  const timer = setTimeout(() => reject(new Error('connexion impossible')), 5000)
+  socket.once('connect', () => { clearTimeout(timer); resolve() })
+})))
 
 /* ------------------------------ mise en place ---------------------------- */
 
@@ -96,10 +102,14 @@ check(hint?.ok, 'indice envoyé')
 const withHint = await waitPlayer((s) => (s.question?.hintLevel ?? 0) > 0)
 check(withHint.question.hints.length === 1, 'le joueur reçoit un seul indice')
 
-// Mauvais clic (plein milieu de l'Afrique) → seconde chance accordée
-const wrongPin = [18, 12]
+// Un pays éloigné de la cible → seconde chance accordée.
+const wrongPin = [[18, 12], [139.69, 35.69], [-77.04, 38.91]].find((pin) =>
+  countryAt(...pin)?.id !== h1.current.isoN && distanceKm(pin, h1.current.coords) > 400
+)
 const first = await emitAck(player, 'player:submit', { code: created.code, pin: wrongPin })
 check(first?.ok && first.precision === 'miss', 'mauvais clic détecté')
+check(!('targetCountry' in first) && !('coords' in first) && !('isoN' in first) && !('distanceKm' in first),
+  'accusé de réception de seconde chance sans pays attendu ni coordonnées privées')
 const retry = await waitPlayer((s) => s.question?.attempts === 1 && s.question?.status === 'open')
 check(retry.question.status === 'open', 'seconde chance : la question reste ouverte')
 check(retry.feedback === null, 'la réponse reste cachée pendant la seconde chance')
@@ -124,7 +134,21 @@ await emitAck(host, 'host:command', { code: created.code, type: 'next' })
 const q2 = await waitPlayer((s) => s.progress?.index === 2 && s.question)
 check(q2.feedback === null, 'nouvelle question sans feedback résiduel')
 const h2 = await waitHost((s) => s.progress?.index === 2 && s.current)
-const target = h2.current.coords
+// Certains lieux sont en mer (Grande Barrière) ou exactement sur une frontière
+// (Everest). Le joueur choisit un pays : on clique sur une terre proche du lieu.
+const [lon, lat] = h2.current.coords
+let target = null
+for (const offset of [0, 0.05, 0.1, 0.25, 0.5, 1, 2]) {
+  for (const [dx, dy] of [[0, 1], [1, 0], [1, 1], [-1, 0], [0, -1], [-1, -1], [1, -1], [-1, 1]]) {
+    const candidate = [lon + dx * offset, lat + dy * offset]
+    if (countryAt(...candidate)?.id === h2.current.isoN && distanceKm(candidate, h2.current.coords) <= 400) {
+      target = candidate
+      break
+    }
+  }
+  if (target) break
+}
+if (!target) throw new Error(`Pas de terre proche du lieu attendu : ${h2.current.id}`)
 
 const exact = await emitAck(player, 'player:submit', { code: created.code, pin: target })
 check(exact?.ok && exact.precision === 'exact', 'clic sur le lieu exact reconnu')

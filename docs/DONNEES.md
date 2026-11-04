@@ -5,8 +5,8 @@ externe, aucun appel réseau pendant le jeu. Le serveur et le navigateur lisent 
 
 | Fichier | Poids | Contenu | Source | Licence |
 | --- | --- | --- | --- | --- |
-| `countries-50m.json` | 748 Ko | 241 pays, frontières détaillées (1:50 m) | Natural Earth via [`world-atlas`](https://github.com/topojson/world-atlas) | domaine public |
-| `countries-110m.json` | 112 Ko | 177 pays, version allégée (1:110 m) | idem | domaine public |
+| `countries-50m.json` | 748 Ko | 241 pays et territoires, frontières détaillées (1:50 millions) | Natural Earth via [`world-atlas`](https://github.com/topojson/world-atlas) | domaine public |
+| `countries-110m.json` | 112 Ko | 177 pays et territoires, version allégée (1:110 millions) | idem | domaine public |
 | `lakes-50m.json` | 527 Ko | grands lacs et mers intérieures | Natural Earth `ne_50m_lakes` | domaine public |
 | `rivers-50m.json` | 725 Ko | fleuves et rivières principaux | Natural Earth `ne_50m_rivers_lake_centerlines` | domaine public |
 | `roads-10m.json` | 965 Ko | grands axes routiers mondiaux | Natural Earth `ne_10m_roads` | domaine public |
@@ -17,7 +17,7 @@ numériques), avec repli sur le nom anglais.
 ## Régénérer les fichiers
 
 ```bash
-npm install                 # world-atlas et i18n-iso-countries sont des dépendances de dev
+npm install                 # installe aussi les outils de génération
 node scripts/build-geo.mjs  # → public/geo/countries-50m.json et countries-110m.json
 ```
 
@@ -31,7 +31,7 @@ avec `topojson-server` + `topojson-simplify` :
 - **rivières** : `ne_50m_rivers_lake_centerlines.geojson` → deux MultiLineString
   (`major` = scalerank ≤ 4, `minor` = le reste), quantification 1e5, simplification 1,5e-3 ;
 - **routes** : `ne_10m_roads.geojson`, filtré sur `Major Highway`, `Beltway` et `Bypass`, réparti en
-  `major` (scalerank ≤ 4) et `minor` (5-10), quantification 1e4, simplification 2e-2.
+  `major` (scalerank ≤ 4) et `minor` (5-10), quantification 1e4, simplification 2e-3.
 
 Le regroupement en deux MultiLineString par couche est ce qui garde les fichiers sous 1 Mo : un
 TopoJSON avec une feature par route pèserait plus de 6 Mo pour la même géométrie.
@@ -40,9 +40,9 @@ TopoJSON avec une feature par route pèserait plus de 6 Mo pour la même géomé
 
 Le rendu utilise deux résolutions pour rester fluide :
 
-- pendant un déplacement ou une rotation (et pour la rotation automatique de l'accueil) : **110 m**,
+- pendant un déplacement ou une rotation (et pour la rotation automatique de l'accueil) : **110m** (1:110 millions),
   sans rivières ni routes ;
-- au repos : **50 m**, avec lacs, rivières et routes selon le zoom.
+- au repos : **50m** (1:50 millions), avec lacs, rivières et routes selon le zoom.
 
 Seuils d'affichage des couches : lacs toujours, rivières à partir de ×1,35 (carte) / ×1,5 (globe),
 routes à partir de ×2,2 / ×2,6.
@@ -63,7 +63,9 @@ Aperçus versionnés : `docs/apercus/globe.png`, `carte-monde.png`, `carte-europ
 
 Chaque fiche de `data/questions.json` porte un `isoN` (code ISO numérique) qui doit exister dans
 `public/geo/countries-50m.json`, et des `coords` `[lon, lat]`. Le serveur utilise ce même fichier
-pour savoir **dans quel pays le joueur a cliqué** (`server/geo.mjs`).
+pour savoir **dans quel pays le joueur a cliqué** (`server/geo.mjs`). L’index géométrique est
+commun au navigateur et au serveur (`src/lib/map-geometry.mjs`), notamment pour traiter les pays
+qui traversent l’antiméridien. `npm run test:map` vérifie leur détection et les clics hors carte.
 
 ```bash
 node -e "

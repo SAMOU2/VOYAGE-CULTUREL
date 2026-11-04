@@ -38,9 +38,11 @@ npm run dev          # http://localhost:3000 (écoute aussi sur le réseau local
 | --- | --- |
 | `npm run dev` | Serveur local + Next.js en mode développement (HMR) |
 | `npm run build` | Compilation de production — **arrêter le serveur de dev avant** |
-| `npm start` | Serveur de production (`NODE_OPTIONS=production`) |
+| `npm start` | Serveur de production (`NODE_ENV=production`) |
 | `npm run typecheck` | Vérification TypeScript |
 | `npm run smoke` | Test de bout en bout du moteur (voir §8) |
+| `npm run test:map` | Géométrie des pays, clics, barème et confidentialité (sans serveur) |
+| `npm run preview:map` | Génère les aperçus PNG du globe et des routes |
 
 Le port se change avec `PORT=4000 npm run dev`.
 
@@ -54,7 +56,7 @@ Le port se change avec `PORT=4000 npm run dev`.
 2. Ouvrir **`/presentateur`** sur cet ordinateur → *Créer la salle*.
 3. Projeter le **code à 5 caractères** ou le **QR code**.
 4. Le joueur scanne/ouvre le lien sur son téléphone ou sa tablette, saisit un pseudo.
-5. Le présentateur démarre, distribue les indices et valide les réponses.
+5. Le présentateur démarre et distribue les indices. Le clic du joueur est vérifié automatiquement ; le présentateur peut corriger le verdict.
 
 > ⚠️ Depuis un téléphone, n'utilisez jamais `localhost` : il désigne le téléphone lui-même.
 > Utilisez l'adresse du type `http://192.168.x.x:3000` affichée au démarrage du serveur (ou le QR code).
@@ -71,8 +73,8 @@ utilisée dans le navigateur : il fonctionne donc aussi bien en local que derri�
 | --- | --- |
 | Écran joueur : rejoindre par code/QR, pseudo, statut | `/jouer` — formulaire, reprise de session, pastille de connexion |
 | Globe / carte 3D zoomable, repères, retour à la vue globale | `src/components/WorldMap.tsx` — projection orthographique + carte plate (D3), rotation au doigt, molette/pincement, retour à la vue globale |
-| « Colore la terre », pays réels | 241 pays Natural Earth 1:50 m, coloriés comme un atlas, noms français au survol |
-| Routes réelles détaillées selon le zoom | Lacs (toujours), rivières dès ×1,35, **routes réelles** (Natural Earth 1:10 m) dès ×2,2, frontières renforcées — voir `docs/DONNEES.md` |
+| « Colore la terre », pays réels | 241 pays et territoires Natural Earth à l’échelle 1:50 millions, coloriés comme un atlas, noms français au survol |
+| Routes réelles détaillées selon le zoom | Lacs (toujours), rivières dès ×1,35, **routes réelles** (Natural Earth à l’échelle 1:10 millions) dès ×2,2, frontières renforcées — voir `docs/DONNEES.md` |
 | Réponse par clic sur la carte | Clic → pays détecté (point-in-polygon), confirmation du nom, bouton *Valider ma réponse* |
 | Écoute de la question | Synthèse vocale (`speechSynthesis`) ; la dictée a été retirée, la réponse est cartographique |
 | Score, niveau, progression, feedback | Barre de niveau, carnet de pays trouvés, panneau de résultat |
@@ -80,7 +82,7 @@ utilisée dans le navigateur : il fonctionne donc aussi bien en local que derri�
 | Réponse privée, explication, source | Carte dorée « visible par vous seul », variantes acceptées, source |
 | Commandes : afficher, répéter, indice, valider, incorrecte, passer, suivante | Barre de commandes + lecture de l'énoncé côté joueur |
 | Temps réel | Socket.IO (repli long-polling automatique) |
-| Accessibilité / robustesse | Saisie clavier toujours possible, boutons ≥ 46 px, contrastes, `aria-*`, `prefers-reduced-motion`, jeu utilisable sans voix ni WebGL |
+| Accessibilité / robustesse | Réponse à la souris ou au doigt, zoom par boutons, contrastes, `aria-*`, `prefers-reduced-motion`, jeu utilisable sans voix ni WebGL |
 | Sécurité / vie privée | Code de salle aléatoire, jeton présentateur, filtrage strict des états envoyés, données en mémoire seulement |
 
 ---
@@ -127,10 +129,12 @@ src/components/
 src/lib/
   socket.ts        Client Socket.IO, appels avec acquittement, sessions locales
   types.ts         Types partagés des états
+  map-geometry.mjs Index des pays et détection de clic partagés avec le serveur
   catalog.ts       Thèmes et difficultés pour les formulaires
 server/geo.mjs     « Dans quel pays a-t-on cliqué ? » (point-in-polygon sur les frontières réelles)
-public/geo/        Natural Earth : pays 1:50 m et 1:110 m, lacs, rivières, routes (voir docs/DONNEES.md)
-scripts/smoke.mjs  Test automatisé du moteur
+public/geo/        Natural Earth : pays 50m et 110m, lacs, rivières, routes (voir docs/DONNEES.md)
+scripts/smoke.mjs  Test automatisé du moteur via Socket.IO
+scripts/test-map.mjs    Tests de la géométrie, du barème et de la confidentialité
 scripts/build-geo.mjs   Régénère les pays traduits en français
 scripts/preview-map.mjs Rend les aperçus de la carte en PNG, sans navigateur
 docs/DONNEES.md    Provenance des données, licences, niveau de détail
@@ -148,7 +152,7 @@ docs/apercus/      Aperçus du rendu (globe, carte du monde, Europe, zoom)
 - **Socket.IO** avec `transports: ['polling', 'websocket']` : indispensable, car beaucoup de proxys
   Wi-Fi d'établissement bloquent les WebSockets.
 - **Aucune ressource externe** à l'exécution (polices auto-hébergées via `@fontsource`, géographie
-  locale) : une fois la page chargée, le jeu fonctionne hors ligne.
+  locale) : le jeu fonctionne sans Internet. La connexion au serveur local reste nécessaire.
 
 ---
 
@@ -163,7 +167,7 @@ Le serveur diffuse un état **différent** à chaque rôle ; il n'existe pas d'�
 | `host:command` | présentateur | `{code, type, payload}` — `start`, `hint`, `correct`, `incorrect`, `skip`, `next`, `end`, `restart`, `config` |
 | `player:join` | joueur | `{code, pseudo}` → `{playerId, pseudo}` |
 | `player:rejoin` | joueur | `{code, playerId}` |
-| `player:submit` | joueur | `{code, text, pin:[lon,lat]}` |
+| `player:submit` | joueur | `{code, pin:[lon,lat]}` |
 | `state` | serveur | état filtré (`playerView` / `hostView`) |
 
 Les commandes sont refusées si le socket n'est pas celui du présentateur (`room.hostSocketId`),
@@ -181,7 +185,7 @@ Chaque fiche de `data/questions.json` contient : `id`, `theme`, `difficulty` (1-
 La date de vérification globale est `checkedAt` et s'affiche dans l'interface. Les sources sont
 institutionnelles (UNESCO, Britannica, Larousse, musée du Louvre). Avant d'ajouter des questions,
 vérifiez : exactitude, variantes acceptées, coordonnées, code `isoN` (le pays doit exister dans
-`public/geo/countries-110m.json`, sinon il n'est simplement pas surligné).
+`public/geo/countries-50m.json` pour pouvoir valider les clics).
 
 Changer le nombre de questions ou de thèmes ne demande aucune modification de code : la banque est
 lue au démarrage du serveur.
@@ -205,11 +209,16 @@ lue au démarrage du serveur.
 
 ## 8. Tests
 
-**Automatique** — `npm run smoke` (serveur démarré) vérifie 33 points : création de salle, mauvais
+**Automatique** — `npm run smoke` (serveur démarré) vérifie 40 points : création de salle, mauvais
 code refusé, arrivée du joueur, absence de la réponse et du pays attendu dans l'état joueur, indice
 unique, refus d'une réponse sans clic, détection d'un mauvais clic, seconde chance, verdict exact,
 correction du présentateur (accorder / retirer), passage, fin de partie, reconnexion, jeton
-présentateur invalide, commande refusée à un tiers.
+présentateur invalide, commande refusée à un tiers. La confidentialité est aussi vérifiée sur
+l’accusé de réception d’une seconde chance (pas seulement sur l’événement `state`).
+
+`npm run test:map` : 21 tests sans serveur — pays traversant l’antiméridien (États-Unis, Russie,
+Nouvelle-Zélande, Kiribati), petits pays, comparaison géométrique sur 512 points, clics hors de la
+Terre, coordonnées invalides, barème et confidentialité avant résolution.
 
 **Manuel** — la liste du dossier de conception :
 
@@ -234,7 +243,7 @@ Le dossier listait plusieurs décisions ouvertes ; les valeurs retenues sont :
 - **Catégories** : capitales, monuments, langues, nature, traditions, histoire.
 - **Barème** : voir §3, tout est réglable côté présentateur (sauf le barème, centralisé dans
   `server/questions.mjs`).
-- **Fonctionnement hors ligne** : oui, après chargement de la page.
+- **Sans Internet** : oui ; le réseau local et le serveur restent nécessaires.
 
 ---
 

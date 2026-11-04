@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  geoBounds,
-  geoContains,
   geoDistance,
   geoGraticule10,
   geoNaturalEarth1,
@@ -11,6 +9,7 @@ import {
   geoPath,
 } from 'd3-geo'
 import { feature } from 'topojson-client'
+import { buildCountryIndex, findCountryAt, invertMapPoint } from '@/lib/map-geometry.mjs'
 import type { GeoProjection } from 'd3-geo'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
 
@@ -110,13 +109,6 @@ function toFeatures(topology: any, name: string): GeoFeature[] {
     : [result as GeoFeature]
 }
 
-interface CountryIndexEntry {
-  feature: CountryFeature
-  id: string
-  name: string
-  bbox: [number, number, number, number]
-  wide: boolean
-}
 
 export default function WorldMap({
   mode = 'globe',
@@ -144,7 +136,7 @@ export default function WorldMap({
   const lakesRef = useRef<GeoFeature[] | null>(null)
   const riversRef = useRef<{ major: GeoFeature[]; minor: GeoFeature[] } | null>(null)
   const roadsRef = useRef<{ major: GeoFeature[]; minor: GeoFeature[] } | null>(null)
-  const indexRef = useRef<CountryIndexEntry[]>([])
+  const indexRef = useRef<ReturnType<typeof buildCountryIndex>>([])
   const colorsRef = useRef(new Map<string, string>())
 
   const [ready, setReady] = useState(false)
@@ -482,16 +474,8 @@ export default function WorldMap({
         countriesHiRef.current = high
         countriesLoRef.current = lo ? (feature(lo, lo.objects.countries) as unknown as CountryCollection) : high
 
-        const colors = new Map<string, string>()
-        const index: CountryIndexEntry[] = []
-        for (const f of high.features) {
-          const id = String(f.id)
-          colors.set(id, colorFor(id))
-          const [[x0, y0], [x1, y1]] = geoBounds(f)
-          index.push({ feature: f, id, name: f.properties?.name ?? '', bbox: [x0, y0, x1, y1], wide: x1 - x0 > 180 })
-        }
-        colorsRef.current = colors
-        indexRef.current = index
+        colorsRef.current = new Map(high.features.map((f) => [String(f.id), colorFor(f.id)]))
+        indexRef.current = buildCountryIndex(high.features)
         setReady(true)
         baseDirtyRef.current = true
         resize()
@@ -568,15 +552,8 @@ export default function WorldMap({
   /* ------------------------------ interaction ------------------------------ */
 
   const findCountry = (lon: number, lat: number): PickedCountry | null => {
-    for (const entry of indexRef.current) {
-      if (!entry.wide) {
-        const [x0, y0, x1, y1] = entry.bbox
-        const inLon = (lon >= x0 && lon <= x1) || (lon >= x0 - 360 && lon <= x1 - 360)
-        if (!inLon || lat < y0 || lat > y1) continue
-      }
-      if (geoContains(entry.feature, [lon, lat])) return { id: entry.id, name: entry.name }
-    }
-    return null
+    const country = findCountryAt(indexRef.current, lon, lat)
+    return country ? { id: country.id, name: country.name } : null
   }
 
   const atPixel = (clientX: number, clientY: number): { lonlat: LonLat; country: PickedCountry | null } | null => {
@@ -588,15 +565,9 @@ export default function WorldMap({
     const { w, h } = view.current.size
     if (!w) return null
     const projection = buildProjection(w, h)
-    const inv = projection.invert?.([x, y])
-    if (!inv || Number.isNaN(inv[0]) || Number.isNaN(inv[1])) return null
-    const lon = ((inv[0] + 540) % 360) - 180
-    const lat = Math.max(-90, Math.min(90, inv[1]))
-    if (propsRef.current.mode === 'globe') {
-      const center: LonLat = [-view.current.rotation[0], -view.current.rotation[1]]
-      if (geoDistance([lon, lat], center) > HORIZON) return null
-    }
-    return { lonlat: [lon, lat], country: findCountry(lon, lat) }
+    const coords = invertMapPoint(projection, [x, y])
+    if (!coords) return null
+    return { lonlat: coords, country: findCountry(coords[0], coords[1]) }
   }
 
   const clampPan = () => {
@@ -611,11 +582,18 @@ export default function WorldMap({
   }
 
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!interactive) return
+    if (!interactive || e.button !== 0) return
     e.currentTarget.setPointerCapture?.(e.pointerId)
-    view.current.pointers.set(e.pointerId, [e.clientX, e.clientY])
+    const pointers = view.current.pointers
+    if (pointers.size === 0) view.current.moved = 0
+    pointers.set(e.pointerId, [e.clientX, e.clientY])
+    if (pointers.size >= 2) {
+      // Un pincement ne doit jamais être interprété comme un clic de réponse.
+      view.current.moved = Math.max(7, view.current.moved)
+      const [a, b] = [...pointers.values()]
+      view.current.pinchDist = Math.hypot(a[0] - b[0], a[1] - b[1])
+    }
     view.current.dragging = true
-    view.current.moved = 0
     view.current.last = [e.clientX, e.clientY]
     view.current.lowQuality = true
     baseDirtyRef.current = true
@@ -625,9 +603,10 @@ export default function WorldMap({
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!interactive) return
     const pointers = view.current.pointers
+    if (view.current.dragging && !pointers.has(e.pointerId)) return
     if (pointers.has(e.pointerId)) pointers.set(e.pointerId, [e.clientX, e.clientY])
 
-    if (pointers.size === 2) {
+    if (pointers.size >= 2) {
       const [a, b] = [...pointers.values()]
       const dist = Math.hypot(a[0] - b[0], a[1] - b[1])
       if (view.current.pinchDist > 0) {
@@ -685,9 +664,22 @@ export default function WorldMap({
 
   const endPointer = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!interactive) return
-    view.current.pointers.delete(e.pointerId)
-    if (view.current.pointers.size < 2) view.current.pinchDist = 0
-    const wasDrag = view.current.moved > 6
+    const pointers = view.current.pointers
+    if (!pointers.has(e.pointerId)) return
+    const wasDrag = view.current.moved > 6 || pointers.size > 1 || e.type === 'pointercancel'
+    pointers.delete(e.pointerId)
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
+    if (pointers.size >= 2) {
+      const [a, b] = [...pointers.values()]
+      view.current.pinchDist = Math.hypot(a[0] - b[0], a[1] - b[1])
+      return
+    }
+    view.current.pinchDist = 0
+    if (pointers.size === 1) {
+      view.current.last = [...pointers.values()][0]
+      view.current.moved = Math.max(7, view.current.moved)
+      return
+    }
     view.current.dragging = false
     if (view.current.lowQuality) {
       view.current.lowQuality = false
@@ -743,6 +735,10 @@ export default function WorldMap({
         onPointerCancel={endPointer}
         onPointerLeave={() => {
           if (tooltipRef.current) tooltipRef.current.style.opacity = '0'
+          if (view.current.hovered) {
+            view.current.hovered = null
+            schedule()
+          }
         }}
         style={{ cursor: interactive ? undefined : 'default' }}
       />
