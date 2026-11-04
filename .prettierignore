@@ -1,0 +1,10 @@
+node_modules/
+.cache/
+frontend/.next/
+frontend/next-env.d.ts
+frontend/public/
+frontend/tsconfig.tsbuildinfo
+backend/dist/
+data/
+docs/apercus/
+package-lock.json

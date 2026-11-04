@@ -25,6 +25,7 @@ export default defineConfig({
             '--disable-dev-shm-usage',
             '--use-gl=angle',
             '--use-angle=swiftshader',
+            '--enable-unsafe-swiftshader',
           ]
         : [],
     },
@@ -33,7 +34,12 @@ export default defineConfig({
     { name: 'ordinateur', use: { viewport: { width: 1440, height: 940 } } },
     {
       name: 'mobile',
-      use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 },
+      use: {
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+        deviceScaleFactor: 1,
+      },
     },
   ],
   webServer: {

@@ -13,3 +13,11 @@ tsconfig.tsbuildinfo
 # Résultats et captures des tests navigateur
 .cache/
 playwright-report/
+
+# Écritures locales du stand : ne jamais publier les participants réels.
+data/users.json
+data/users.json.*.tmp
+backend/dist/
+frontend/.next/
+frontend/next-env.d.ts
+frontend/tsconfig.tsbuildinfo
