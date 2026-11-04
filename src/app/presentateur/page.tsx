@@ -6,6 +6,7 @@ import SiteHeader from '@/components/SiteHeader'
 import WorldMap from '@/components/WorldMap'
 import RoomSettings, { type RoomConfig } from '@/components/RoomSettings'
 import QuestionDetails from '@/components/QuestionDetails'
+import RoundProgress from '@/components/RoundProgress'
 import { emitAck, getSocket, hostSession } from '@/lib/socket'
 import type { HostState } from '@/lib/types'
 
@@ -298,9 +299,11 @@ export default function HostPage() {
         {state.status === 'playing' && current && (
           <section className="host-game" aria-label="Pilotage de la partie">
             <div className="round-meta">
-              <p className="round-counter">
-                Question {state.progress.index} / {state.progress.total}
-              </p>
+              <RoundProgress
+                index={state.progress.index}
+                total={state.progress.total}
+                difficulty={current.difficulty}
+              />
               <p className="score">
                 <span className="player-name">{player?.pseudo ?? 'Joueur'}</span>{' '}
                 <strong>{player?.score ?? 0}</strong> pts

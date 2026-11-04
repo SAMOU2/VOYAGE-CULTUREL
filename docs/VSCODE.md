@@ -93,7 +93,7 @@ Le terminal affiche :
   VOYAGE CULTUREL — serveur local
   → http://localhost:3000
   → http://192.168.x.x:3000  (même Wi-Fi, à scanner)
-  72 questions chargées (vérifiées le 2026-11-04)
+  120 questions chargées (vérifiées le 2026-11-04)
 ```
 
 - `Ctrl+Clic` sur `http://localhost:3000` → page d'accueil.

@@ -85,6 +85,7 @@ check(started?.ok, 'partie démarrée')
 
 const p1 = await waitPlayer((s) => s.status === 'playing' && s.question)
 check(Boolean(p1.question?.question), 'question affichée au joueur')
+check(p1.question.difficulty === 1, 'progression courte : début au niveau facile')
 const rawPlayer = JSON.stringify(p1)
 check(!rawPlayer.includes('"answer"'), "la réponse attendue n'est pas dans l'état joueur")
 check(!rawPlayer.includes('"accepted"'), 'les variantes ne sont pas exposées au joueur')
@@ -133,6 +134,7 @@ check(granted.feedback.precision === 'force', 'verdict signalé comme corrigé')
 await emitAck(host, 'host:command', { code: created.code, type: 'next' })
 const q2 = await waitPlayer((s) => s.progress?.index === 2 && s.question)
 check(q2.feedback === null, 'nouvelle question sans feedback résiduel')
+check(q2.question.difficulty > 1 && q2.question.difficulty < 4, 'progression courte : palier intermédiaire')
 const h2 = await waitHost((s) => s.progress?.index === 2 && s.current)
 // Certains lieux sont en mer (Grande Barrière) ou exactement sur une frontière
 // (Everest). Le joueur choisit un pays : on clique sur une terre proche du lieu.
@@ -168,6 +170,7 @@ check(revoked.score === granted.score, 'score revenu au niveau précédent aprè
 await emitAck(host, 'host:command', { code: created.code, type: 'next' })
 const q3 = await waitPlayer((s) => s.progress?.index === 3 && s.question)
 check(Boolean(q3.question), 'troisième question affichée')
+check(q3.question.difficulty === 4, 'progression courte : dernière question au niveau expert')
 
 const tooSoon = await emitAck(host, 'host:command', { code: created.code, type: 'next' })
 check(!tooSoon?.ok, 'impossible de passer à la suite sans résoudre la question')

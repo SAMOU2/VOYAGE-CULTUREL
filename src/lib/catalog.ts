@@ -11,9 +11,10 @@ export const THEMES = [
 
 export const DIFFICULTIES = [
   { id: 'mixte', label: 'Progressive (facile → expert)', short: 'Mixte' },
-  { id: 'facile', value: 1, label: 'Facile — dès 8 ans', short: 'Facile' },
-  { id: 'moyen', value: 2, label: 'Moyenne — culture générale', short: 'Moyen' },
-  { id: 'expert', value: 3, label: 'Experte — pour les curieux', short: 'Expert' },
+  { id: 'facile', value: 1, label: 'Facile — repères connus', short: 'Facile' },
+  { id: 'moyen', value: 2, label: 'Moyen — culture générale', short: 'Moyen' },
+  { id: 'difficile', value: 3, label: 'Difficile — connaissances précises', short: 'Difficile' },
+  { id: 'expert', value: 4, label: 'Expert — repères moins connus', short: 'Expert' },
 ]
 
 export const QUESTION_COUNTS = [5, 8, 10, 12, 15]

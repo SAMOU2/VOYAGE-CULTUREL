@@ -10,7 +10,7 @@ les indices et les commandes de validation.
 - Deux écrans, un seul Wi-Fi, **aucune dépendance à un service cloud** pendant la partie.
 - **Carte du monde réelle** : pays colorés, lacs, fleuves, routes, zoom jusqu'au détail régional.
 - Le joueur répond **en cliquant sur le pays** : le serveur vérifie le clic et applique le barème.
-- 72 questions vérifiées (6 thèmes × 3 niveaux), banque locale au format JSON.
+- 120 questions culturelles (6 thèmes × 4 niveaux × 5 questions), banque locale au format JSON.
 - La réponse attendue n'est **jamais** envoyée au navigateur du joueur avant validation.
 
 ---
@@ -18,8 +18,8 @@ les indices et les commandes de validation.
 ## Interface épurée
 
 - **Accueil** : créer une salle ou rejoindre une partie.
-- **Joueur** : question, grande carte, pays choisi et bouton **Valider**. Le score et le numéro de
-  question restent discrets ; les cartes de progression et les règles répétées ont été retirées.
+- **Joueur** : question, grande carte, pays choisi et bouton **Valider**. Le score, le numéro de
+  question et la difficulté actuelle restent discrets ; les règles répétées et les panneaux superflus ont été retirés.
 - **Présentateur** : thème, difficulté et nombre de questions. En partie, les commandes changent
   selon le contexte : indice / passer, puis question suivante.
 - Options de seconde chance, explications, sources, historique et corrections restent accessibles
@@ -62,6 +62,8 @@ npm run dev          # http://localhost:3000 (écoute aussi sur le réseau local
 | `npm start` | Serveur de production (`NODE_ENV=production`) |
 | `npm run typecheck` | Vérification TypeScript |
 | `npm run smoke` | Test de bout en bout du moteur (voir §8) |
+| `npm test` | Tous les tests sans serveur : banque, progression, carte, score et confidentialité |
+| `npm run test:questions` | Banque et quatre niveaux, filtres, tirages progressifs et barème expert |
 | `npm run test:map` | Géométrie des pays, clics, barème et confidentialité (sans serveur) |
 | `npm run test:ui` | Parcours navigateur sur ordinateur et mobile (Playwright) |
 | `npm run preview:map` | Génère les aperçus PNG du globe et des routes |
@@ -113,7 +115,7 @@ utilisée dans le navigateur : il fonctionne donc aussi bien en local que derri�
 
 | Élément | Valeur par défaut |
 | --- | --- |
-| Points — facile / moyen / expert | 10 / 20 / 30 |
+| Points — facile / moyen / difficile / expert | 10 / 20 / 30 / 40 |
 | Emplacement exact (bon pays, à moins de 400 km du lieu) | 100 % des points |
 | Bon pays, mais loin du lieu précis | 60 % |
 | À moins de 200 km, de l'autre côté d'une frontière | 40 % |
@@ -123,12 +125,34 @@ utilisée dans le navigateur : il fonctionne donc aussi bien en local que derri�
 | Correction du présentateur | il peut **accorder** ou **retirer** les points après coup |
 | Niveaux | 1 → 6 aux scores 0, 40, 100, 170, 260, 360 |
 | Fin de partie | score, bonnes réponses, pays trouvés, badge (Apprenti → Explorateur légendaire) |
-| Nombre de questions | 5, 8, 10, 12 ou 15 |
+| Nombre de questions | 5, 8, 10, 12 ou 15, dans la limite des fiches disponibles |
 | Thèmes | Tous, Capitales, Monuments, Langues, Nature, Traditions, Histoire |
-| Difficulté | Facile, Moyenne, Experte, ou **Progressive** (montée en difficulté) |
+| Difficulté | Facile, Moyen, Difficile, Expert, ou **Progressive** (facile → expert) |
 
 Le présentateur peut régler thème, difficulté, nombre de questions et seconde chance **avant** le
 démarrage ; ces réglages sont figés dès la première question.
+
+### Quatre difficultés, une vraie progression
+
+| Niveau | Exemple de question | Pays attendu |
+| --- | --- | --- |
+| **1 · Facile** | Tokyo est la capitale de quel pays ? | Japon |
+| **2 · Moyen** | Canberra, et non Sydney, est la capitale de quel pays ? | Australie |
+| **3 · Difficile** | Quel pays a Ljubljana pour capitale ? | Slovénie |
+| **4 · Expert** | Quel pays de l’Himalaya a Thimphou pour capitale ? | Bhoutan |
+
+Chaque thème propose **5 questions par niveau**. Tous les énoncés demandent un pays à désigner sur
+la carte ; les indices, l’explication et la source restent associés à chaque fiche. Les sites
+transfrontaliers précisent le côté visé (par exemple l’Everest côté Népal ou Niagara côté Ontario).
+
+En mode **Progressive**, le tirage est mélangé séparément dans chaque niveau, puis réparti entre
+les quatre paliers avant d’être ordonné du facile à l’expert. Exemple sur 8 questions :
+**2 faciles → 2 moyennes → 2 difficiles → 2 expertes**. Même une partie de 5 questions atteint le
+niveau expert ; le moteur gère aussi les manches de 3 questions avec des paliers espacés.
+
+Un niveau fixe ne sort jamais du thème ou de la difficulté choisis. Si le nombre demandé dépasse
+les fiches disponibles (par exemple 15 questions « Capitales / Expert », pour 5 fiches), la partie
+utilise les **5 fiches uniques**, sans répétition ni ajout d’un autre niveau.
 
 ---
 
@@ -140,7 +164,7 @@ server/
   rooms.mjs        État des salles, machine à états, barème, vues « présentateur » et « joueur »
   questions.mjs    Chargement et validation de la banque, tirage, distance, niveaux
 data/
-  questions.json   Banque de 72 questions (source + date de vérification par fiche)
+  questions.json   Banque de 120 questions (source par fiche, date de révision globale)
 src/app/
   page.tsx         Accueil
   jouer/           Écran joueur
@@ -157,6 +181,7 @@ server/geo.mjs     « Dans quel pays a-t-on cliqué ? » (point-in-polygon sur l
 public/geo/        Natural Earth : pays 50m et 110m, lacs, rivières, routes (voir docs/DONNEES.md)
 scripts/smoke.mjs  Test automatisé du moteur via Socket.IO
 scripts/test-map.mjs    Tests de la géométrie, du barème et de la confidentialité
+scripts/test-questions.mjs Tests de la banque, des quatre niveaux et des files progressives
 scripts/build-geo.mjs   Régénère les pays traduits en français
 scripts/preview-map.mjs Rend les aperçus de la carte en PNG, sans navigateur
 docs/DONNEES.md    Provenance des données, licences, niveau de détail
@@ -199,8 +224,8 @@ si la question n'est pas dans le bon état, ou si la partie n'a pas commencé.
 
 ## 6. Données
 
-Chaque fiche de `data/questions.json` contient : `id`, `theme`, `difficulty` (1-3), `question`,
-`answer`, `accepted` (variantes), `hints` (2), `explanation`, `country`, `countryCode`, `isoN`
+Chaque fiche de `data/questions.json` contient : `id`, `theme`, `difficulty` (1-4), `question`,
+`answer` (pays attendu), `accepted` (noms du pays), `hints` (2), `explanation`, `country`, `countryCode`, `isoN`
 (code ISO numérique utilisé pour surligner le pays sur la carte), `coords` `[lon, lat]` et
 `source {label, url}`.
 
@@ -231,7 +256,13 @@ lue au démarrage du serveur.
 
 ## 8. Tests
 
-**Automatique** — `npm run smoke` (serveur démarré) vérifie 40 points : création de salle, mauvais
+**Sans serveur** — `npm test` lance 47 tests (21 carte + 26 banque/moteur).
+`npm run test:questions` vérifie les 120 fiches, les codes pays, les cibles accessibles sur la carte,
+les quotas et l’ordre de chaque format progressif, les filtres fixes sans doublon, le niveau 4 et
+ses 40 points, les indices et la seconde chance, ainsi que la confidentialité avant résolution.
+La présence d’une URL source est contrôlée ; ces tests ne vérifient pas le contenu des sites externes.
+
+**Automatique** — `npm run smoke` (serveur démarré) vérifie 43 points : création de salle, mauvais
 code refusé, arrivée du joueur, absence de la réponse et du pays attendu dans l'état joueur, indice
 unique, refus d'une réponse sans clic, détection d'un mauvais clic, seconde chance, verdict exact,
 correction du présentateur (accorder / retirer), passage, fin de partie, reconnexion, jeton
@@ -242,9 +273,9 @@ l’accusé de réception d’une seconde chance (pas seulement sur l’événem
 Nouvelle-Zélande, Kiribati), petits pays, comparaison géométrique sur 512 points, clics hors de la
 Terre, coordonnées invalides, barème et confidentialité avant résolution.
 
-**Navigateur** — `npm run test:ui` : 8 scénarios (4 sur ordinateur, 4 sur mobile) couvrent
-l’accueil minimal, les trois critères de création, la prise en compte réelle de la difficulté,
-les erreurs de code et une partie complète : clic sur la carte, confidentialité pendant la seconde
+**Navigateur** — `npm run test:ui` : 10 scénarios (5 sur ordinateur, 5 sur mobile) couvrent
+l’accueil minimal, les trois critères de création, la sauvegarde du niveau expert, la montée
+facile → moyen → difficile → expert sur les deux écrans, les erreurs de code et une partie complète : clic sur la carte, confidentialité pendant la seconde
 chance, indice, validation, correction du présentateur, bilan, nouvelle partie et rechargement des
 sessions. Le débordement horizontal est vérifié sur les deux formats.
 

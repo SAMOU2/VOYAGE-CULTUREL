@@ -7,11 +7,11 @@ async function noHorizontalOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 }
 
-async function createRoom(page: Page) {
+async function createRoom(page: Page, difficulty = '1') {
   await page.goto('/presentateur')
   await expect(page.getByRole('button', { name: 'Créer la salle', exact: true })).toBeEnabled()
   await page.getByLabel('Thème', { exact: true }).selectOption('capitales')
-  await page.getByLabel('Difficulté', { exact: true }).selectOption('1')
+  await page.getByLabel('Difficulté', { exact: true }).selectOption(difficulty)
   await page.getByLabel('Questions', { exact: true }).selectOption('5')
   await page.getByRole('button', { name: 'Créer la salle', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Inviter le joueur' })).toBeVisible()
@@ -22,7 +22,7 @@ async function pickOnMap(page: Page, coords: [number, number]) {
   await page.getByRole('button', { name: 'Carte', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Carte', exact: true })).toHaveAttribute(
     'aria-pressed',
-    'true'
+    'true',
   )
   await expect(page.getByText('Chargement de la carte…', { exact: true })).toBeHidden()
   const bounds = await page.locator('.play-map').boundingBox()
@@ -62,7 +62,49 @@ test('création : trois critères et des options repliées, difficulté conserv�
   // provoquerait un retour silencieux au mode mixte.
   await expect(page.getByLabel('Difficulté', { exact: true })).toHaveValue('1')
   await expect(page.getByLabel('Questions', { exact: true })).toHaveValue('5')
+  await expect(page.getByLabel('Difficulté', { exact: true }).locator('option')).toHaveText([
+    'Progressive',
+    'Facile',
+    'Moyen',
+    'Difficile',
+    'Expert',
+  ])
+  await page.getByLabel('Difficulté', { exact: true }).selectOption('4')
+  await expect(page.getByLabel('Difficulté', { exact: true })).toBeEnabled()
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Inviter le joueur' })).toBeVisible()
+  await page.getByText('Modifier les réglages', { exact: true }).click()
+  await expect(page.getByLabel('Difficulté', { exact: true })).toHaveValue('4')
   await noHorizontalOverflow(page)
+})
+
+test('mode progressif : facile → moyen → difficile → expert sur les deux écrans', async ({ page }) => {
+  test.setTimeout(120_000)
+  const code = await createRoom(page, 'mixte')
+  const player = await page.context().newPage()
+  try {
+    await player.goto(`/jouer?code=${code}`)
+    await player.getByLabel('Pseudo', { exact: true }).fill('Amina')
+    await player.getByRole('button', { name: 'Rejoindre', exact: true }).click()
+    await expect(player.getByRole('heading', { name: 'En attente du présentateur' })).toBeVisible()
+    await page.getByRole('button', { name: 'Démarrer', exact: true }).click()
+    for (const [index, level] of ['Facile', 'Facile', 'Moyen', 'Difficile', 'Expert'].entries()) {
+      await expect(player.locator('.round-counter')).toHaveText(`Question ${index + 1} / 5`)
+      await expect(player.getByLabel('Difficulté de la question', { exact: true })).toHaveText(level)
+      await expect(page.getByLabel('Difficulté de la question', { exact: true })).toHaveText(level)
+      await expect(player.getByRole('textbox')).toHaveCount(0)
+      await noHorizontalOverflow(player)
+      await noHorizontalOverflow(page)
+      await page.getByRole('button', { name: 'Passer', exact: true }).click()
+      await expect(player.locator('.feedback.mid')).toBeVisible()
+      await page
+        .getByRole('button', { name: index === 4 ? 'Voir le bilan' : 'Question suivante', exact: true })
+        .click()
+    }
+    await expect(player.getByText('Partie terminée', { exact: true })).toBeVisible()
+  } finally {
+    await player.close()
+  }
 })
 
 test('code erroné : une erreur claire, le formulaire reste utilisable', async ({ page }) => {
@@ -116,7 +158,7 @@ test('partie complète : clic, seconde chance, indice, correction, bilan et repr
       ] as [number, number][]
     ).find(
       (coords) =>
-        countryAt(...coords)?.id !== question.isoN && (distanceKm(coords, question.coords) ?? 0) > 400
+        countryAt(...coords)?.id !== question.isoN && (distanceKm(coords, question.coords) ?? 0) > 400,
     )!
     await pickOnMap(player, wrong)
     await expect(player.locator('.selected-country')).toHaveText(countryAt(...wrong)!.name)
