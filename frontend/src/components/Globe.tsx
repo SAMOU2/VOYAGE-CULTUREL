@@ -7,7 +7,8 @@ import { geoEquirectangular, geoGraticule10, geoPath } from 'd3-geo'
 import { feature } from 'topojson-client'
 import { buildCountryIndex, findCountryAt, sphereCoordinates, spherePoint } from '@shared/geometry'
 import type { Coordinates, CountryFeature } from '@shared/types'
-import { countryColor, loadCountries, loadRoads } from '@/lib/geodata'
+import { loadCountries, loadEarthImage, loadRoads } from '@/lib/geodata'
+import { EARTH_COLORS, GLOBE_INITIAL } from '@/lib/globeConfig'
 import { Icon } from './Icon'
 import FlatGlobe from './FlatGlobe'
 
@@ -22,13 +23,18 @@ export interface GlobeProps {
   onOcean?: () => void
   disabled?: boolean
   compact?: boolean
+  autoRotate?: boolean
+  spotlight?: { countryId: string; pin: Coordinates } | null
+  focus?: Coordinates | null
+  allowedCountryIds?: string[] | null
 }
 interface GlobeApi {
   zoom: (factor: number) => void
   reset: () => void
   pins: () => void
+  mode: () => void
 }
-const initial: Coordinates = [14, 22]
+const initial = GLOBE_INITIAL.coordinates
 
 export default function Globe(props: GlobeProps) {
   const container = useRef<HTMLDivElement>(null),
@@ -60,11 +66,11 @@ export default function Globe(props: GlobeProps) {
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, small ? 1.5 : 1.75))
     renderer.outputColorSpace = THREE.SRGBColorSpace
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.12
+    renderer.toneMapping = THREE.NeutralToneMapping
+    renderer.toneMappingExposure = 1
     const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(40, 1, 0.05, 30)
-    camera.position.set(...spherePoint(initial, 3.65))
+    const camera = new THREE.PerspectiveCamera(GLOBE_INITIAL.fov, 1, 0.05, 30)
+    camera.position.set(...spherePoint(initial, GLOBE_INITIAL.distance))
     const controls = new OrbitControls(camera, surface)
     controls.enablePan = false
     controls.enableDamping = !reduced
@@ -73,18 +79,19 @@ export default function Globe(props: GlobeProps) {
     controls.maxDistance = 6
     controls.minPolarAngle = 0.06
     controls.maxPolarAngle = Math.PI - 0.06
+    controls.autoRotateSpeed = 0.3
     controls.rotateSpeed = 0.55
     controls.zoomSpeed = 0.7
-    scene.add(new THREE.HemisphereLight('#e0f4ff', '#425e84', 2.1))
-    const light = new THREE.DirectionalLight('#fff7dc', 2.6)
+    scene.add(new THREE.HemisphereLight('#ffffff', '#a9bdd2', 1.8))
+    const light = new THREE.DirectionalLight('#ffffff', 1.8)
     light.position.set(5, 4, 3)
     scene.add(light)
-    const rim = new THREE.DirectionalLight('#66bfe6', 1.1)
+    const rim = new THREE.DirectionalLight('#a8dce8', 0.6)
     rim.position.set(-4, 1, -3)
     scene.add(rim)
     const geometry = new THREE.SphereGeometry(1, small ? 64 : 96, small ? 48 : 64)
     const material = new THREE.MeshStandardMaterial({
-      color: '#a6d7e9',
+      color: EARTH_COLORS.ocean,
       roughness: 0.86,
       metalness: 0.04,
     })
@@ -99,10 +106,10 @@ export default function Globe(props: GlobeProps) {
         vertexShader:
           'varying vec3 vNormal; varying vec3 vView; void main(){vec4 p=modelViewMatrix*vec4(position,1.0);vNormal=normalize(normalMatrix*normal);vView=-p.xyz;gl_Position=projectionMatrix*p;}',
         fragmentShader:
-          'varying vec3 vNormal; varying vec3 vView; void main(){float a=pow(1.0-abs(dot(normalize(vNormal),normalize(vView))),3.0);gl_FragColor=vec4(0.25,0.65,1.0,a*0.42);}',
+          'varying vec3 vNormal; varying vec3 vView; void main(){float a=pow(1.0-abs(dot(normalize(vNormal),normalize(vView))),3.0);gl_FragColor=vec4(0.0,0.67,0.83,a*0.28);}',
       }),
     )
-    atmosphere.scale.setScalar(1.04)
+    atmosphere.scale.setScalar(1.02)
     scene.add(atmosphere)
     const overlayCanvas = document.createElement('canvas')
     overlayCanvas.width = 2048
@@ -133,8 +140,8 @@ export default function Globe(props: GlobeProps) {
       scene.add(group)
       return group
     }
-    const selectedMarker = marker('#ffd38a'),
-      answerMarker = marker('#85f0ce')
+    const selectedMarker = marker(EARTH_COLORS.selection),
+      answerMarker = marker(EARTH_COLORS.answer)
     let disposed = false,
       contextLost = false,
       visible = true,
@@ -144,29 +151,59 @@ export default function Globe(props: GlobeProps) {
     let atlas: THREE.CanvasTexture | undefined,
       roadLoading = false,
       roadsDrawn = false
-    let focus: { from: THREE.Vector3; to: THREE.Vector3; start: number } | null = null,
-      lastFocus = ''
+    let focus: {
+        from: THREE.Vector3
+        rotation: THREE.Quaternion
+        distance: number
+        start: number
+      } | null = null,
+      lastFocus = '',
+      lastRender = 0
 
     function invalidate() {
       if (disposed || contextLost || !visible || document.hidden || frame) return
       frame = requestAnimationFrame(render)
     }
+    function syncMode() {
+      const rotating = Boolean(propsRef.current.autoRotate && !reduced)
+      controls.autoRotate = rotating
+      element!.dataset.rotating = String(rotating)
+      element!.dataset.reducedMotion = String(reduced)
+      invalidate()
+    }
     function render(time: number) {
       frame = 0
       if (disposed || contextLost || !visible || document.hidden) return
+      const rotating = Boolean(propsRef.current.autoRotate && !reduced)
+      // La veille tourne à 30 images/s au maximum ; en jeu le rendu reste à la demande.
+      if (rotating && time - lastRender < 1000 / 30) {
+        invalidate()
+        return
+      }
+      const delta = lastRender ? Math.min(0.05, (time - lastRender) / 1000) : 1 / 60
+      lastRender = time
       if (focus) {
-        const progress = reduced ? 1 : Math.min(1, (time - focus.start) / 650)
-        camera.position.lerpVectors(focus.from, focus.to, 1 - Math.pow(1 - progress, 3))
+        const progress = reduced ? 1 : Math.min(1, (time - focus.start) / 800)
+        const eased = progress * progress * (3 - 2 * progress)
+        const rotation = new THREE.Quaternion().slerp(focus.rotation, eased)
+        const distance = THREE.MathUtils.lerp(focus.distance, GLOBE_INITIAL.distance, eased)
+        camera.position.copy(focus.from).applyQuaternion(rotation).multiplyScalar(distance)
         if (progress >= 1) focus = null
       }
-      const changing = controls.update()
+      controls.autoRotate = rotating && !focus
+      const changing = controls.update(delta)
+      light.position.copy(camera.position).multiplyScalar(2)
+      light.position.y += 2
       renderer.render(scene, camera)
-      if (focus || changing) invalidate()
+      if (focus || changing || rotating) invalidate()
     }
     function aim(pin: Coordinates) {
+      const from = camera.position.clone().normalize(),
+        to = new THREE.Vector3(...spherePoint(pin)).normalize()
       focus = {
-        from: camera.position.clone(),
-        to: new THREE.Vector3(...spherePoint(pin, 3.3)),
+        from,
+        rotation: new THREE.Quaternion().setFromUnitVectors(from, to),
+        distance: camera.position.length(),
         start: performance.now(),
       }
       invalidate()
@@ -182,7 +219,7 @@ export default function Globe(props: GlobeProps) {
     }
     function pins() {
       if (disposed || contextLost) return
-      const { selection, target } = propsRef.current
+      const { selection, target, spotlight, allowedCountryIds } = propsRef.current
       const context = overlayCanvas.getContext('2d')!
       context.clearRect(0, 0, 2048, 1024)
       const path = geoPath(
@@ -191,25 +228,42 @@ export default function Globe(props: GlobeProps) {
           .translate([1024, 512]),
         context,
       )
+      if (allowedCountryIds?.length) {
+        const allowed = new Set(allowedCountryIds)
+        for (const country of features)
+          if (!allowed.has(String(country.id))) {
+            context.beginPath()
+            path(country)
+            context.fillStyle = '#08275e35'
+            context.fill()
+          }
+      }
       for (const [id, color] of [
-        [selection?.country.id, '#ffd38a'],
-        [target?.countryId, '#85f0ce'],
+        [selection?.country.id, EARTH_COLORS.selection],
+        [target?.countryId, EARTH_COLORS.answer],
+        [spotlight?.countryId, EARTH_COLORS.selection],
       ] as const) {
         const country = features.find((f) => String(f.id) === id)
         if (!country) continue
         context.beginPath()
         path(country)
-        context.fillStyle = `${color}45`
+        context.fillStyle = `${color}25`
         context.fill()
+        context.strokeStyle = '#08275e'
+        context.lineWidth = 2.9
+        context.stroke()
         context.strokeStyle = color
-        context.lineWidth = 1.8
+        context.lineWidth = 1.6
         context.stroke()
       }
       overlayTexture.needsUpdate = true
       place(selectedMarker, selection?.pin ?? null)
-      place(answerMarker, target?.pin ?? null)
-      const focusKey = target ? `${target.countryId}:${target.pin.join(',')}` : ''
-      if (focusKey && focusKey !== lastFocus) aim(target!.pin)
+      place(answerMarker, target?.pin ?? spotlight?.pin ?? null)
+      const pin = target?.pin ?? spotlight?.pin ?? propsRef.current.focus
+      const focusKey = pin
+        ? `${target?.countryId ?? spotlight?.countryId ?? 'keyboard'}:${pin.join(',')}`
+        : ''
+      if (focusKey && focusKey !== lastFocus) aim(pin!)
       lastFocus = focusKey
       invalidate()
     }
@@ -217,31 +271,50 @@ export default function Globe(props: GlobeProps) {
       if (disposed || contextLost) return
       features = countries
       index = buildCountryIndex(countries)
-      const width = level === '50m' && !small ? 4096 : 2048
+      const width: 2048 | 4096 | 8192 =
+        level === '50m' && !small
+          ? element!.clientHeight > 1100 && renderer.capabilities.maxTextureSize >= 8192
+            ? 8192
+            : 4096
+          : 2048
+      let earth: HTMLImageElement | null = null
+      try {
+        earth = await loadEarthImage(width)
+      } catch {
+        /* secours terrain uniforme si l'image manque */
+      }
+      if (disposed || contextLost) return
       const map = document.createElement('canvas')
       map.width = width
       map.height = width / 2
       const context = map.getContext('2d')!
-      context.fillStyle = '#18547d'
+      context.fillStyle = EARTH_COLORS.ocean
       context.fillRect(0, 0, map.width, map.height)
+      if (earth) context.drawImage(earth, 0, 0, map.width, map.height)
       const projection = geoEquirectangular()
         .scale(width / (2 * Math.PI))
         .translate([width / 2, width / 4])
       const path = geoPath(projection, context)
       context.beginPath()
       path(geoGraticule10())
-      context.strokeStyle = '#86c9df20'
-      context.lineWidth = 0.65
+      context.strokeStyle = '#ffffff18'
+      context.lineWidth = (width / 4096) * 0.55
       context.stroke()
       for (const country of countries) {
         context.beginPath()
         path(country)
-        context.fillStyle = countryColor(String(country.id))
-        context.fill()
-        context.strokeStyle = '#eff5dc99'
-        context.lineWidth = (width / 4096) * 0.85
+        if (!earth) {
+          context.fillStyle = EARTH_COLORS.land
+          context.fill()
+        }
+        context.strokeStyle = '#08275e70'
+        context.lineWidth = (width / 4096) * 1.7
+        context.stroke()
+        context.strokeStyle = EARTH_COLORS.border
+        context.lineWidth = (width / 4096) * 0.8
         context.stroke()
       }
+      element!.dataset.texture = earth ? String(width) : 'fallback'
       const next = new THREE.CanvasTexture(map)
       next.colorSpace = THREE.SRGBColorSpace
       next.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy())
@@ -282,8 +355,8 @@ export default function Globe(props: GlobeProps) {
           context,
         )
         for (const [name, color, width] of [
-          ['minor', '#fff1c45c', 0.42],
-          ['major', '#fff5d6a0', 0.7],
+          ['minor', '#dff8ff80', 0.42],
+          ['major', '#ffffffbd', 0.7],
         ] as const) {
           if (!topology.objects[name]) continue
           context.beginPath()
@@ -318,6 +391,15 @@ export default function Globe(props: GlobeProps) {
       const { width, height } = element.getBoundingClientRect()
       renderer.setSize(Math.max(1, width), Math.max(1, height), false)
       camera.aspect = width / Math.max(1, height)
+      camera.fov =
+        camera.aspect < 1
+          ? THREE.MathUtils.radToDeg(
+              2 *
+                Math.atan(
+                  Math.tan(THREE.MathUtils.degToRad(GLOBE_INITIAL.fov / 2)) / camera.aspect,
+                ),
+            )
+          : GLOBE_INITIAL.fov
       camera.updateProjectionMatrix()
       invalidate()
     })
@@ -441,7 +523,9 @@ export default function Globe(props: GlobeProps) {
         aim(propsRef.current.target?.pin ?? initial)
       },
       pins,
+      mode: syncMode,
     }
+    syncMode()
     let detailTimer: ReturnType<typeof setTimeout> | undefined
     void loadCountries('110m')
       .then((countries) => paint(countries, '110m'))
@@ -495,7 +579,10 @@ export default function Globe(props: GlobeProps) {
 
   useEffect(() => {
     api.current?.pins()
-  }, [props.selection, props.target])
+  }, [props.selection, props.target, props.spotlight, props.focus, props.allowedCountryIds])
+  useEffect(() => {
+    api.current?.mode()
+  }, [props.autoRotate])
 
   return (
     <div
@@ -506,14 +593,17 @@ export default function Globe(props: GlobeProps) {
     >
       <div className="globe-hud">
         <span className="live-dot" />
-        {status === 'fallback' ? 'CARTE DE SECOURS' : 'EXPLORATION 3D'}
-        <span>{detail ? 'CARTE DÉTAILLÉE' : 'VUE GLOBALE'}</span>
+        {status === 'fallback'
+          ? 'Carte de secours'
+          : detail
+            ? 'Globe détaillé'
+            : 'Chargement du globe'}
       </div>
       <canvas
         key={generation}
         ref={canvas}
         className="webgl-canvas"
-        tabIndex={0}
+        tabIndex={props.spotlight ? -1 : 0}
         title="Clavier : flèches pour explorer, Entrée pour choisir, +/− pour zoomer"
         style={{ visibility: status === 'fallback' ? 'hidden' : 'visible' }}
         aria-label="Globe terrestre 3D interactif : glisser pour tourner, cliquer pour choisir un pays"
@@ -570,9 +660,6 @@ export default function Globe(props: GlobeProps) {
           Réessayer la 3D
         </button>
       )}
-      <div className="globe-coordinates" aria-hidden="true">
-        <span>UNE TERRE, MILLE HISTOIRES</span>
-      </div>
     </div>
   )
 }

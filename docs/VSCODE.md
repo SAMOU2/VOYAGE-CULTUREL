@@ -28,13 +28,14 @@ code .
 Le dossier contient désormais `backend/`, `frontend/`, `shared/`, `data/`, `scripts/`, `tests/`.
 Les dépendances sont installées une seule fois depuis la racine grâce aux npm workspaces.
 
-## 2. Jouer directement — pas d’accueil ni de création de salle
+## 2. Deux écrans — aucune salle ni authentification
 
 - Présentateur : **`http://localhost:3000/presentateur`**.
 - Écran du visiteur : **`http://localhost:3000/jouer`**.
 - `/` redirige vers l’écran visiteur.
 - **Ctrl+F** ou bouton de plein écran, **Échap** pour la sortie native du navigateur.
-- Le présentateur accompagne les questions puis **Terminer le passage** enregistre le score.
+- Le visiteur touche **Jouer**, puis saisit son nom et prénom dans **un seul champ obligatoire**.
+- Le présentateur accompagne les questions ; **Terminer ce passage** enregistre un arrêt anticipé. La fin des quatre niveaux enregistre automatiquement le résultat.
 - Sur téléphone : `http://IP-DE-L-ORDINATEUR:3000/jouer`, jamais `localhost`.
   Trouver cette IP avec `ipconfig` sous Windows ; vérifier le Wi-Fi et le pare-feu.
 
@@ -103,9 +104,10 @@ npx playwright install chromium
 npm run test:ui
 ```
 
-Le smoke lance son propre backend et son propre JSON temporaire : **aucun serveur préalable
-requis, aucun participant réel modifié**. Les tests UI utilisent le stand local et modifient
-son visiteur courant : les lancer hors événement, pas pendant un passage réel.
+Le smoke lance son propre backend et ses JSON temporaires : **aucun serveur préalable
+requis, aucun participant réel modifié**. Les tests UI lancent également un stand **isolé**
+sur 3100/4100, avec des JSON temporaires et `frontend/.next-ui`, sans toucher au stand réel.
+Ne définir `UI_BASE_URL` que pour un serveur de test déjà isolé.
 
 Pour la production, **arrêter le développement** avant de compiler :
 
@@ -126,20 +128,20 @@ npm start
 
 ## 7. Dépannage
 
-| Problème                                 | Solution                                                                                                                           |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `tsx` n’est pas reconnu                  | À la racine du dépôt : `npm ci --include=dev`, puis `npm run dev`. Pas d’installation globale de `tsx`.                            |
-| Watchpack : `EINVAL`, `lstat C:\…sys`    | Voir le dépannage Windows ci-dessous. Ne pas toucher aux fichiers système.                                                         |
-| `EADDRINUSE`                             | Arrêter la copie déjà lancée avec son terminal/F5, ou changer les deux ports. Ne pas tuer tous les processus Node de l’ordinateur. |
-| CSS absent, modules Next introuvables    | Arrêter les serveurs, supprimer seulement `frontend/.next/`, puis relancer. Ne pas compiler pendant le développement.              |
-| Types erronés dans l’éditeur seulement   | Palette → **TypeScript: Select TypeScript Version → Use Workspace Version**, puis **Restart TS Server**.                           |
-| Connexion au stand impossible            | Vérifier qu’Express 4000 et Next 3000 sont tous deux actifs et que les variables de proxy correspondent.                           |
-| « Un présentateur pilote déjà ce stand » | Fermer son onglet pour libérer le pupitre ; recharger le vôtre. Pas de code à saisir.                                              |
-| WebGL indisponible/perdu                 | La carte de secours reste cliquable. Activer l’accélération graphique du navigateur et essayer **Réessayer la 3D**.                |
-| Plein écran refusé                       | Utiliser le bouton dans une fenêtre normale, vérifier les autorisations d’intégration ou le menu du navigateur.                    |
-| `users.json` illisible                   | Arrêter le serveur et conserver une copie avant de réparer le JSON. Le serveur ne l’écrase pas silencieusement.                    |
-| Classement à réinitialiser               | Arrêter le serveur, sauvegarder puis supprimer `data/users.json`. Un fichier vide est recréé au démarrage.                         |
-| PowerShell refuse `&&`                   | Lancer les commandes sur des lignes séparées, comme dans ce guide.                                                                 |
+| Problème                                 | Solution                                                                                                                                                                                               |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tsx` n’est pas reconnu                  | À la racine du dépôt : `npm ci --include=dev`, puis `npm run dev`. Pas d’installation globale de `tsx`.                                                                                                |
+| Watchpack : `EINVAL`, `lstat C:\…sys`    | Voir le dépannage Windows ci-dessous. Ne pas toucher aux fichiers système.                                                                                                                             |
+| `EADDRINUSE`                             | Arrêter la copie déjà lancée avec son terminal/F5, ou changer les deux ports. Ne pas tuer tous les processus Node de l’ordinateur.                                                                     |
+| CSS absent, modules Next introuvables    | Arrêter les serveurs, supprimer seulement `frontend/.next/`, puis relancer. Ne pas compiler pendant le développement.                                                                                  |
+| Types erronés dans l’éditeur seulement   | Palette → **TypeScript: Select TypeScript Version → Use Workspace Version**, puis **Restart TS Server**.                                                                                               |
+| Connexion au stand impossible            | Vérifier qu’Express 4000 et Next 3000 sont tous deux actifs et que les variables de proxy correspondent.                                                                                               |
+| « Un présentateur pilote déjà ce stand » | Fermer son onglet pour libérer le pupitre ; recharger le vôtre. Pas de code à saisir.                                                                                                                  |
+| WebGL indisponible/perdu                 | La carte de secours reste cliquable. Activer l’accélération graphique du navigateur et essayer **Réessayer la 3D**.                                                                                    |
+| Plein écran refusé                       | Utiliser le bouton dans une fenêtre normale, vérifier les autorisations d’intégration ou le menu du navigateur.                                                                                        |
+| `users.json` illisible                   | Arrêter le serveur et conserver une copie avant de réparer le JSON. Le serveur ne l’écrase pas silencieusement.                                                                                        |
+| Archiver après l’événement               | Arrêter le serveur et déplacer `data/users.json` dans un emplacement privé sauvegardé. Un fichier vide sera recréé : cela retire tous les profils et tentatives du stand, pas seulement le classement. |
+| PowerShell refuse `&&`                   | Lancer les commandes sur des lignes séparées, comme dans ce guide.                                                                                                                                     |
 
 ### Watchpack sous Windows : scan de fichiers hors projet
 

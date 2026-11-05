@@ -1,0 +1,22 @@
+ALGOMANIA — image terrestre
+
+Créateur : Solar System Scope / INOVE
+Œuvre : Earth Day Map, texture équirectangulaire 8K.
+Source officielle : https://www.solarsystemscope.com/textures/
+Fichier source : https://www.solarsystemscope.com/textures/download/8k_earth_daymap.jpg
+Licence : Creative Commons Attribution 4.0 International (CC BY 4.0)
+Texte de licence : https://creativecommons.org/licenses/by/4.0/
+
+Modifications pour cette application : redimensionnement à 2048 × 1024 et
+4096 × 2048 ; recompression JPEG des trois résolutions, dont 8192 × 4096.
+Les frontières, les routes et les surbrillances sont composées séparément.
+
+Récupération reproductible depuis un miroir GitHub :
+https://github.com/ChrisDong-THU/MINELOG/blob/b414ffb87b3090735a504c866ec69847b543b035/public/earth/solar-system-scope-earth-8k.jpg
+Le README du même dossier attribue explicitement ce fichier à Solar System Scope
+sous CC BY 4.0. Le blob Git est 8948689d8aa2de78210e608469eabddbf0e0f267 ;
+il est identique à celui récupéré dans le miroir Enyss/Ersiss-System.
+
+La page officielle et le miroir ont été consultés le 5 novembre 2026.
+L'usage de cette image ne constitue pas une approbation de l'application par
+Solar System Scope, INOVE ou NASA. Cette image n'est pas déclarée domaine public.

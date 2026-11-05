@@ -1,20 +1,29 @@
 import express from 'express'
 import { createServer } from 'node:http'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import type { AddressInfo } from 'node:net'
 import { DATA } from './paths.js'
 import { Stand } from './stand.js'
 import { JsonStore } from './store.js'
+import { SettingsStore } from './settings.js'
 import { attachRealtime } from './realtime.js'
-import { catalog } from './data.js'
+import { catalog, facts } from './data.js'
 
 export async function startBackend(
-  options: { port?: number; host?: string; usersFile?: string } = {},
+  options: {
+    port?: number
+    host?: string
+    usersFile?: string
+    settingsFile?: string
+    random?: () => number
+  } = {},
 ) {
-  const store = await JsonStore.open(
-    options.usersFile ?? process.env.USERS_FILE ?? join(DATA, 'users.json'),
+  const usersFile = options.usersFile ?? process.env.USERS_FILE ?? join(DATA, 'users.json')
+  const store = await JsonStore.open(usersFile)
+  const configuration = await SettingsStore.open(
+    options.settingsFile ?? process.env.SETTINGS_FILE ?? join(dirname(usersFile), 'settings.json'),
   )
-  const stand = new Stand(store)
+  const stand = new Stand(store, configuration, options.random)
   const app = express()
   app.disable('x-powered-by')
   app.use((_req, res, next) => {
@@ -22,13 +31,17 @@ export async function startBackend(
     next()
   })
   app.get('/api/health', (_req, res) => {
-    res.json({ ok: true, service: 'voyage-culturel-stand' })
+    res.json({ ok: true, service: 'algomania-geo-stand' })
   })
-  app.get('/api/state', (_req, res) => {
+  app.get(['/api/current-question', '/api/state'], (_req, res) => {
     res.json(stand.playerState())
   })
   app.get('/api/catalog', (_req, res) => {
     res.json(catalog)
+  })
+  app.get('/api/facts', (_req, res) => {
+    res.setHeader('Link', `<${facts.license.url}>; rel="license"`)
+    res.json(facts.countries)
   })
   app.get('/api/leaderboard', (_req, res) => {
     res.json(store.leaderboard())
@@ -36,8 +49,8 @@ export async function startBackend(
   app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'Route inconnue' })
   })
-  const http = createServer(app)
-  const io = attachRealtime(http, stand)
+  const http = createServer(app),
+    io = attachRealtime(http, stand)
   await new Promise<void>((resolve, reject) => {
     http.once('error', reject)
     http.listen(
@@ -52,6 +65,9 @@ export async function startBackend(
     io,
     stand,
     port: (http.address() as AddressInfo).port,
-    close: () => new Promise<void>((resolve) => io.close(() => resolve())),
+    close: async () => {
+      await new Promise<void>((resolve) => io.close(() => resolve()))
+      await stand.flush()
+    },
   }
 }

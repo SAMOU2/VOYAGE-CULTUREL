@@ -20,6 +20,14 @@ export type IconName =
   | 'link'
   | 'clock'
   | 'settings'
+  | 'play'
+  | 'pause'
+  | 'keyboard'
+  | 'backspace'
+  | 'back'
+  | 'info'
+  | 'chevron'
+  | 'swap'
 const paths: Record<IconName, string> = {
   globe:
     'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM3 12h18M12 3c3 3 4 6 4 9s-1 6-4 9c-3-3-4-6-4-9s1-6 4-9Z',
@@ -41,6 +49,14 @@ const paths: Record<IconName, string> = {
   link: 'M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-2 2m3 6a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l2-2',
   clock: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM12 7v5l3 2',
   settings: 'M4 7h16M4 17h16M8 4v6m8 4v6',
+  play: 'm8 5 11 7-11 7V5Z',
+  pause: 'M8 5v14M16 5v14',
+  keyboard: 'M3 5h18v14H3V5Zm3 4h1m4 0h1m4 0h1M6 12h1m4 0h1m4 0h1M7 16h10',
+  backspace: 'm9 5-7 7 7 7h12V5H9Zm3 4 6 6m-6 0 6-6',
+  back: 'M19 12H5m6-6-6 6 6 6',
+  info: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM12 11v6m0-10v1',
+  chevron: 'm6 9 6 6 6-6',
+  swap: 'M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4',
 }
 export function Icon({ name, ...props }: SVGProps<SVGSVGElement> & { name: IconName }) {
   return (

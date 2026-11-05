@@ -10,6 +10,7 @@ import type {
   CountryFeature,
   CountryTopology,
   Difficulty,
+  FactsFile,
   Question,
   QuestionBankFile,
 } from '../../shared/types.js'
@@ -19,6 +20,7 @@ export const countries = new Map<string, Country>(
   countryFile.countries.map((country) => [country.id, country]),
 )
 export const bank: QuestionBankFile = JSON.parse(readFileSync(join(DATA, 'questions.json'), 'utf8'))
+export const facts: FactsFile = JSON.parse(readFileSync(join(DATA, 'facts.json'), 'utf8'))
 export const questions: Question[] = Object.entries(bank.byCountry).flatMap(
   ([countryId, group]) => {
     if (!countries.has(countryId)) throw new Error(`Pays inconnu dans la banque : ${countryId}`)
@@ -28,22 +30,25 @@ export const questions: Question[] = Object.entries(bank.byCountry).flatMap(
     })
   },
 )
-const ids = new Set<string>()
+export const questionById = new Map(questions.map((q) => [q.id, q]))
+if (questionById.size !== questions.length || !questions.length)
+  throw new Error('Banque vide ou identifiants dupliqués')
 for (const q of questions) {
   if (
-    ids.has(q.id) ||
     ![1, 2, 3, 4].includes(q.difficulty) ||
-    !bank.themes.some((theme) => theme.id === q.theme) ||
+    !bank.themes.some((t) => t.id === q.theme) ||
     !q.question ||
     q.hints.length !== 2 ||
     !q.explanation ||
     !q.source.url.startsWith('https://')
-  ) {
+  )
     throw new Error(`Fiche invalide : ${q.id}`)
-  }
-  ids.add(q.id)
 }
-if (!questions.length) throw new Error('Banque vide')
+for (const id of countries.keys())
+  for (const difficulty of [1, 2, 3, 4]) {
+    if (!bank.byCountry[id]?.some((q) => q.difficulty === difficulty))
+      throw new Error(`Le pays ${id} n'a pas de question au niveau ${difficulty}`)
+  }
 const topology: CountryTopology = JSON.parse(readFileSync(join(GEO, 'countries-50m.json'), 'utf8'))
 export const countryFeatures = feature(topology, topology.objects.countries)
   .features as CountryFeature[]
@@ -58,5 +63,11 @@ export const catalog: Catalog = {
   themes: bank.themes,
   difficulties: bank.difficulties,
   questions: questions.length,
-  countries: countries.size,
+  countries: countryFile.countries
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      region: facts.countries.find((f) => f.countryId === c.id)?.region ?? '',
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr')),
 }

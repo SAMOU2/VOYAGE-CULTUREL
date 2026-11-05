@@ -12,23 +12,25 @@
     "start": "node backend/dist/scripts/run.js start",
     "build": "npm run build --workspaces",
     "typecheck": "tsc -p backend/tsconfig.json --noEmit && tsc -p frontend/tsconfig.json --noEmit && tsc -p tests/tsconfig.json --noEmit",
-    "test": "tsx --test tests/unit/bank.test.ts tests/unit/geometry.test.ts tests/unit/stand.test.ts tests/unit/store.test.ts tests/unit/realtime.test.ts tests/unit/watch-scope.test.ts",
+    "test": "tsx --test tests/unit/bank.test.ts tests/unit/geometry.test.ts tests/unit/stand.test.ts tests/unit/store.test.ts tests/unit/realtime.test.ts tests/unit/watch-scope.test.ts tests/unit/query.test.ts",
     "test:ui": "playwright test",
     "smoke": "tsx scripts/smoke.ts",
     "build:geo": "tsx scripts/build-geo.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "build:data": "tsx scripts/build-game-data.ts"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.64.1",
     "@types/geojson": "^7946.0.16",
     "@types/node": "^22.10.0",
     "@types/topojson-client": "^3.1.5",
     "i18n-iso-countries": "^7.14.0",
+    "prettier": "^3.9.10",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "world-atlas": "^2.0.2",
-    "prettier": "^3.9.10"
+    "world-atlas": "^2.0.2"
   },
   "engines": {
     "node": ">=22"
