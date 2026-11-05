@@ -143,6 +143,32 @@ npm start
 | Archiver après l’événement               | Arrêter le serveur et déplacer `data/users.json` dans un emplacement privé sauvegardé. Un fichier vide sera recréé : cela retire tous les profils et tentatives du stand, pas seulement le classement. |
 | PowerShell refuse `&&`                   | Lancer les commandes sur des lignes séparées, comme dans ce guide.                                                                                                                                     |
 
+### Module npm introuvable
+
+Exemple : `Module not found: Can't resolve '@tanstack/react-query'` dans `QueryProvider.tsx`.
+
+React Query est déjà déclaré dans les **dépendances d’exécution** de `frontend/package.json` et dans le `package-lock.json` à la racine. Un Pull ne réinstalle pas les paquets : cette erreur indique généralement un `node_modules` ancien, incomplet ou installé sans le workspace frontend. Il ne faut ni retirer React Query, ni remplacer ses imports, ni installer arbitrairement une autre version à la racine.
+
+1. Arrêter **Express et Next** avec **Ctrl+C**, ou arrêter le débogage VS Code avec **Shift+F5**.
+2. Ouvrir le terminal à la **racine du dépôt**, le dossier contenant `package-lock.json`, `frontend/` et `backend/`, pas dans `frontend/` seul.
+3. Exécuter ces lignes séparément dans PowerShell 5.1 :
+
+```powershell
+npm ci --include=dev --workspaces --include-workspace-root
+Remove-Item -Recurse -Force .\frontend\.next -ErrorAction SilentlyContinue
+npm run dev
+```
+
+`npm ci` réinstalle les versions verrouillées pour tous les workspaces, y compris React Query et les polices locales. La deuxième ligne efface seulement le cache de compilation Next ; **les fichiers de `data/`, les participants et leurs tentatives sont conservés**. Ne pas supprimer `package-lock.json`.
+
+Pour vérifier l’installation si l’erreur persiste :
+
+```powershell
+npm ls @tanstack/react-query --workspace frontend
+```
+
+Le résultat doit rattacher `@tanstack/react-query` au workspace `@voyage/frontend`, sans erreur de dépendance manquante. Si `npm ci` échoue, corriger d’abord son erreur (réseau/registre, droits sur le dossier du projet ou version de Node), plutôt que de relancer Next sur une installation incomplète. Utiliser **Node.js 22+** ; aucune installation globale de React Query ni exécution en administrateur n’est nécessaire.
+
 ### Watchpack sous Windows : scan de fichiers hors projet
 
 Si le terminal affiche `Watchpack Error (initial scan): EINVAL, lstat` pour
