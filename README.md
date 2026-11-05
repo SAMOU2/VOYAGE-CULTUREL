@@ -27,6 +27,8 @@ npm ci --include=dev
 npm run dev
 ```
 
+**Après un Pull**, réinstaller les dépendances avant de redémarrer si `package-lock.json` a changé : Git met à jour le code, **pas `node_modules`**. Une erreur `Can't resolve '@tanstack/react-query'` ne nécessite pas de modifier `QueryProvider.tsx` : React Query est déjà une dépendance du frontend. Voir la [procédure de réinstallation et de nettoyage du cache Next](docs/VSCODE.md#module-npm-introuvable).
+
 Deux processus distincts sont lancés :
 
 | Service | Adresse locale          | Fonction                                               |
