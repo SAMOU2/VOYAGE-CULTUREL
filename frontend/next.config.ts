@@ -19,7 +19,7 @@ export function createWatchIgnore(projectRoot: string, previous?: RegExp): RegEx
   const rootPattern = normalizedRoot.split('/').map(escapeRegExp).join(separator)
   const sources = [
     `^(?!${rootPattern}(?:${separator}|$))`,
-    `(?:^|${separator})(?:node_modules|\\.git|\\.next)(?:${separator}|$)`,
+    `(?:^|${separator})(?:node_modules|\\.git|\\.next|\\.next-ui|\\.cache)(?:${separator}|$)`,
   ]
   if (previous) sources.push(`(?:${previous.source})`)
   // Un RegExp global/sticky alternerait les résultats entre deux appels de Watchpack.
@@ -34,6 +34,7 @@ const projectRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const backend = process.env.BACKEND_ORIGIN || `http://127.0.0.1:${process.env.BACKEND_PORT || 4000}`
 const config: NextConfig = {
   reactStrictMode: true,
+  distDir: process.env.STAND_UI_TEST === '1' ? '.next-ui' : '.next',
   devIndicators: false,
   poweredByHeader: false,
   outputFileTracingRoot: projectRoot,

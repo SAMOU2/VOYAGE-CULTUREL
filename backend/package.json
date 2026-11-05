@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --include ../data/questions.json --include ../data/countries.json src/index.ts",
+    "dev": "tsx watch --include ../data/questions.json --include ../data/countries.json --include ../data/facts.json src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/backend/src/index.js"
   },

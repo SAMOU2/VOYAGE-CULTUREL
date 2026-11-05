@@ -3,6 +3,8 @@ import type { GeometryCollection, Topology } from 'topojson-specification'
 
 export type Coordinates = [number, number]
 export type Difficulty = 1 | 2 | 3 | 4
+export type GameMode = 'club33' | 'world'
+export type Role = 'player' | 'presenter'
 export interface Country {
   id: string
   name: string
@@ -46,59 +48,121 @@ export interface DifficultyInfo {
   points: number
 }
 export interface QuestionBankFile {
+  attribution: string
+  license: Source
   version: string
   checkedAt: string
   themes: Theme[]
   difficulties: DifficultyInfo[]
   byCountry: Record<string, Question[]>
 }
-export interface StandSettings {
-  theme: string
-  difficulty: Difficulty | 'progressive'
+export interface CountryFact {
+  id: string
+  countryId: string
+  countryName: string
+  region: string
+  pin: Coordinates
+  facts: { id: string; title: string; text: string; source: Source }[]
+}
+export interface FactsFile {
+  version: 1
+  attribution: string
+  license: Source
+  countries: CountryFact[]
+}
+export interface GameSettings {
+  mode: GameMode
+  clubCountryIds: string[]
+  questionsPerStage: number
   allowRetry: boolean
 }
 export interface Catalog {
   themes: Theme[]
   difficulties: DifficultyInfo[]
   questions: number
-  countries: number
-}
-export interface Participant {
-  id: string
-  nickname: string
-  startedAt: string
-  score: number
-  correct: number
-  answered: number
+  countries: { id: string; name: string; region: string }[]
 }
 export interface UserRecord {
   id: string
-  nickname: string
+  fullName: string
+  nameKey: string
   createdAt: string
 }
-export interface ScoreRecord {
+export type AttemptStatus = 'playing' | 'completed' | 'stopped' | 'interrupted'
+export interface AnswerRecord {
+  id: string
+  questionId: string
+  countryId: string
+  difficulty: Difficulty
+  selectedCountryId: string | null
+  pin: Coordinates | null
+  outcome: 'correct' | 'incorrect'
+  points: number
+  hintsUsed: number
+  tries: number
+  answeredAt: string
+}
+export interface AttemptRecord {
   id: string
   userId: string
+  fullName: string
+  startedAt: string
+  finishedAt: string | null
+  status: AttemptStatus
   score: number
   correct: number
   answered: number
-  completedAt: string
-  durationMs: number
+  maxLevel: Difficulty
+  mode: GameMode
+  questionsPerStage: number
+  answers: AnswerRecord[]
+  migrated?: boolean
+}
+export interface Feedback {
+  outcome: 'correct' | 'incorrect'
+  points: number
+  country: Country
+  explanation: string
+  source: Source
+  location: Coordinates
+  clickedCountry: Pick<Country, 'id' | 'name'> | null
+}
+/** Seulement dans users.json côté serveur : jamais envoyé tel quel au joueur. */
+export interface StoredSession {
+  attemptId: string
+  questionId: string
+  questionToken: string
+  turn: number
+  hintsRevealed: number
+  tries: number
+  feedback: Feedback | null
+  usedQuestionIds: string[]
+  settings: GameSettings
 }
 export interface UsersFile {
-  version: 1
+  version: 2
+  nextTurn: number
   users: UserRecord[]
-  leaderboard: ScoreRecord[]
+  attempts: AttemptRecord[]
+  session: StoredSession | null
 }
 export interface LeaderboardEntry {
   rank: number
-  nickname: string
+  userId: string
+  fullName: string
   score: number
   correct: number
   answered: number
+  level: Difficulty
   completedAt: string
 }
+export interface AdminLeaderboardEntry extends LeaderboardEntry {
+  attempts: number
+  bestAttemptId: string
+}
+export type AttemptSummary = Omit<AttemptRecord, 'answers'>
 export interface PublicQuestion {
+  /** Identifiant opaque, distinct de l'ID interne de la banque. */
   id: string
   turn: number
   prompt: string
@@ -109,47 +173,94 @@ export interface PublicQuestion {
   hints: string[]
   attempts: number
 }
-export interface Feedback {
-  outcome: 'correct' | 'incorrect' | 'skipped'
-  points: number
-  country: Country
-  explanation: string
-  source: Source
-  location: Coordinates
-  clickedCountry: Pick<Country, 'id' | 'name'> | null
+export interface PublicGame {
+  id: string
+  fullName: string
+  score: number
+  correct: number
+  answered: number
+  stage: Difficulty
+  stageAnswered: number
+  stages: 4
+  questionsPerStage: number
+  totalQuestions: number
+  mode: GameMode
+  scopeCountryIds: string[] | null
+  allowRetry: boolean
+  status: AttemptStatus
 }
 export interface PlayerState {
   role: 'player'
-  phase: 'question' | 'feedback'
-  participant: Pick<Participant, 'nickname' | 'score' | 'correct' | 'answered'>
-  question: PublicQuestion
+  revision: number
+  phase: 'idle' | 'question' | 'feedback' | 'finished'
+  game: PublicGame | null
+  question: PublicQuestion | null
   feedback: Feedback | null
   leaderboard: LeaderboardEntry[]
 }
 export interface PresenterState extends Omit<PlayerState, 'role'> {
   role: 'presenter'
-  answer: { country: Country; explanation: string; source: Source; location: Coordinates }
-  settings: StandSettings
-  catalog: Catalog
+  answer: {
+    country: Country
+    explanation: string
+    source: Source
+    location: Coordinates
+    hints: [string, string]
+  } | null
+  settings: GameSettings
+  adminLeaderboard: AdminLeaderboardEntry[]
 }
 export type StandState = PlayerState | PresenterState
+export interface TurnPayload {
+  attemptId: string
+  turn: number
+}
+export interface BeginPayload {
+  fullName: string
+  confirmExisting?: boolean
+}
 export type Command =
-  | { type: 'hint' | 'next' | 'skip' | 'correct' | 'incorrect' }
-  | { type: 'new-participant'; nickname?: string }
-  | { type: 'rename'; nickname: string }
-  | { type: 'settings'; settings: StandSettings }
-export type Result = { ok: true; retry?: boolean; token?: string } | { ok: false; error: string }
-export type Ack = (result: Result) => void
+  | {
+      type: 'hint' | 'next' | 'replace-question' | 'correct' | 'incorrect'
+      attemptId: string
+      turn: number
+    }
+  | { type: 'end-game'; attemptId: string }
+  | { type: 'reset' }
+  | { type: 'settings'; settings: GameSettings }
+export interface ReturningPlayer {
+  fullName: string
+  attempts: number
+  bestScore: number
+}
+export interface ActionData {
+  retry?: boolean
+  returning?: ReturningPlayer
+}
+export type Failure = { ok: false; error: string }
+export type Result<T extends object = ActionData> = ({ ok: true } & T) | Failure
+export type Ack<T extends object = ActionData> = (result: Result<T>) => void
 export interface ClientEvents {
   'stand:watch': (payload: Record<string, never>, ack: Ack) => void
-  'presenter:claim': (payload: { token?: string }, ack: Ack) => void
+  'stand:current-question': (
+    payload: Record<string, never>,
+    ack: Ack<{ state: StandState }>,
+  ) => void
+  'presenter:claim': (payload: { token?: string }, ack: Ack<{ token: string }>) => void
   'presenter:command': (payload: Command, ack: Ack) => void
-  'player:submit': (payload: { turn: number; pin: Coordinates }, ack: Ack) => void
+  'presenter:history': (
+    payload: { userId: string },
+    ack: Ack<{ attempts: AttemptSummary[] }>,
+  ) => void
+  'player:begin': (payload: BeginPayload, ack: Ack) => void
+  'player:submit': (payload: TurnPayload & { pin: Coordinates }, ack: Ack) => void
+  'player:next': (payload: TurnPayload, ack: Ack) => void
+  'player:leave': (payload: { attemptId: string }, ack: Ack) => void
 }
 export interface ServerEvents {
   'stand:state': (state: StandState) => void
   'presenter:replaced': () => void
 }
 export interface SocketData {
-  role?: 'player' | 'presenter'
+  role?: Role
 }

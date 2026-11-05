@@ -1,153 +1,216 @@
-/** Test bout en bout Express + Socket.IO isolé : ne modifie jamais les visiteurs du stand réel. */
+/** HTTP et vrais WebSockets sur des JSON temporaires : ne touche jamais au stand réel. */
 import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { io, type Socket } from 'socket.io-client'
 import { startBackend } from '../backend/src/app.js'
-import type { Ack, ClientEvents, Command, Result, ServerEvents } from '../shared/types.js'
-import { landPin, wrongPin } from '../tests/unit/helpers.js'
+import {
+  claim,
+  command,
+  connect,
+  response,
+  snapshot,
+  watch,
+  type Client,
+} from '../tests/support/network.js'
+import { landPin, turnOf, wrongPin } from '../tests/unit/helpers.js'
 
-const directory = await mkdtemp(join(tmpdir(), 'voyage-smoke-'))
-const backend = await startBackend({
-  port: 0,
-  host: '127.0.0.1',
-  usersFile: join(directory, 'users.json'),
-})
-const sockets: Socket<ServerEvents, ClientEvents>[] = []
-let checks = 0
+const directory = await mkdtemp(join(tmpdir(), 'algomania-smoke-')),
+  usersFile = join(directory, 'users.json')
+let backend = await startBackend({ port: 0, host: '127.0.0.1', usersFile }),
+  checks = 0
+const sockets: Client[] = []
 function check(condition: unknown, label: string): asserts condition {
   assert.ok(condition, label)
   checks++
   console.log(`✓ ${label}`)
 }
-function request(send: (ack: Ack) => void): Promise<Result> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('Ack absent')), 4_000)
-    send((result) => {
-      clearTimeout(timer)
-      resolve(result)
-    })
-  })
-}
-async function connect() {
-  const socket: Socket<ServerEvents, ClientEvents> = io(`http://127.0.0.1:${backend.port}`, {
-    transports: ['websocket'],
-    reconnection: false,
-    addTrailingSlash: false,
-  })
+const client = async () => {
+  const socket = await connect(`http://127.0.0.1:${backend.port}`)
   sockets.push(socket)
-  await new Promise<void>((resolve, reject) => {
-    socket.once('connect', () => resolve())
-    socket.once('connect_error', reject)
-  })
   return socket
 }
 try {
   const base = `http://127.0.0.1:${backend.port}`
-  for (const route of ['health', 'catalog', 'state', 'leaderboard']) {
-    const response = await fetch(`${base}/api/${route}`)
-    check(response.ok, `GET /api/${route}`)
-    check(response.headers.get('cache-control') === 'no-store', `${route} non mis en cache`)
+  for (const route of ['health', 'current-question', 'state', 'catalog', 'facts', 'leaderboard']) {
+    const result = await fetch(`${base}/api/${route}`)
+    check(result.ok, `GET /api/${route}`)
+    check(result.headers.get('cache-control') === 'no-store', `${route} non mis en cache`)
   }
-  for (const route of ['rooms', 'questions', 'users'])
-    check((await fetch(`${base}/api/${route}`)).status === 404, `Aucune API publique /${route}`)
-  const host = await connect(),
-    player = await connect(),
-    outsider = await connect()
+  for (const route of ['rooms', 'questions', 'users', 'attempts', 'answer'])
+    check((await fetch(`${base}/api/${route}`)).status === 404, `Pas d’API publique /${route}`)
+  const host = await client(),
+    player = await client(),
+    outsider = await client(),
+    claimed = await claim(host)
+  check(claimed.ok && claimed.token.length === 64, 'Pupitre automatique, capacité interne opaque')
+  check((await watch(player)).ok, 'Écran joueur connecté sans compte ni code')
+  check(!(await claim(outsider)).ok, 'Un seul pupitre actif')
+  check(!(await command(player, { type: 'reset' })).ok, 'Commandes privées protégées')
   check(
-    host.io.engine.transport.name === 'websocket',
-    'WebSocket réel via TCP sur un backend isolé',
+    !(await response((ack) => player.emit('player:begin', { fullName: '' }, ack))).ok,
+    'Nom complet obligatoire',
   )
-  const claimed = await request((ack) => host.emit('presenter:claim', {}, ack))
-  check(
-    claimed.ok && claimed.token?.length === 64,
-    'Présentateur automatique, capacité interne sans code à saisir',
-  )
-  const cmd = (command: Command) => request((ack) => host.emit('presenter:command', command, ack))
-  check(
-    (await request((ack) => player.emit('stand:watch', {}, ack))).ok,
-    'Joueur connecté sans compte',
-  )
-  check(
-    !(await request((ack) => outsider.emit('presenter:claim', {}, ack))).ok,
-    'Un seul contrôleur actif',
-  )
-  check(
-    !(await request((ack) => player.emit('presenter:command', { type: 'skip' }, ack))).ok,
-    'Commandes privées protégées',
-  )
-  check(backend.stand.playerState().feedback === null, 'Aucun corrigé avant réponse')
-  check(!('answer' in backend.stand.playerState()), 'Aucun champ answer public')
   check(
     (
-      await cmd({
+      await command(host, {
         type: 'settings',
-        settings: { theme: 'capitales', difficulty: 4, allowRetry: true },
+        settings: {
+          ...backend.stand.settings,
+          mode: 'world',
+          questionsPerStage: 2,
+          allowRetry: true,
+        },
       })
     ).ok,
-    'Thème et niveau expert',
+    'Monde entier et 2 questions par niveau configurés',
   )
-  check(backend.stand.playerState().question.points === 40, 'Barème expert 40 points')
-  check((await cmd({ type: 'rename', nickname: 'Visiteur smoke' })).ok, 'Pseudo facultatif')
-  check((await cmd({ type: 'hint' })).ok, 'Indice publié')
-  check(backend.stand.playerState().question.points === 35, 'Pénalité indice de 5 points')
-  const state = backend.stand.playerState(),
-    answer = backend.stand.presenterState().answer
-  const retry = await request((ack) =>
+  check(
+    (
+      await response((ack) =>
+        player.emit('player:begin', { fullName: 'Visiteur Démonstration' }, ack),
+      )
+    ).ok,
+    'Début de tentative nommé',
+  )
+  const initial = backend.stand.playerState(),
+    oldTurn = turnOf(backend.stand)
+  check(initial.game!.totalQuestions === 8, 'Quatre niveaux, huit questions au total')
+  check(
+    !('answer' in initial) && !('countryId' in initial.question!) && initial.feedback === null,
+    'Corrigé absent du snapshot public',
+  )
+  check(
+    (await command(host, { type: 'replace-question', ...oldTurn })).ok,
+    'Question remplacée au pupitre',
+  )
+  check(
+    backend.stand.playerState().game!.answered === 0 && turnOf(backend.stand).turn > oldTurn.turn,
+    'Remplacement sans progression, nouveau tour',
+  )
+  check((await command(host, { type: 'hint', ...turnOf(backend.stand) })).ok, 'Un indice partagé')
+  const answer = backend.stand.presenterState().answer!
+  const retry = await response((ack) =>
     player.emit(
       'player:submit',
-      { turn: state.question.turn, pin: wrongPin(answer.country.id) },
+      { ...turnOf(backend.stand), pin: wrongPin(answer.country.id) },
       ack,
     ),
   )
-  check(retry.ok && retry.retry, 'Seconde chance proposée')
+  check(JSON.stringify(retry) === '{"ok":true,"retry":true}', 'Ack de seconde chance sans corrigé')
+  const publicSnapshot = await snapshot(player)
   check(
-    JSON.stringify(retry) === '{"ok":true,"retry":true}',
-    'Ack de seconde chance sans corrigé ni coordonnées',
+    publicSnapshot.ok &&
+      publicSnapshot.state.feedback === null &&
+      !('answer' in publicSnapshot.state),
+    'Snapshot réseau encore confidentiel',
   )
-  check(backend.stand.playerState().feedback === null, 'État public encore confidentiel')
   check(
     (
-      await request((ack) =>
+      await response((ack) =>
         player.emit(
           'player:submit',
-          { turn: state.question.turn, pin: landPin(answer.country.id) },
+          { ...turnOf(backend.stand), pin: landPin(answer.country.id) },
           ack,
         ),
       )
     ).ok,
-    'Choix géographique validé par le serveur',
-  )
-  check(backend.stand.playerState().participant.score === 18, 'Score demi-barème arrondi')
-  check(
-    backend.stand.playerState().feedback?.country.id === answer.country.id,
-    'Pays révélé après résolution seulement',
+    'Réponse juste validée sur une vraie terre',
   )
   check(
-    !(
-      await request((ack) =>
+    backend.stand.playerState().feedback?.outcome === 'correct',
+    'Corrigé public seulement après résolution',
+  )
+  check(
+    backend.stand.playerState().game!.score === 5,
+    'Plancher de points après indice et seconde chance',
+  )
+  while (backend.stand.playerState().game!.status === 'playing') {
+    assert.ok((await response((ack) => player.emit('player:next', turnOf(backend.stand), ack))).ok)
+    const pin = landPin(backend.stand.presenterState().answer!.country.id)
+    assert.ok(
+      (
+        await response((ack) =>
+          player.emit('player:submit', { ...turnOf(backend.stand), pin }, ack),
+        )
+      ).ok,
+    )
+  }
+  const finished = backend.stand.playerState()
+  check(
+    finished.phase === 'finished' && finished.game!.answered === 8,
+    'Fin de partie après les quatre niveaux',
+  )
+  check(
+    finished.game!.score === 195 && finished.game!.stage === 4,
+    'Barème 10/20/30/40 et progression expert',
+  )
+  check(
+    finished.leaderboard.length === 1 && finished.leaderboard[0].score === 195,
+    'Meilleur score sauvegardé au classement',
+  )
+  const returning = await response((ack) =>
+    player.emit('player:begin', { fullName: 'Visiteur Démonstration' }, ack),
+  )
+  check(
+    returning.ok && returning.returning?.attempts === 1,
+    'Nom connu : confirmation explicite demandée',
+  )
+  check(
+    (
+      await response((ack) =>
         player.emit(
-          'player:submit',
-          { turn: state.question.turn, pin: landPin(answer.country.id) },
+          'player:begin',
+          { fullName: 'Visiteur Démonstration', confirmExisting: true },
           ack,
         ),
       )
     ).ok,
-    'Double validation refusée',
-  )
-  check((await cmd({ type: 'new-participant' })).ok, 'Passage terminé et nouveau visiteur prêt')
-  const stored = JSON.parse(await readFile(join(directory, 'users.json'), 'utf8'))
-  check(
-    stored.users.length === 1 && stored.leaderboard.length === 1,
-    'Utilisateurs et classement enregistrés dans le JSON isolé',
+    'Rejouer avec le même profil',
   )
   check(
-    backend.stand.playerState().leaderboard[0].nickname === 'Visiteur smoke',
-    'Classement diffusé',
+    backend.stand.store.adminLeaderboard()[0].attempts === 2 &&
+      backend.stand.store.leaderboard().length === 1,
+    'Deux tentatives, une seule ligne',
   )
-  check(backend.stand.playerState().participant.score === 0, 'Nouveau visiteur à zéro')
-  console.log(`\n${checks} vérifications smoke réussies. Aucune donnée réelle modifiée.`)
+  const before = backend.stand.playerState(),
+    data = JSON.parse(await readFile(usersFile, 'utf8'))
+  check(
+    data.version === 2 && data.attempts.length === 2 && data.attempts[0].answers.length === 8,
+    'JSON v2 : toutes les tentatives et réponses détaillées',
+  )
+  check(data.attempts[0].answers[0].tries === 2, 'Nombre d’essais conservé')
+  sockets.forEach((socket) => socket.disconnect())
+  await backend.close()
+  backend = await startBackend({ port: 0, host: '127.0.0.1', usersFile })
+  check(
+    backend.stand.playerState().question?.id === before.question?.id &&
+      backend.stand.playerState().question?.turn === before.question?.turn,
+    'Question active restaurée après redémarrage',
+  )
+  check(
+    backend.stand.settings.mode === 'world' && backend.stand.settings.allowRetry,
+    'Réglages locaux restaurés',
+  )
+  check(
+    !(await backend.stand.submit({ ...oldTurn, pin: landPin(answer.country.id) })).ok,
+    'Validation ancienne rejetée après redémarrage',
+  )
+  check(
+    (await backend.stand.command({ type: 'end-game', attemptId: turnOf(backend.stand).attemptId }))
+      .ok,
+    'Fin anticipée persistée',
+  )
+  check(
+    (await backend.stand.leave({ attemptId: turnOf(backend.stand).attemptId })).ok,
+    'Retour à l’accueil sans supprimer l’historique',
+  )
+  check(
+    backend.stand.store.leaderboard()[0].score === 195 &&
+      backend.stand.store.adminLeaderboard()[0].attempts === 2,
+    'Meilleur score et tentatives préservés',
+  )
+  console.log(`\n${checks} contrôles smoke réussis.`)
 } finally {
   sockets.forEach((socket) => socket.disconnect())
   await backend.close()

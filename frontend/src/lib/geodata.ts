@@ -24,7 +24,7 @@ export function loadRoads() {
   roads ??= fetch('/geo/roads-10m.json')
     .then(async (response) => {
       if (!response.ok) throw new Error('Routes indisponibles')
-      return (await response.json()) as Topology<Record<string, MultiLineString>>
+      return response.json() as Promise<Topology<Record<string, MultiLineString>>>
     })
     .catch((error) => {
       roads = undefined
@@ -32,19 +32,20 @@ export function loadRoads() {
     })
   return roads
 }
-export const countryColor = (id: string): string => {
-  const palette = [
-    '#91b993',
-    '#d4b87e',
-    '#8ab9b3',
-    '#c6aa85',
-    '#8eaf7e',
-    '#d9c295',
-    '#a3c6c8',
-    '#beb497',
-    '#b2c5a0',
-    '#d5a491',
-  ]
-  const hash = [...id].reduce((a, c) => a * 31 + c.charCodeAt(0), 0)
-  return id === '010' ? '#cce3e9' : palette[Math.abs(hash) % palette.length]
+const images = new Map<number, Promise<HTMLImageElement>>()
+export function loadEarthImage(size: 2048 | 4096 | 8192): Promise<HTMLImageElement> {
+  const cached = images.get(size)
+  if (cached) return cached
+  const request = new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image()
+    image.decoding = 'async'
+    image.onload = () => resolve(image)
+    image.onerror = () => {
+      images.delete(size)
+      reject(new Error('Texture terrestre indisponible'))
+    }
+    image.src = `/textures/earth-day-${size}.jpg`
+  })
+  images.set(size, request)
+  return request
 }

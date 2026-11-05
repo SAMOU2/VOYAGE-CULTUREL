@@ -1,18 +1,22 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Icon } from './Icon'
 
 export default function SiteHeader({
   role,
   connected,
+  children,
+  inert = false,
 }: {
   role: 'player' | 'presenter'
   connected: boolean
+  children?: ReactNode
+  inert?: boolean
 }) {
-  const [fullscreen, setFullscreen] = useState(false)
-  const [message, setMessage] = useState('')
+  const [fullscreen, setFullscreen] = useState(false),
+    [message, setMessage] = useState('')
   const toggle = useCallback(async () => {
     try {
       if (document.fullscreenElement) await document.exitFullscreen()
@@ -24,7 +28,7 @@ export default function SiteHeader({
       }
       setMessage('')
     } catch {
-      setMessage('Le navigateur a refusé le plein écran. Utilisez le bouton ou son menu.')
+      setMessage('Le navigateur a refusé le plein écran. Utilisez son menu ou le bouton.')
     }
   }, [])
   useEffect(() => {
@@ -44,34 +48,42 @@ export default function SiteHeader({
   }, [toggle])
   return (
     <>
-      <header className="site-header">
-        <Link className="brand" href="/jouer" aria-label="Voyage Culturel — jouer">
-          <span className="brand-icon">
-            <Icon name="globe" width="29" height="29" />
-          </span>
-          <span>
-            VOYAGE
-            <span>
-              CULTUREL<span className="brand-dot">.</span>
-            </span>
-          </span>
+      <header inert={inert} className={`site-header ${role === 'presenter' ? 'admin-header' : ''}`}>
+        <Link
+          href={role === 'presenter' ? '/presentateur' : '/jouer'}
+          className="brand"
+          aria-label="ALGOMANIA — Scientific Club"
+        >
+          {/* Image fournie par le club, recadrée sans redessiner sa marque. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/branding/algomania-logo.webp"
+            alt="ALGOMANIA Scientific Club"
+            width="1026"
+            height="272"
+            fetchPriority="high"
+          />
         </Link>
-        <div className="event-label">
-          <span className="event-star">✳</span>
-          <span>
-            INTERNATIONAL
-            <br />
-            <strong>STUDENTS DAY</strong>
-          </span>
-        </div>
+        {role === 'presenter' && <span className="header-context">Pupitre du stand</span>}
         <div className="header-actions">
-          <span
-            className={`connection ${connected ? 'online' : ''}`}
-            title={connected ? 'Connecté au stand' : 'Connexion au stand…'}
-          >
-            <i />
-            {connected ? 'Stand en direct' : 'Connexion…'}
+          {children}
+          <span className={`connection ${connected ? 'online' : ''}`} role="status">
+            <i aria-hidden="true" />
+            {connected ? 'En direct' : 'Connexion…'}
           </span>
+          {role === 'presenter' && (
+            <Link
+              className="mode-link"
+              href="/jouer"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Écran visiteur"
+              title="Écran visiteur"
+            >
+              <span>Écran visiteur</span>
+              <Icon name="arrow" />
+            </Link>
+          )}
           <button
             className="button button-quiet fullscreen-button"
             onClick={() => void toggle()}
@@ -80,18 +92,17 @@ export default function SiteHeader({
           >
             <Icon name={fullscreen ? 'shrink' : 'expand'} />
             <span>{fullscreen ? 'Réduire' : 'Plein écran'}</span>
-            <kbd>Ctrl F</kbd>
           </button>
-          <Link href={role === 'player' ? '/presentateur' : '/jouer'} className="mode-link">
-            {role === 'player' ? 'Présentateur' : 'Écran joueur'}
-            <Icon name="arrow" width="16" height="16" />
-          </Link>
         </div>
       </header>
       {message && (
         <div className="fullscreen-message" role="status">
           {message}
-          <button aria-label="Fermer le message" onClick={() => setMessage('')}>
+          <button
+            className="icon-button"
+            aria-label="Fermer le message"
+            onClick={() => setMessage('')}
+          >
             <Icon name="close" />
           </button>
         </div>

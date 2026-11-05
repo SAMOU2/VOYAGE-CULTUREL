@@ -21,3 +21,11 @@ backend/dist/
 frontend/.next/
 frontend/next-env.d.ts
 frontend/tsconfig.tsbuildinfo
+
+# Réglages locaux et sauvegardes privées de migration.
+data/settings.json
+data/settings.json.*.tmp
+data/users.json.*.bak
+
+# Sortie Next.js réservée aux tests navigateur isolés.
+.next-ui/

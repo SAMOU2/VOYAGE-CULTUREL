@@ -1,0 +1,34 @@
+ALGOMANIA — crédits des données et images
+
+Image terrestre : Solar System Scope / INOVE, Earth Day Map.
+Licence : CC BY 4.0, https://creativecommons.org/licenses/by/4.0/
+Source : https://www.solarsystemscope.com/textures/
+Modifications : redimensionnement 2K/4K et recompression 2K/4K/8K.
+Notice détaillée : /textures/ATTRIBUTION.txt
+
+Frontières et routes : Natural Earth, domaine public, via world-atlas et
+Natural Earth Vector. La carte inclut des territoires ; elle ne constitue
+pas une prise de position politique.
+https://github.com/topojson/world-atlas
+https://github.com/nvkelso/natural-earth-vector
+
+Métadonnées pays, capitales, codes, superficies et régions :
+mledoze/countries, Open Database License 1.0 (ODbL 1.0).
+https://github.com/mledoze/countries
+https://opendatacommons.org/licenses/odbl/1-0/
+Référence : blob 455b3fd85abcf8fa01e0fca63e84a853c9ff4422.
+Les bases dérivées facts.json et questions.json et leur générateur sont
+inclus dans le dépôt sous ODbL 1.0 pour les droits sur la base de données.
+Les contenus individuels et références conservent leurs droits propres.
+
+Polices locales : Inter et Noto Sans Arabic, SIL Open Font License 1.1,
+via Fontsource. Notices complètes :
+/licenses/Inter-OFL.txt
+/licenses/Noto-Sans-Arabic-OFL.txt
+Logo fourni par ALGOMANIA Scientific Club ; les droits
+sur la marque restent à leurs titulaires.
+
+Sources, fichiers et licences complets :
+https://github.com/SAMOU2/VOYAGE-CULTUREL
+La présence de ces ressources n'implique pas une approbation du jeu par
+leurs auteurs. Les données personnelles du stand ne doivent pas être publiées.

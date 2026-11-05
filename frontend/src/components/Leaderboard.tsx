@@ -3,41 +3,42 @@ import { Icon } from './Icon'
 
 export function Leaderboard({
   entries,
-  compact = false,
+  compact = true,
+  currentName,
 }: {
   entries: LeaderboardEntry[]
   compact?: boolean
+  currentName?: string
 }) {
-  const visible = compact ? entries.slice(0, 3) : entries
+  const visible = entries.slice(0, compact ? 5 : 20)
   return (
-    <section
-      className={`leaderboard panel ${compact ? 'compact' : ''}`}
-      aria-label="Classement du stand"
-    >
+    <section className="leaderboard panel" aria-label="Classement du stand">
       <div className="section-heading">
-        <span className="heading-icon">
-          <Icon name="trophy" />
-        </span>
-        <h2>Les grands voyageurs</h2>
-        <span className="tiny-label">{compact ? 'TOP 3' : 'TOP 20'}</span>
+        <Icon name="trophy" />
+        <h2>Meilleurs scores</h2>
+        <span>TOP {compact ? '5' : '20'}</span>
       </div>
-      {!entries.length ? (
-        <p className="empty-leaderboard">
-          Le premier voyage reste à écrire.
-          <br />
-          <span>Terminez un passage pour apparaître ici.</span>
-        </p>
+      <p className="ranking-help">Un joueur. Son meilleur score.</p>
+      {!visible.length ? (
+        <div className="empty-leaderboard">
+          <span>01</span>
+          <p>
+            La première place
+            <br />
+            attend son joueur.
+          </p>
+        </div>
       ) : (
         <ol>
           {visible.map((entry) => (
-            <li key={`${entry.rank}-${entry.completedAt}`}>
+            <li key={entry.userId} className={entry.fullName === currentName ? 'is-current' : ''}>
               <span className={`rank rank-${entry.rank}`}>
                 {String(entry.rank).padStart(2, '0')}
               </span>
-              <span className="leader-name">
-                {entry.nickname}
+              <span className="leader-name" dir="auto" title={entry.fullName}>
+                {entry.fullName}
                 <small>
-                  {entry.correct}/{entry.answered} bonnes réponses
+                  Niveau {entry.level} · {entry.correct}/{entry.answered}
                 </small>
               </span>
               <strong>
@@ -48,6 +49,11 @@ export function Leaderboard({
           ))}
         </ol>
       )}
+      <span className="ranking-footnote">
+        Chaque nouvelle tentative compte.
+        <br />
+        Seule la meilleure est affichée.
+      </span>
     </section>
   )
 }

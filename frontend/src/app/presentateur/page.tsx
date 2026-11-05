@@ -1,279 +1,290 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { useEffect, useMemo, useState } from 'react'
-import type { Difficulty, StandSettings } from '@shared/types'
-import { useStand } from '@/lib/useStand'
+import { useEffect, useState } from 'react'
+import { useCatalog, useStand } from '@/hooks/useStand'
 import SiteHeader from '@/components/SiteHeader'
 import { QuestionCard } from '@/components/QuestionCard'
-import { Leaderboard } from '@/components/Leaderboard'
+import { AdminLeaderboard } from '@/components/AdminLeaderboard'
+import { SettingsPanel } from '@/components/SettingsPanel'
 import { Icon } from '@/components/Icon'
-
-const Globe = dynamic(() => import('@/components/Globe'), { ssr: false })
+import { modeLabel, STAGE_LABELS } from '@shared/game'
 
 export default function PresenterPage() {
-  const stand = useStand('presenter')
-  const state = stand.state?.role === 'presenter' ? stand.state : null
-  const [name, setName] = useState(''),
-    [saved, setSaved] = useState(false)
+  const stand = useStand('presenter'),
+    state = stand.state?.role === 'presenter' ? stand.state : null,
+    catalog = useCatalog()
+  const [confirmEnd, setConfirmEnd] = useState(false),
+    [message, setMessage] = useState('')
+  const game = state?.game,
+    question = state?.question
+  const turn = game && question ? { attemptId: game.id, turn: question.turn } : null
+  const playing = state?.phase === 'question' || state?.phase === 'feedback',
+    canControl = stand.connected && stand.controlled && !stand.pending
   useEffect(() => {
-    setName(state?.participant.nickname ?? '')
-  }, [state?.participant.nickname])
-  const target = useMemo(
-    () => (state ? { countryId: state.answer.country.id, pin: state.answer.location } : null),
-    [state?.answer.country.id, state?.answer.location[0], state?.answer.location[1]],
-  )
-  const update = (settings: Partial<StandSettings>) => {
-    if (state)
-      void stand.command({ type: 'settings', settings: { ...state.settings, ...settings } })
-  }
-  const disabled = !stand.controlled || !stand.connected || stand.pending
-  const finish = async () => {
-    const success = await stand.command({ type: 'new-participant' })
-    if (success) {
-      setSaved(true)
-      setTimeout(() => setSaved(false), 4_000)
-    }
-  }
+    setConfirmEnd(false)
+    setMessage('')
+  }, [game?.id, question?.turn])
   return (
-    <div className="app-shell presenter-shell">
+    <div className="admin-shell">
       <SiteHeader role="presenter" connected={stand.connected} />
-      <div className="presenter-intro">
-        <div>
-          <p className="eyebrow">LE PUPITRE DU STAND</p>
-          <h1>Faites voyager les esprits.</h1>
+      <main className="admin-main">
+        <div className="admin-title">
+          <div>
+            <span className="section-kicker">Pilotage en temps réel</span>
+            <h1>Parties et classement</h1>
+          </div>
+          <span className="admin-live">
+            <i />
+            {playing ? 'Une partie est en cours' : 'Prêt pour le prochain joueur'}
+          </span>
         </div>
-        <span className="presenter-badge">
-          <Icon name="settings" width="16" height="16" />
-          PRÉSENTATEUR
-        </span>
-      </div>
-      {(stand.error || saved) && (
-        <div className={`stand-message ${stand.error ? 'is-error' : ''}`} role="status">
-          {stand.error ||
-            (saved
-              ? 'Passage enregistré dans le classement. Le prochain visiteur peut jouer.'
-              : '')}
-          {!stand.controlled && (
-            <button className="button button-quiet" onClick={stand.reconnect}>
-              Reprendre la connexion
-            </button>
-          )}
-        </div>
-      )}
-      {!state ? (
-        <main className="panel connection-panel">
-          <span className="loading-orbit" />
-          <h2>Ouverture du pupitre…</h2>
-          <p>{stand.error || 'Le stand se connecte automatiquement, sans compte ni code.'}</p>
-        </main>
-      ) : (
-        <main className="presenter-layout">
-          <section className="presenter-controls panel" aria-label="Commandes du présentateur">
-            <div className="section-heading">
-              <Icon name="user" />
-              <h2>Le visiteur</h2>
-              <span className="live-dot" />
-            </div>
-            <form
-              className="nickname-form"
-              onSubmit={(event) => {
-                event.preventDefault()
-                void stand.command({ type: 'rename', nickname: name })
-              }}
-            >
-              <label htmlFor="nickname">
-                Pseudo du visiteur <span>(facultatif)</span>
-              </label>
-              <div>
-                <input
-                  id="nickname"
-                  maxLength={24}
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Un prénom, un pseudo…"
-                  disabled={disabled}
-                />
-                <button
-                  className="icon-button"
-                  type="submit"
-                  aria-label="Enregistrer le pseudo"
-                  disabled={disabled}
-                >
-                  <Icon name="check" />
-                </button>
-              </div>
-            </form>
-            <div className="presenter-score">
-              <Icon name="spark" width="23" height="23" />
-              <strong>{state.participant.score}</strong>
-              <span>points</span>
-            </div>
-            <div className="visitor-stats">
-              <span>
-                <strong>{state.participant.correct}</strong>bonnes réponses
-              </span>
-              <span>
-                <strong>{state.participant.answered}</strong>questions explorées
-              </span>
-            </div>
-            <div className="presenter-buttons">
-              <button
-                className="button button-primary"
-                disabled={disabled || state.phase !== 'feedback'}
-                onClick={() => void stand.command({ type: 'next' })}
-              >
-                Question suivante
-                <Icon name="arrow" />
+        {stand.error && (
+          <div className="admin-alert" role="alert">
+            <Icon name="info" />
+            <p>{stand.error}</p>
+            {!stand.connected && (
+              <button className="button button-secondary" onClick={stand.reconnect}>
+                Reconnecter
               </button>
-              <div className="two-buttons">
-                <button
-                  className="button button-secondary"
-                  disabled={
-                    disabled || state.phase !== 'question' || state.question.hints.length >= 2
-                  }
-                  onClick={() => void stand.command({ type: 'hint' })}
-                >
-                  <Icon name="bulb" />
-                  Indice {state.question.hints.length}/2
-                </button>
-                <button
-                  className="button button-secondary"
-                  disabled={disabled || state.phase !== 'question'}
-                  onClick={() => void stand.command({ type: 'skip' })}
-                >
-                  <Icon name="next" />
-                  Passer
-                </button>
-              </div>
-              <p className="control-help">
-                Un indice : −5 points. Le score ne descend jamais sous zéro.
-              </p>
-            </div>
-            {state.phase === 'feedback' && (
-              <div className="verdict-controls">
-                <span>Décision de l’animateur</span>
-                <div className="two-buttons">
-                  <button
-                    className={`button button-quiet ${state.feedback?.outcome === 'correct' ? 'is-correct' : ''}`}
-                    disabled={disabled}
-                    onClick={() => void stand.command({ type: 'correct' })}
-                  >
-                    <Icon name="check" width="16" height="16" />
-                    Accepter
-                  </button>
-                  <button
-                    className={`button button-quiet ${state.feedback?.outcome === 'incorrect' ? 'is-incorrect' : ''}`}
-                    disabled={disabled}
-                    onClick={() => void stand.command({ type: 'incorrect' })}
-                  >
-                    <Icon name="close" width="16" height="16" />
-                    Refuser
-                  </button>
-                </div>
-              </div>
             )}
-            <div className="finish-visitor">
-              <button
-                className="button button-finish"
-                disabled={disabled}
-                onClick={() => void finish()}
-              >
-                <Icon name="user" width="18" height="18" />
-                {state.participant.answered ? 'Terminer le passage' : 'Visiteur suivant'}
-                <Icon name="arrow" width="17" height="17" />
-              </button>
-              <small>Enregistre le score et accueille le prochain visiteur.</small>
-            </div>
+          </div>
+        )}
+        {!state ? (
+          <section className="panel admin-loading">
+            <span className="loading-orbit" />
+            <h2>{stand.error ? 'Le pupitre attend sa connexion' : 'Connexion au stand…'}</h2>
+            <p>Le premier onglet présentateur prend la main, sans compte ni code à saisir.</p>
           </section>
-          <section className="presenter-center" aria-label="Question et corrigé privé">
-            <QuestionCard state={state} presenter />
-            <div className="private-answer panel">
-              <p className="eyebrow">
-                <Icon name="check" width="15" height="15" />
-                CORRIGÉ · VISIBLE ICI UNIQUEMENT
-              </p>
-              <h2>{state.answer.country.name}</h2>
-              <p>{state.answer.explanation}</p>
-              <a href={state.answer.source.url} target="_blank" rel="noreferrer">
-                {state.answer.source.label}
-                <Icon name="arrow" width="14" height="14" />
-              </a>
+        ) : (
+          <div className="admin-grid">
+            <div className="admin-left">
+              <section className="current-game" aria-label="Partie en cours">
+                <div className="section-heading">
+                  <Icon name="globe" />
+                  <h2>{game ? 'Le joueur actuel' : 'Aucune partie en cours'}</h2>
+                  {game && <span>{modeLabel(game.mode)}</span>}
+                </div>
+                {!game ? (
+                  <div className="stand-ready panel">
+                    <span>
+                      <Icon name="play" width="28" height="28" />
+                    </span>
+                    <div>
+                      <h3>L’écran visiteur est prêt.</h3>
+                      <p>
+                        Le visiteur touche l’écran, choisit « Jouer » et écrit son nom complet sur
+                        le clavier tactile. La question apparaît ici dès le début de sa partie.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="admin-game-stats panel">
+                      <div className="admin-player-name">
+                        <Icon name="user" />
+                        <div>
+                          <small>Nom et prénom</small>
+                          <strong dir="auto">{game.fullName}</strong>
+                        </div>
+                      </div>
+                      <div>
+                        <strong>
+                          {game.score}
+                          <small> pts</small>
+                        </strong>
+                        <span>score actuel</span>
+                      </div>
+                      <div>
+                        <strong>
+                          {game.answered}
+                          <small> / {game.totalQuestions}</small>
+                        </strong>
+                        <span>questions résolues</span>
+                      </div>
+                      <div>
+                        <strong>
+                          {game.stage}
+                          <small> / 4</small>
+                        </strong>
+                        <span>{STAGE_LABELS[game.stage - 1]}</span>
+                      </div>
+                    </div>
+                    <div className="admin-question-grid">
+                      <QuestionCard state={state} presenter>
+                        {state.phase === 'question' && (
+                          <div className="admin-question-controls">
+                            <button
+                              className="button button-secondary"
+                              disabled={!canControl || !turn || (question?.hints.length ?? 0) >= 2}
+                              onClick={() => {
+                                if (turn) void stand.command({ type: 'hint', ...turn })
+                              }}
+                            >
+                              <Icon name="bulb" />
+                              Partager un indice
+                            </button>
+                            <button
+                              className="button button-quiet"
+                              disabled={!canControl || !turn}
+                              onClick={async () => {
+                                if (turn) {
+                                  const result = await stand.command({
+                                    type: 'replace-question',
+                                    ...turn,
+                                  })
+                                  if (result.ok)
+                                    setMessage(
+                                      'Question changée, sans point ni progression supplémentaire.',
+                                    )
+                                }
+                              }}
+                            >
+                              <Icon name="swap" />
+                              Remplacer la question
+                            </button>
+                          </div>
+                        )}
+                        {state.phase === 'feedback' && (
+                          <button
+                            className="button button-primary next-button"
+                            disabled={!canControl || !turn}
+                            onClick={() => {
+                              if (turn) void stand.command({ type: 'next', ...turn })
+                            }}
+                          >
+                            Question suivante
+                            <Icon name="arrow" />
+                          </button>
+                        )}
+                      </QuestionCard>
+                      {state.answer && (
+                        <section className="private-answer panel" aria-label="Corrigé privé">
+                          <span className="section-kicker">Réservé au pupitre</span>
+                          <h2>{state.answer.country.name}</h2>
+                          <p>{state.answer.explanation}</p>
+                          <a href={state.answer.source.url} target="_blank" rel="noreferrer">
+                            {state.answer.source.label}
+                            <Icon name="arrow" width="16" height="16" />
+                          </a>
+                          <div className="private-hints">
+                            {state.answer.hints.map((hint, i) => (
+                              <div
+                                key={i}
+                                className={i < (question?.hints.length ?? 0) ? 'shared' : ''}
+                              >
+                                <span>
+                                  <Icon name="bulb" width="17" height="17" />
+                                  Indice {i + 1}
+                                  <small>
+                                    {i < (question?.hints.length ?? 0) ? 'Partagé' : 'Non partagé'}
+                                  </small>
+                                </span>
+                                <p>{hint}</p>
+                              </div>
+                            ))}
+                          </div>
+                          {state.feedback && turn && (
+                            <div className="verdict-correction">
+                              <span>Corriger le verdict</span>
+                              <button
+                                className="button button-quiet"
+                                disabled={!canControl || state.feedback.outcome === 'correct'}
+                                onClick={() => void stand.command({ type: 'correct', ...turn })}
+                              >
+                                <Icon name="check" />
+                                Accepter
+                              </button>
+                              <button
+                                className="button button-quiet"
+                                disabled={!canControl || state.feedback.outcome === 'incorrect'}
+                                onClick={() => void stand.command({ type: 'incorrect', ...turn })}
+                              >
+                                <Icon name="close" />
+                                Refuser
+                              </button>
+                            </div>
+                          )}
+                        </section>
+                      )}
+                    </div>
+                    <div className="admin-game-footer">
+                      {playing ? (
+                        <button
+                          className="button button-quiet"
+                          disabled={!canControl}
+                          onClick={() => setConfirmEnd(!confirmEnd)}
+                        >
+                          <Icon name="close" />
+                          Terminer ce passage
+                        </button>
+                      ) : (
+                        <button
+                          className="button button-secondary"
+                          disabled={!canControl}
+                          onClick={() => void stand.command({ type: 'reset' })}
+                        >
+                          Prêt pour le prochain visiteur
+                          <Icon name="arrow" />
+                        </button>
+                      )}
+                      <span role="status">
+                        {message ||
+                          (!playing
+                            ? 'Tentative enregistrée.'
+                            : 'Remplacer une question ne fait pas avancer le niveau.')}
+                      </span>
+                    </div>
+                    {confirmEnd && playing && (
+                      <div
+                        className="end-confirmation"
+                        role="group"
+                        aria-label="Confirmer la fin du passage"
+                      >
+                        <p>Terminer cette tentative ? Les points déjà obtenus seront conservés.</p>
+                        <button
+                          className="button button-primary"
+                          disabled={!canControl}
+                          onClick={() =>
+                            void stand.command({ type: 'end-game', attemptId: game.id })
+                          }
+                        >
+                          Oui, terminer
+                        </button>
+                        <button
+                          className="button button-secondary"
+                          onClick={() => setConfirmEnd(false)}
+                        >
+                          Continuer la partie
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </section>
+              <AdminLeaderboard
+                entries={state.adminLeaderboard}
+                enabled={stand.connected && stand.controlled}
+                loadHistory={stand.history}
+              />
             </div>
-            <div className="presenter-globe panel">
-              <Globe target={target} compact disabled />
-            </div>
-          </section>
-          <aside className="presenter-aside">
-            <section className="settings-card panel" aria-label="Réglages du stand">
-              <div className="section-heading">
-                <Icon name="settings" />
-                <h2>Le parcours</h2>
-              </div>
-              <label htmlFor="theme">Thématique</label>
-              <select
-                id="theme"
-                disabled={disabled}
-                value={state.settings.theme}
-                onChange={(event) => update({ theme: event.target.value })}
-              >
-                <option value="tous">Toutes les cultures</option>
-                {state.catalog.themes.map((theme) => (
-                  <option key={theme.id} value={theme.id}>
-                    {theme.emoji} {theme.label}
-                  </option>
-                ))}
-              </select>
-              <label htmlFor="difficulty">Difficulté</label>
-              <select
-                id="difficulty"
-                disabled={disabled}
-                value={state.settings.difficulty}
-                onChange={(event) =>
-                  update({
-                    difficulty:
-                      event.target.value === 'progressive'
-                        ? 'progressive'
-                        : (Number(event.target.value) as Difficulty),
-                  })
-                }
-              >
-                <option value="progressive">Progressive · pour tous</option>
-                {state.catalog.difficulties.map((level) => (
-                  <option key={level.value} value={level.value}>
-                    {level.label} · {level.points} points
-                  </option>
-                ))}
-              </select>
-              <label className="toggle-row" htmlFor="retry">
-                <span>
-                  Une seconde chance<small>Moitié des points au deuxième essai.</small>
-                </span>
-                <input
-                  id="retry"
-                  type="checkbox"
-                  checked={state.settings.allowRetry}
-                  disabled={disabled}
-                  onChange={(event) => update({ allowRetry: event.target.checked })}
+            <aside className="admin-settings">
+              {catalog.data && (
+                <SettingsPanel
+                  settings={state.settings}
+                  catalog={catalog.data}
+                  pending={!canControl}
+                  save={(settings) => stand.command({ type: 'settings', settings })}
                 />
-              </label>
-              <p className="settings-note">
-                {state.catalog.questions} questions · {state.catalog.themes.length} thématiques
-                <br />
-                En continu, au rythme des visiteurs.
+              )}
+              <p className="admin-privacy">
+                <Icon name="info" />
+                Le corrigé et les indices non partagés restent sur ce pupitre. L’écran visiteur ne
+                reçoit la réponse qu’après le verdict.
               </p>
-            </section>
-            <Leaderboard entries={state.leaderboard} />
-          </aside>
-        </main>
-      )}
-      <footer className="page-footer">
-        <span>VOYAGE CULTUREL</span>
-        <span>Un stand. Un visiteur à la fois. Le monde à découvrir.</span>
-        <a href="/jouer" target="_blank" rel="noreferrer">
-          Ouvrir l’écran joueur <Icon name="arrow" width="14" height="14" />
-        </a>
-      </footer>
+            </aside>
+          </div>
+        )}
+      </main>
     </div>
   )
 }

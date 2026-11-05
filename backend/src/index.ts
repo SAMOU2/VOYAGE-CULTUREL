@@ -2,18 +2,18 @@ import { startBackend } from './app.js'
 
 try {
   const backend = await startBackend()
-  console.log(`Stand Express prêt sur http://0.0.0.0:${backend.port}`)
+  console.log('ALGOMANIA · Express prêt sur le port ' + backend.port)
   let closing = false
   const shutdown = async () => {
     if (closing) return
     closing = true
     try {
-      await backend.stand.store.save(backend.stand.participant)
+      await backend.close()
+      process.exit(0)
     } catch (error) {
-      console.error('Sauvegarde du dernier visiteur impossible :', error)
+      console.error('Fermeture du stand impossible :', error)
+      process.exit(1)
     }
-    await backend.close()
-    process.exit(0)
   }
   process.on('SIGINT', () => {
     void shutdown()

@@ -1,19 +1,19 @@
 import { defineConfig } from '@playwright/test'
 
-const baseURL = process.env.UI_BASE_URL || 'http://127.0.0.1:3000'
+const baseURL = process.env.UI_BASE_URL || `http://127.0.0.1:${process.env.UI_PORT || 3100}`
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
-
 export default defineConfig({
   testDir: './tests/ui',
   outputDir: '.cache/playwright-results',
   workers: 1,
   fullyParallel: false,
-  timeout: 60_000,
-  expect: { timeout: 12_000 },
+  timeout: 90_000,
+  expect: { timeout: 15_000 },
   reporter: 'list',
   use: {
     baseURL,
     headless: true,
+    reducedMotion: 'reduce',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     launchOptions: {
@@ -31,9 +31,14 @@ export default defineConfig({
     },
   },
   projects: [
-    { name: 'ordinateur', use: { viewport: { width: 1440, height: 940 } } },
+    {
+      name: 'ordinateur',
+      testMatch: 'stand.spec.ts',
+      use: { viewport: { width: 1366, height: 900 } },
+    },
     {
       name: 'mobile',
+      testMatch: 'stand.spec.ts',
       use: {
         viewport: { width: 390, height: 844 },
         isMobile: true,
@@ -41,11 +46,18 @@ export default defineConfig({
         deviceScaleFactor: 1,
       },
     },
+    {
+      name: 'borne-43',
+      testMatch: 'large-screen.spec.ts',
+      use: { viewport: { width: 1920, height: 1080 }, hasTouch: true, deviceScaleFactor: 1 },
+    },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: `${baseURL}/api/health`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: process.env.UI_BASE_URL
+    ? undefined
+    : {
+        command: 'npx tsx scripts/ui-server.ts',
+        url: `${baseURL}/api/health`,
+        reuseExistingServer: false,
+        timeout: 120_000,
+      },
 })

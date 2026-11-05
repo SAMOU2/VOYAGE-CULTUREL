@@ -8,3 +8,6 @@ backend/dist/
 data/
 docs/apercus/
 package-lock.json
+
+# Sortie Next.js réservée aux tests navigateur isolés.
+.next-ui/

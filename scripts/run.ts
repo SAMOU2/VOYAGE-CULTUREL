@@ -64,6 +64,8 @@ else
       '../data/questions.json',
       '--include',
       '../data/countries.json',
+      '--include',
+      '../data/facts.json',
       'src/index.ts',
     ],
     resolve(root, 'backend'),
