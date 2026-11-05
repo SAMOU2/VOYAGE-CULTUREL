@@ -11,8 +11,14 @@ export const uniqueName = () => `QA ${randomUUID().slice(0, 8)} Démonstration`
 export async function resetStand(baseURL: string) {
   const socket = await connect(baseURL)
   try {
-    const result = await claim(socket)
-    if (!result.ok) throw new Error(result.error)
+    // Fermer un contexte navigateur et libérer son socket serveur ne sont pas
+    // synchrones : attendre la libération, sans voler la capacité du pupitre.
+    await expect
+      .poll(async () => (await claim(socket)).ok, {
+        timeout: 15_000,
+        intervals: [100, 250, 500, 1000],
+      })
+      .toBe(true)
     const reset = await command(socket, { type: 'reset' })
     if (!reset.ok) throw new Error(reset.error)
     const settings = await command(socket, {
@@ -122,6 +128,15 @@ export async function savePreview(page: Page, name: string, fullPage = false) {
 export async function seedDemoScores(baseURL: string) {
   if (process.env.UI_BASE_URL)
     throw new Error('CAPTURE_DOCS exige le serveur UI temporaire, sans UI_BASE_URL.')
+  const existing = (await (await fetch(`${baseURL}/api/leaderboard`)).json()) as {
+    fullName: string
+  }[]
+  if (
+    ['Lina Benali (démo)', 'Sami Touati (démo)', 'Maya Chen (démo)'].every((name) =>
+      existing.some((row) => row.fullName === name),
+    )
+  )
+    return
   const { response, snapshot, watch } = await import('../support/network.js')
   const admin = await connect(baseURL),
     player = await connect(baseURL)

@@ -108,6 +108,44 @@ test('vrai globe : picking France, validation serveur, verdict et routes au zoom
   expect(requests.some((url) => /rivers|lakes/i.test(url))).toBe(false)
 })
 
+test('transport HTTP de secours : WebSocket bloqué, commandes et synchro conservées', async ({
+  page,
+  context,
+}) => {
+  // Faire échouer la poignée de main, pas fermer proprement un socket déjà
+  // ouvert : un proxy qui refuse WebSocket déclenche un événement error.
+  await page.addInitScript(() => {
+    window.WebSocket = new Proxy(window.WebSocket, {
+      construct(target, args) {
+        if (String(args[0]).includes('/socket.io')) {
+          const url = new URL(String(args[0]))
+          // Port fermé du même hôte de test : échec réseau asynchrone réel.
+          url.port = '65534'
+          return Reflect.construct(target, [url.toString(), ...args.slice(1)])
+        }
+        return Reflect.construct(target, args)
+      },
+    })
+  })
+  const polling: string[] = []
+  page.on('request', (request) => {
+    if (request.url().includes('transport=polling')) polling.push(request.url())
+  })
+  await openPlayer(page)
+  expect(polling.length).toBeGreaterThan(0)
+  const admin = await context.newPage()
+  await openAdmin(admin)
+  const before = await stateOf(page)
+  await admin.getByRole('button', { name: 'Remplacer la question', exact: true }).click()
+  await expect
+    .poll(async () => (await stateOf(page)).question!.turn)
+    .toBeGreaterThan(before.question!.turn)
+  await chooseCorrect(page, admin)
+  await page.getByRole('button', { name: 'Valider mon choix', exact: true }).click()
+  await expect(page.locator('.feedback-heading')).toContainText('Bonne réponse')
+  expect((await stateOf(page)).game!.answered).toBe(1)
+})
+
 test('WebGL absent : secours 2D réellement cliquable et validation conservée', async ({ page }) => {
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext

@@ -19,7 +19,10 @@ export function useStandConnection(role: Role) {
     const socket: StandSocket = io({
       autoConnect: false,
       addTrailingSlash: false,
-      transports: ['polling', 'websocket'],
+      // WebSocket direct évite de suspendre les commandes pendant une montée
+      // polling → WebSocket derrière le proxy ; HTTP reste un vrai secours.
+      transports: ['websocket', 'polling'],
+      tryAllTransports: true,
     })
     socketRef.current = socket
     const apply = (next: StandState) => {

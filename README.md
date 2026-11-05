@@ -43,7 +43,7 @@ Deux processus distincts sont lancés :
 
 Sur un deuxième appareil, utiliser **l’IP du PC serveur**, par exemple `http://192.168.1.20:3000/jouer`, pas `localhost`. Les appareils doivent partager le même réseau et le pare-feu doit autoriser le port 3000. Aucun service Internet n’est nécessaire pendant le jeu : cartes, images, polices, questions et faits sont locaux. Les liens de références restent facultatifs et nécessitent Internet.
 
-Les requêtes du navigateur utilisent uniquement l’origine du frontend. Next relaie `/api/*` et `/socket.io` vers Express ; ne pas ajouter d’URL `localhost:4000` dans le code navigateur. Le backend n’a pas besoin d’être exposé aux visiteurs.
+Les requêtes du navigateur utilisent uniquement l’origine du frontend. Next relaie `/api/*` et `/socket.io` vers Express ; ne pas ajouter d’URL `localhost:4000` dans le code navigateur. Le backend n’a pas besoin d’être exposé aux visiteurs. Le client ouvre WebSocket directement et conserve le polling HTTP comme secours si la négociation WebSocket échoue, sans suspendre les commandes pendant une montée de transport.
 
 ## Veille et parcours visiteur
 
@@ -184,6 +184,16 @@ npm run test:ui
 ```
 
 **Les tests UI utilisent leurs propres ports 3100/4100, des JSON temporaires et `frontend/.next-ui`.** Ils ne réutilisent pas automatiquement le serveur du stand et ne modifient pas ses visiteurs. `UI_BASE_URL` permet de cibler explicitement un serveur de **test** déjà isolé, jamais le stand réel. Les vérifications automatiques ne remplacent pas une recette tactile sur le 43 pouces.
+
+Pour renouveler les six captures du README avec des scores **fictifs**, utiliser le serveur UI temporaire (ne pas définir `UI_BASE_URL`) :
+
+```powershell
+$env:CAPTURE_DOCS = "1"
+npm run test:ui
+Remove-Item Env:\CAPTURE_DOCS
+```
+
+Cette option crée trois profils de démonstration uniquement dans les JSON temporaires et remplace les images de `docs/apercus/`. Elle ne modifie pas les visiteurs du stand.
 
 ### Windows / PowerShell 5.1
 
